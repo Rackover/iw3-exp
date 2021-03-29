@@ -151,8 +151,6 @@ namespace Components
 		}
 
 		// Save_XModelCollSurfArray
-
-
 		if (asset->collSurfs)
 		{
 			buffer.saveArray(asset->collSurfs, asset->numCollSurfs);
@@ -250,7 +248,6 @@ namespace Components
 	void IXModel::Dump(Game::IW3::XModel* model)
 	{
 		if (!model) return;
-
 		Utils::Memory::Allocator allocator;
 
 		Game::IW4::XModel xmodel;
