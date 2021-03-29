@@ -20,6 +20,6 @@ namespace Components
         static void DumpVS(Game::IW3::MaterialVertexShader* vs);
         static void DumpPS(Game::IW3::MaterialPixelShader* ps);
 
-        static std::unordered_map <std::int32_t, std::int32_t> IMaterialTechniqueSet::iw3CodeConstMap;
+        static std::unordered_map <std::int32_t, std::int32_t> iw3CodeConstMap;
     };
 }

@@ -9,7 +9,7 @@ namespace Game
 	typedef void(__cdecl * Cmd_ExecuteSingleCommand_t)(int controller, int a2, const char* cmd);
 	extern Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand;
 
-	typedef void(__cdecl * Com_Error_t)(int type, char* message, ...);
+	typedef void(__cdecl * Com_Error_t)(int type, const char* message, ...);
 	extern Com_Error_t Com_Error;
 
 	typedef void(__cdecl * Com_PrintMessage_t)(int, const char*, char);

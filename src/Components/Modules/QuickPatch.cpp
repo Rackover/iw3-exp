@@ -29,7 +29,7 @@ namespace Components
 		//Utils::Hook::SetString(0xCC157E0, "+set dedicated 1", 1023);
 
 		// Set fs_game
-		Utils::Hook::Set<char*>(0x55E509, "mods/iw3-exp");
+		Utils::Hook::Set<const char*>(0x55E509, "mods/iw3-exp");
 
 		Utils::Hook(0x4FF20A, QuickPatch::OnInitStub, HOOK_CALL).install()->quick();
 
@@ -63,6 +63,8 @@ namespace Components
 			if (params.Length() < 2) return;
 			std::string mapname = params[1];
 			std::string bspname = Utils::VA("maps/mp/%s.d3dbsp", mapname.data());
+
+			Logger::Print("IW3Xport build %s %s\n", __TIME__, __DATE__);
 
 			Logger::Print("Loading map '%s'...\n", mapname.data());
 			Command::Execute(Utils::VA("map %s", mapname.data()), true);

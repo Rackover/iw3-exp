@@ -9,7 +9,7 @@ namespace Components
 	{
 		if (index >= this->Length()) 
 		{
-			return "";
+			return new char[0];
 		}
 
 		return Game::cmd_argv[this->CommandId][index];
