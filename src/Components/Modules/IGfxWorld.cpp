@@ -558,7 +558,7 @@ namespace Components
 				map.models[i].bounds.compute(world->models[i].bounds[0], world->models[i].bounds[1]); // Verified
 
 				float* halfSize = map.models[i].bounds.halfSize;
-				map.models[i].radius = std::sqrt(std::pow(halfSize[0], 2) + std::pow(halfSize[1], 2) + std::pow(halfSize[2], 2));
+				map.models[i].radius = (float)std::sqrt(std::pow(halfSize[0], 2) + std::pow(halfSize[1], 2) + std::pow(halfSize[2], 2));
 
 				map.models[i].surfaceCount = world->models[i].surfaceCount;
 				map.models[i].startSurfIndex = world->models[i].startSurfIndex;
