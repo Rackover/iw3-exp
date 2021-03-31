@@ -362,7 +362,7 @@ namespace Components
 					{
 						buffer.saveString("NONE");
 					}
-
+					
 					buffer.saveObject(clipMap->dynEntDefList[n][i].brushModel);
 					buffer.saveObject(clipMap->dynEntDefList[n][i].physicsBrushModel);
 
@@ -373,6 +373,20 @@ namespace Components
 					else
 					{
 						buffer.saveString("NONE");
+					}
+
+					// This never works!
+					if (clipMap->dynEntDefList[n][i].destroyPieces) {
+						Components::Logger::Print("Saving pieces %s\n", clipMap->dynEntDefList[n][i].destroyPieces->name);
+						int pieces = clipMap->dynEntDefList[n][i].destroyPieces->numpieces;
+						for (int piecesIndex = 0; piecesIndex < pieces; piecesIndex++) {
+							//buffer.saveString(clipMap->dynEntDefList[n][i].xModel->name);
+							AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_XMODEL, { clipMap->dynEntDefList[n][i].destroyPieces->pieces[piecesIndex].model });
+							Components::Logger::Print("Saving XModel piece %s\n", clipMap->dynEntDefList[n][i].destroyPieces->pieces[piecesIndex].model->name);
+						}
+					}
+					else {
+						//buffer.saveString("NONE");
 					}
 					if (clipMap->dynEntDefList[n][i].physPreset)
 					{

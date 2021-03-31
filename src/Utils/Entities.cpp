@@ -27,7 +27,7 @@ namespace Utils
 
 	std::vector<std::string> Entities::getModels()
 	{
-		std::vector<std::string> models;
+		std::vector<std::string>* models = new std::vector<std::string>();
 
 		for (auto& entity : this->entities)
 		{
@@ -37,15 +37,55 @@ namespace Utils
 
 				if (!model.empty() && model[0] != '*' && model[0] != '?') // Skip brushmodels
 				{
-					if (std::find(models.begin(), models.end(), model) == models.end())
+					if (std::find(models->begin(), models->end(), model) == models->end())
 					{
-						models.push_back(model);
+						models->push_back(model);
 					}
+				}
+
+				if (entity.find("destructible_type") != entity.end()) {
+
+					std::string destructible = entity["destructible_type"];
+
+					// Then we need to fetch the destructible models
+					// This is TERRIBLE but it works. Ideally we should be able to grab the destructible models from the modelpieces DynEnts list (see iGFXWorld.cpp) but it doesn't work :(
+					Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_XMODEL, [destructible, models](Game::IW3::XAssetEntry* entry)
+						{
+							if (entry->inuse == 1 && entry->asset.header.model) {
+								if (std::string(entry->asset.header.model->name).find(destructible) != std::string::npos) {
+									std::string model = entry->asset.header.model->name;
+									models->push_back(model);
+									Components::Logger::Print("Saving XModel piece %s for destructible %s (from enumXAsset)\n", entry->asset.header.model->name, destructible.data());
+								}
+							}
+
+						}, false);
 				}
 			}
 		}
 
-		return models;
+
+		return *models;
+	}
+
+	bool Entities::convertVehicles() {
+		bool hasVehicles = false;
+
+		for (auto& entity : this->entities)
+		{
+			if (entity.find("classname") != entity.end())
+			{
+				if (entity["targetname"] == "destructible"s && Utils::StartsWith(entity["destructible_type"], "vehicle"s))
+				{
+					entity["targetname"] = "destructible_vehicle";
+					entity["sound_csv_include"] = "vehicle_car_exp";
+
+					hasVehicles = true;
+				}
+			}
+		}
+
+		return hasVehicles;
 	}
 
 	void Entities::deleteTriggers()
@@ -58,6 +98,7 @@ namespace Utils
 				if (Utils::StartsWith(classname, "trigger_"))
 				{
 					i = this->entities.erase(i);
+					Components::Logger::Print("Erased trigger %s from map ents\n", (*i)["targetname"].c_str());
 					continue;
 				}
 			}
@@ -66,8 +107,10 @@ namespace Utils
 		}
 	}
 
-	void Entities::convertTurrets()
+	bool Entities::convertTurrets()
 	{
+		bool hasTurrets = false;
+
 		for (auto& entity : this->entities)
 		{
 			if (entity.find("classname") != entity.end())
@@ -76,19 +119,25 @@ namespace Utils
 				{
 					entity["weaponinfo"] = "turret_minigun_mp";
 					entity["model"] = "weapon_minigun";
+					hasTurrets = true;
 				}
 			}
 		}
+
+		return hasTurrets;
 	}
 
-	void Entities::deleteWeapons(bool keepTurrets)
+
+
+	void Entities::deleteOldSchoolPickups()
 	{
 		for (auto i = this->entities.begin(); i != this->entities.end();)
 		{
 			if (i->find("weaponinfo") != i->end() || (i->find("targetname") != i->end() && (*i)["targetname"] == "oldschool_pickup"s))
 			{
-				if (!keepTurrets || i->find("classname") == i->end() || (*i)["classname"] != "misc_turret"s)
+				if (i->find("classname") == i->end() || (*i)["classname"] != "misc_turret"s)
 				{
+					Components::Logger::Print("Erased weapon %s from map ents\n", (*i)["model"].c_str());
 					i = this->entities.erase(i);
 					continue;
 				}

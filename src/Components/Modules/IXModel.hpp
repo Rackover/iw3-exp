@@ -13,6 +13,8 @@ namespace Components
 		void dump(Game::IW3::XAssetHeader header) override { Dump(header.model); };
 
 	private:
+		static std::vector<std::string> savedModels;
+
 		static void Dump(Game::IW3::XModel* model);
 
 		static void SaveConvertedModel(Game::IW4::XModel* asset);

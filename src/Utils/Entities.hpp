@@ -14,8 +14,9 @@ namespace Utils
 
 		std::vector<std::string> getModels();
 		void deleteTriggers();
-		void deleteWeapons(bool keepTurrets);
-		void convertTurrets();
+		void deleteOldSchoolPickups();
+		bool convertTurrets();
+		bool convertVehicles();
 
 	private:
 		enum

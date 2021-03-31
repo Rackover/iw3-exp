@@ -15,8 +15,18 @@ namespace Components
 
 		Utils::Entities mapEnts(entString);
 		mapEnts.deleteTriggers();
-		mapEnts.deleteWeapons(/*true*/false); // For now delete turrets, as we can't write weapons
-		mapEnts.convertTurrets();
+		mapEnts.deleteOldSchoolPickups(); 
+		
+		if (mapEnts.convertTurrets()) {
+			// The map features turrets! We need to write a file somewhere to inform the converter about it so that the proper iw4 minigun source will be included
+			Utils::WriteFile(Utils::VA("%s/HAS_MINIGUN", AssetHandler::GetExportPath().data()), "\0");
+		}
+		
+		if (mapEnts.convertVehicles()) {
+			// The map features vehicles! We need to write a file somewhere to inform the converter about it so that vehicle sounds can be included
+			Utils::WriteFile(Utils::VA("%s/HAS_VEHICLES", AssetHandler::GetExportPath().data()), "\0");
+		}
+
 		entString = mapEnts.build();
 
 		for(auto& model : mapEnts.getModels())

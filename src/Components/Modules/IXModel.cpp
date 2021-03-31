@@ -8,6 +8,8 @@ static_assert(sizeof(Game::IW3::XModel) == 220, "Size of XModel is invalid!");
 
 namespace Components
 {
+	std::vector<std::string> IXModel::savedModels = std::vector<std::string>();
+
 	void IXModel::SaveXSurfaceCollisionTree(Game::IW3::XSurfaceCollisionTree* entry, Utils::Stream* buffer)
 	{
 		buffer->saveObject(*entry);
@@ -248,6 +250,16 @@ namespace Components
 	void IXModel::Dump(Game::IW3::XModel* model)
 	{
 		if (!model) return;
+
+		if (std::find(IXModel::savedModels.begin(), IXModel::savedModels.end(), model->name) != IXModel::savedModels.end()) {
+			// Already saved!
+			return;
+		};
+
+		Components::Logger::Print("Dumping model %s\n", model->name);
+
+		IXModel::savedModels.push_back(model->name);
+
 		Utils::Memory::Allocator allocator;
 
 		Game::IW4::XModel xmodel;
@@ -378,7 +390,7 @@ namespace Components
 
 			xmodel.physCollmap->geoms = allocator.allocateArray<Game::IW4::PhysGeomInfo>(model->physGeoms->count);
 
-			for(unsigned int i = 0; i < model->physGeoms->count; ++i)
+			for (unsigned int i = 0; i < model->physGeoms->count; ++i)
 			{
 				static_assert(sizeof(Game::IW4::PhysGeomInfo) == sizeof(Game::IW3::PhysGeomInfo), "Size mismatch");
 				Game::IW4::PhysGeomInfo* target = &xmodel.physCollmap->geoms[i];
@@ -398,7 +410,7 @@ namespace Components
 					std::memcpy(target->brush->brush.axialMaterialNum, source->brush->axialMaterialNum, sizeof(source->brush->axialMaterialNum));
 					std::memcpy(target->brush->brush.edgeCount, source->brush->edgeCount, sizeof(source->brush->edgeCount));
 
-					for(int k = 0; k < 2; ++k)
+					for (int k = 0; k < 2; ++k)
 					{
 						for (int j = 0; j < 3; ++j)
 						{
@@ -430,11 +442,12 @@ namespace Components
 
 	IXModel::IXModel()
 	{
-		Command::Add("dumpXModel", [] (Command::Params params)
-		{
-			if (params.Length() < 2) return;
-			IXModel::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, params[1]).model);
-		});
+
+		Command::Add("dumpXModel", [](Command::Params params)
+			{
+				if (params.Length() < 2) return;
+				IXModel::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, params[1]).model);
+			});
 	}
 
 	IXModel::~IXModel()
