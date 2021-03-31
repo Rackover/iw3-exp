@@ -271,7 +271,7 @@ namespace Components
 
 		for (int i = 0; i < 4; ++i)
 		{
-			xmodel.lodInfo[i].dist = model->lodInfo[i].dist;
+			xmodel.lodInfo[i].dist = model->lodInfo[i].dist * 1.5f; // LOD distance is increased so that the maps look nicer in iw4
 			xmodel.lodInfo[i].numsurfs = model->lodInfo[i].numsurfs;
 			xmodel.lodInfo[i].surfIndex = model->lodInfo[i].surfIndex;
 
