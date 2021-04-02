@@ -362,14 +362,7 @@ namespace Components
 
 				target->radiusSquared = source->radiusSquared;
 
-				target->offset[0] = source->offset[0];
-				target->offset[1] = source->offset[1];
-				target->offset[2] = source->offset[2];
-
-				// That conversion was guessed, but it actually makes sense (and it's correct!)
-				target->centroid[0] = source->bounds[0][0] + ((source->bounds[1][0] + source->bounds[0][0]) / 2);
-				target->centroid[1] = source->bounds[0][1] + ((source->bounds[1][1] + source->bounds[0][1]) / 2);
-				target->centroid[2] = source->bounds[0][2] + ((source->bounds[1][2] + source->bounds[0][2]) / 2);
+				target->bounds.compute(source->bounds[0], source->bounds[1]);
 			}
 		}
 

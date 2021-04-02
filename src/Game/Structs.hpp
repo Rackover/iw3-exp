@@ -2168,8 +2168,7 @@ namespace Game
 
 		struct XBoneInfo
 		{
-			float offset[3];
-			float centroid[3];
+			Bounds bounds;
 			float radiusSquared;
 		};
 
