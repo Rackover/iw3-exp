@@ -2,6 +2,8 @@
 
 namespace Components
 {
+	std::ofstream fileStream;
+
 	bool Logger::IsConsoleReady()
 	{
 		return (IsWindow(*reinterpret_cast<HWND*>(0xCC1AD98)) != FALSE);
@@ -18,6 +20,9 @@ namespace Components
 
 		if(Flags::HasFlag("stdout"))
 		{
+			fileStream << Utils::VA("%s", buffer);
+			fileStream.flush();
+
 			printf("%s", buffer);
 			fflush(stdout);
 		}
@@ -83,6 +88,8 @@ namespace Components
 
 			// Don't create console
 			Utils::Hook::Set<BYTE>(0x57A430, 0xC3);
+
+			fileStream.open("OUTPUT.LOG");
 		}
 		else
 		{
@@ -93,5 +100,9 @@ namespace Components
 	Logger::~Logger()
 	{
 
+		if (Flags::HasFlag("stdout"))
+		{
+			fileStream.close();
+		}
 	}
 }
