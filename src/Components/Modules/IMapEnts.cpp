@@ -14,7 +14,6 @@ namespace Components
 		std::string entString(ents->entityString, ents->numEntityChars - 1);
 
 		Utils::Entities mapEnts(entString);
-		mapEnts.deleteTriggers();
 		mapEnts.deleteOldSchoolPickups(); 
 		
 		if (mapEnts.convertTurrets()) {
@@ -22,14 +21,11 @@ namespace Components
 			Utils::WriteFile(Utils::VA("%s/HAS_MINIGUN", AssetHandler::GetExportPath().data()), "\0");
 		}
 		
-		if (mapEnts.convertVehicles()) {
-			// The map features vehicles! We need to write a file somewhere to inform the converter about it so that vehicle sounds can be included
-			Utils::WriteFile(Utils::VA("%s/HAS_VEHICLES", AssetHandler::GetExportPath().data()), "\0");
-		}
+		bool hasVehicles = mapEnts.convertVehicles();
 
 		entString = mapEnts.build();
 
-		for(auto& model : mapEnts.getModels())
+		for(auto& model : mapEnts.getModels(hasVehicles))
 		{
 			AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_XMODEL, { Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, model.data()).model });
 		}

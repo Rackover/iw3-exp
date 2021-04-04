@@ -1616,7 +1616,7 @@ namespace Game
 			const char *name;
 			char *entityString;
 			int numEntityChars;
-			MapTriggers trigger;
+			//MapTriggers trigger;
 			// this goes on for a while but we don't need any of it
 		};
 

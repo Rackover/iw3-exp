@@ -25,9 +25,14 @@ namespace Utils
 		return entityString;
 	}
 
-	std::vector<std::string> Entities::getModels()
+	std::vector<std::string> Entities::getModels(bool includeDestructibles)
 	{
 		std::vector<std::string>* models = new std::vector<std::string>();
+		std::ofstream destructiblesModelList;
+
+		if (includeDestructibles) {
+			destructiblesModelList.open(Utils::VA("%s/VEHICLES_XMODELS", Components::AssetHandler::GetExportPath().data()));
+		}
 
 		for (auto& entity : this->entities)
 		{
@@ -43,25 +48,31 @@ namespace Utils
 					}
 				}
 
-				if (entity.find("destructible_type") != entity.end()) {
+				if (includeDestructibles && entity.find("destructible_type") != entity.end()) {
 
 					std::string destructible = entity["destructible_type"];
 
 					// Then we need to fetch the destructible models
 					// This is TERRIBLE but it works. Ideally we should be able to grab the destructible models from the modelpieces DynEnts list (see iGFXWorld.cpp) but it doesn't work :(
-					Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_XMODEL, [destructible, models](Game::IW3::XAssetEntry* entry)
+					Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_XMODEL, [destructible, models, &destructiblesModelList](Game::IW3::XAssetEntry* entry)
 						{
 							if (entry->inuse == 1 && entry->asset.header.model) {
 								if (std::string(entry->asset.header.model->name).find(destructible) != std::string::npos) {
 									std::string model = entry->asset.header.model->name;
 									models->push_back(model);
 									Components::Logger::Print("Saving XModel piece %s for destructible %s (from enumXAsset)\n", entry->asset.header.model->name, destructible.data());
+
+									(destructiblesModelList) << model << "\n";
 								}
 							}
 
 						}, false);
 				}
 			}
+		}
+
+		if (includeDestructibles) {
+			destructiblesModelList.close();
 		}
 
 
