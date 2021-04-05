@@ -413,7 +413,7 @@ namespace Components
 		// add triggers to mapEnts
 		std::vector<Game::IW4::TriggerSlab>* slabs = new std::vector<Game::IW4::TriggerSlab>();
 
-		for (int i = 0; i < clipMap->numSubModels; ++i)
+		for (unsigned short i = 0; i < clipMap->numSubModels; ++i)
 		{
 			Game::IW4::TriggerHull trigHull = {};
 			Game::IW4::Bounds cmodelBounds = {};
@@ -430,13 +430,12 @@ namespace Components
 			auto* node = &clipMap->leafbrushNodes[clipMap->cmodels[i].leaf.leafBrushNode];
 
 			if (node->leafBrushCount) {
-				int baseHull = i;
 				for (int j = 0; j < node->leafBrushCount; ++j)
 				{
 					auto* brush = &clipMap->brushes[node->data.leaf.brushes[j]];
 
 					auto baseSlab = slabs->size();
-					for (int k = 0; k < brush->numsides; ++k)
+					for (unsigned int k = 0; k < brush->numsides; ++k)
 					{
 						Game::IW4::TriggerSlab curSlab;
 						curSlab.dir[0] = brush->sides[k].plane->normal[0];
@@ -448,8 +447,8 @@ namespace Components
 						slabs->push_back(curSlab);
 					}
 
-					trigHull.firstSlab = baseSlab;
-					trigHull.slabCount = slabs->size() - baseSlab;
+					trigHull.firstSlab = (unsigned short)baseSlab;
+					trigHull.slabCount = (unsigned short)(slabs->size() - baseSlab);
 				}
 			}
 
@@ -459,7 +458,7 @@ namespace Components
 
 		// Save slabs
 		buffer.save(slabs->size());
-		for (int i = 0; i < slabs->size(); i++) {
+		for (unsigned int i = 0; i < slabs->size(); i++) {
 			Game::IW4::TriggerSlab slab = (*slabs)[i];
 			buffer.saveObject(slab);
 		}
