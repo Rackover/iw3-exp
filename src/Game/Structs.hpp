@@ -2023,6 +2023,38 @@ namespace Game
 			void compute(vec3_t mins, vec3_t maxs);
 		};
 
+		struct TriggerModel
+		{
+			int contents;
+			unsigned __int16 hullCount;
+			unsigned __int16 firstHull;
+		};
+
+		struct TriggerHull
+		{
+			Bounds bounds;
+			int contents;
+			unsigned __int16 slabCount;
+			unsigned __int16 firstSlab;
+		};
+
+		struct TriggerSlab
+		{
+			float dir[3];
+			float midPoint;
+			float halfSize;
+		};
+
+		struct MapTriggers
+		{
+			unsigned int count;
+			TriggerModel* models;
+			unsigned int hullCount;
+			TriggerHull* hulls;
+			unsigned int slabCount;
+			TriggerSlab* slabs;
+		};
+
 		enum XAnimPartType
 		{
 			PART_TYPE_NO_QUAT = 0x0,
