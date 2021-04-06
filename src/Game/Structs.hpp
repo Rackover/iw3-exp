@@ -1631,6 +1631,19 @@ namespace Game
 			const char* name;
 		};
 
+		struct XModelPiece
+		{
+			XModel* model;
+			float offset[3];
+		};
+
+		struct XModelPieces
+		{
+			const char* name;
+			int numpieces;
+			XModelPiece* pieces;
+		};
+
 		struct DynEntityDef
 		{
 		  int type;
@@ -1639,7 +1652,7 @@ namespace Game
 		  unsigned __int16 brushModel;
 		  unsigned __int16 physicsBrushModel;
 		  FxEffectDef_Placeholder *destroyFx;
-		  /*XModelPieces*/ void *destroyPieces;
+		  XModelPieces *destroyPieces;
 		  PhysPreset *physPreset;
 		  int health;
 		  PhysMass mass;
@@ -1923,10 +1936,103 @@ namespace Game
 			FX_ELEM_TYPE_LAST_DRAWN = 0x7,
 		};
 
+		struct _AILSOUNDINFO
+		{
+			int format;
+			const void* data_ptr;
+			unsigned int data_len;
+			unsigned int rate;
+			int bits;
+			int channels;
+			unsigned int samples;
+			unsigned int block_size;
+			const void* initial_ptr;
+		};
+
+		struct MssSound
+		{
+			_AILSOUNDINFO info;
+			char* data;
+		};
+
+		struct LoadedSound
+		{
+			const char* name;
+			MssSound sound;
+		};
+
+		struct StreamFileNameRaw
+		{
+			const char* dir;
+			const char* name;
+		};
+
+		union StreamFileInfo
+		{
+			StreamFileNameRaw raw;
+		};
+
+		struct StreamFileName
+		{
+			StreamFileInfo info;
+		};
+
+		struct StreamedSound
+		{
+			StreamFileName filename;
+		};
+
+		union SoundFileRef
+		{
+			LoadedSound* loadSnd;
+			StreamedSound streamSnd;
+		};
+
+		struct SoundFile
+		{
+			char type;
+			char exists;
+			SoundFileRef u;
+		};
+
+		const struct snd_alias_t
+		{
+			const char* aliasName;
+			const char* subtitle;
+			const char* secondaryAliasName;
+			const char* chainAliasName;
+			SoundFile* soundFile;
+			int sequence;
+			float volMin;
+			float volMax;
+			float pitchMin;
+			float pitchMax;
+			float distMin;
+			float distMax;
+			int flags;
+			float slavePercentage;
+			float probability;
+			float lfePercentage;
+			float centerPercentage;
+			int startDelay;
+			/*SndCurve*/void* volumeFalloffCurve;
+			float envelopMin;
+			float envelopMax;
+			float envelopPercentage;
+			/*SpeakerMap*/void* speakerMap;
+		};
+
+		struct snd_alias_list_t
+		{
+			const char* aliasName;
+			snd_alias_t* head;
+			int count;
+		};
+
 		union XAssetHeader
 		{
 			void *data;
-// 			XModelPieces *xmodelPieces;
+			XModelPieces *xmodelPieces;
  			PhysPreset *physPreset;
  			XAnimParts *parts;
  			XModel *model;
@@ -1935,8 +2041,9 @@ namespace Game
 // 			MaterialVertexShader *vertexShader;
  			MaterialTechniqueSet *techniqueSet;
 			GfxImage *image;
-// 			snd_alias_list_t *sound;
+ 			snd_alias_list_t *sound;
 // 			SndCurve *sndCurve;
+			LoadedSound* loadSnd;
  			clipMap_t *clipMap;
 			ComWorld *comWorld;
 // 			GameWorldSp *gameWorldSp;
