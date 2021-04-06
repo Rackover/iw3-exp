@@ -410,58 +410,64 @@ namespace Components
 		////////////////////
 		// Version 2
 
-		// add triggers to mapEnts
-		std::vector<Game::IW4::TriggerSlab>* slabs = new std::vector<Game::IW4::TriggerSlab>();
+		if (IW4X_CLIPMAP_VERSION >= 2) {
+			// add triggers to mapEnts
+			if (clipMap->cmodels) {
 
-		for (unsigned short i = 0; i < clipMap->numSubModels; ++i)
-		{
-			Game::IW4::TriggerHull trigHull = {};
-			Game::IW4::Bounds cmodelBounds = {};
-			cmodelBounds.compute(clipMap->cmodels[i].mins, clipMap->cmodels[i].maxs);
+				std::vector<Game::IW4::TriggerSlab>* slabs = new std::vector<Game::IW4::TriggerSlab>();
 
-			trigHull.bounds = cmodelBounds;
-			trigHull.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;;
-
-			Game::IW4::TriggerModel trigMod = {};
-			trigMod.hullCount = 1;
-			trigMod.firstHull = i;
-			trigMod.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;;
-
-			auto* node = &clipMap->leafbrushNodes[clipMap->cmodels[i].leaf.leafBrushNode];
-
-			if (node->leafBrushCount) {
-				for (int j = 0; j < node->leafBrushCount; ++j)
+				for (unsigned short i = 0; i < clipMap->numSubModels; ++i)
 				{
-					auto* brush = &clipMap->brushes[node->data.leaf.brushes[j]];
+					Game::IW4::TriggerHull trigHull = {};
+					Game::IW4::Bounds cmodelBounds = {};
+					cmodelBounds.compute(clipMap->cmodels[i].mins, clipMap->cmodels[i].maxs);
 
-					auto baseSlab = slabs->size();
-					for (unsigned int k = 0; k < brush->numsides; ++k)
-					{
-						Game::IW4::TriggerSlab curSlab;
-						curSlab.dir[0] = brush->sides[k].plane->normal[0];
-						curSlab.dir[1] = brush->sides[k].plane->normal[1];
-						curSlab.dir[2] = brush->sides[k].plane->normal[2];
-						curSlab.halfSize = brush->sides[k].plane->dist;
-						curSlab.midPoint = 0.0f; // ??
+					trigHull.bounds = cmodelBounds;
+					trigHull.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;;
 
-						slabs->push_back(curSlab);
+					Game::IW4::TriggerModel trigMod = {};
+					trigMod.hullCount = 1;
+					trigMod.firstHull = i;
+					trigMod.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;;
+
+					auto* node = &clipMap->leafbrushNodes[clipMap->cmodels[i].leaf.leafBrushNode];
+
+					if (node->leafBrushCount) {
+						for (int j = 0; j < node->leafBrushCount; ++j)
+						{
+							auto* brush = &clipMap->brushes[node->data.leaf.brushes[j]];
+
+							auto baseSlab = slabs->size();
+							for (unsigned int k = 0; k < brush->numsides; ++k)
+							{
+								Game::IW4::TriggerSlab curSlab;
+								curSlab.dir[0] = brush->sides[k].plane->normal[0];
+								curSlab.dir[1] = brush->sides[k].plane->normal[1];
+								curSlab.dir[2] = brush->sides[k].plane->normal[2];
+								curSlab.halfSize = brush->sides[k].plane->dist;
+								curSlab.midPoint = 0.0f; // ??
+
+								slabs->push_back(curSlab);
+							}
+
+							trigHull.firstSlab = (unsigned short)baseSlab;
+							trigHull.slabCount = (unsigned short)(slabs->size() - baseSlab);
+						}
 					}
 
-					trigHull.firstSlab = (unsigned short)baseSlab;
-					trigHull.slabCount = (unsigned short)(slabs->size() - baseSlab);
+					buffer.saveObject(trigMod);
+					buffer.saveObject(trigHull);
+				}
+
+				// Save slabs
+				buffer.save(slabs->size());
+				for (unsigned int i = 0; i < slabs->size(); i++) {
+					Game::IW4::TriggerSlab slab = (*slabs)[i];
+					buffer.saveObject(slab);
 				}
 			}
-
-			buffer.saveObject(trigMod);
-			buffer.saveObject(trigHull);
 		}
 
-		// Save slabs
-		buffer.save(slabs->size());
-		for (unsigned int i = 0; i < slabs->size(); i++) {
-			Game::IW4::TriggerSlab slab = (*slabs)[i];
-			buffer.saveObject(slab);
-		}
 
 		///////////////////////
 
