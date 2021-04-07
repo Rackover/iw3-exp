@@ -6,36 +6,36 @@ namespace Components
 {
 	Game::IW4::SModelAabbNode* IclipMap_t::BuildSModelNodes(Utils::Memory::Allocator* allocator, Game::IW3::clipMap_t* clipMap, unsigned short* size)
 	{
-        if (clipMap->numStaticModels == 0) return nullptr;
+		if (clipMap->numStaticModels == 0) return nullptr;
 
-        float maxs[3];
-        float mins[3];
+		float maxs[3];
+		float mins[3];
 
-        maxs[0] = clipMap->staticModelList[0].absmax[0];
-        maxs[1] = clipMap->staticModelList[1].absmax[1];
-        maxs[2] = clipMap->staticModelList[2].absmax[2];
+		maxs[0] = clipMap->staticModelList[0].absmax[0];
+		maxs[1] = clipMap->staticModelList[1].absmax[1];
+		maxs[2] = clipMap->staticModelList[2].absmax[2];
 
-        mins[0] = clipMap->staticModelList[0].absmin[0];
-        mins[1] = clipMap->staticModelList[1].absmin[1];
-        mins[2] = clipMap->staticModelList[2].absmin[2];
+		mins[0] = clipMap->staticModelList[0].absmin[0];
+		mins[1] = clipMap->staticModelList[1].absmin[1];
+		mins[2] = clipMap->staticModelList[2].absmin[2];
 
-        for (unsigned int i = 1; i < clipMap->numStaticModels; i++)
-        {
-            maxs[0] = max(maxs[0], clipMap->staticModelList[i].absmax[0]);
-            maxs[1] = max(maxs[1], clipMap->staticModelList[i].absmax[1]);
-            maxs[2] = max(maxs[2], clipMap->staticModelList[i].absmax[2]);
+		for (unsigned int i = 1; i < clipMap->numStaticModels; i++)
+		{
+			maxs[0] = max(maxs[0], clipMap->staticModelList[i].absmax[0]);
+			maxs[1] = max(maxs[1], clipMap->staticModelList[i].absmax[1]);
+			maxs[2] = max(maxs[2], clipMap->staticModelList[i].absmax[2]);
 
-            mins[0] = min(mins[0], clipMap->staticModelList[i].absmin[0]);
-            mins[1] = min(mins[1], clipMap->staticModelList[i].absmin[1]);
-            mins[2] = min(mins[2], clipMap->staticModelList[i].absmin[2]);
-        }
+			mins[0] = min(mins[0], clipMap->staticModelList[i].absmin[0]);
+			mins[1] = min(mins[1], clipMap->staticModelList[i].absmin[1]);
+			mins[2] = min(mins[2], clipMap->staticModelList[i].absmin[2]);
+		}
 
-        Game::IW4::SModelAabbNode* node = allocator->allocate<Game::IW4::SModelAabbNode>();
-        node->bounds.compute(mins, maxs);
-        node->childCount = static_cast<short>(clipMap->numStaticModels);
-        node->firstChild = 0;
+		Game::IW4::SModelAabbNode* node = allocator->allocate<Game::IW4::SModelAabbNode>();
+		node->bounds.compute(mins, maxs);
+		node->childCount = static_cast<short>(clipMap->numStaticModels);
+		node->firstChild = 0;
 
-        *size = 1;
+		*size = 1;
 		return node;
 	}
 
@@ -127,9 +127,9 @@ namespace Components
 
 				buffer.saveArray(clipMap->staticModelList[i].origin, 3);
 				buffer.saveArray(clipMap->staticModelList[i].invScaledAxis, 3); // fuck how this gets counted by c++
-                Game::IW4::Bounds convertedBounds;
-                convertedBounds.compute(clipMap->staticModelList[i].absmin, clipMap->staticModelList[i].absmax);
-                buffer.saveObject(convertedBounds);
+				Game::IW4::Bounds convertedBounds;
+				convertedBounds.compute(clipMap->staticModelList[i].absmin, clipMap->staticModelList[i].absmax);
+				buffer.saveObject(convertedBounds);
 			}
 		}
 
@@ -360,7 +360,7 @@ namespace Components
 					{
 						buffer.saveString("NONE");
 					}
-					
+
 					buffer.saveObject(clipMap->dynEntDefList[n][i].brushModel);
 					buffer.saveObject(clipMap->dynEntDefList[n][i].physicsBrushModel);
 
@@ -374,16 +374,19 @@ namespace Components
 					}
 
 					// This never works!
-					if (clipMap->dynEntDefList[n][i].destroyPieces) {
+					if (clipMap->dynEntDefList[n][i].destroyPieces)
+					{
 						Components::Logger::Print("Saving pieces %s\n", clipMap->dynEntDefList[n][i].destroyPieces->name);
 						int pieces = clipMap->dynEntDefList[n][i].destroyPieces->numpieces;
-						for (int piecesIndex = 0; piecesIndex < pieces; piecesIndex++) {
+						for (int piecesIndex = 0; piecesIndex < pieces; piecesIndex++)
+						{
 							//buffer.saveString(clipMap->dynEntDefList[n][i].xModel->name);
 							AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_XMODEL, { clipMap->dynEntDefList[n][i].destroyPieces->pieces[piecesIndex].model });
 							Components::Logger::Print("Saving XModel piece %s\n", clipMap->dynEntDefList[n][i].destroyPieces->pieces[piecesIndex].model->name);
 						}
 					}
-					else {
+					else
+					{
 						//buffer.saveString("NONE");
 					}
 					if (clipMap->dynEntDefList[n][i].physPreset)
@@ -409,30 +412,35 @@ namespace Components
 
 		////////////////////
 		// Version 2
-
-		if (IW4X_CLIPMAP_VERSION >= 2) {
+#pragma warning( push )
+#pragma warning( disable : 4127 )
+		if (IW4X_CLIPMAP_VERSION >= 2)
+		{
+#pragma warning( pop )
 			// add triggers to mapEnts
-			if (clipMap->cmodels) {
+			if (clipMap->cmodels)
+			{
 
 				std::vector<Game::IW4::TriggerSlab>* slabs = new std::vector<Game::IW4::TriggerSlab>();
 
 				for (unsigned short i = 0; i < clipMap->numSubModels; ++i)
 				{
-					Game::IW4::TriggerHull trigHull = {};
-					Game::IW4::Bounds cmodelBounds = {};
+					Game::IW4::TriggerHull trigHull{};
+					Game::IW4::Bounds cmodelBounds{};
 					cmodelBounds.compute(clipMap->cmodels[i].mins, clipMap->cmodels[i].maxs);
 
 					trigHull.bounds = cmodelBounds;
 					trigHull.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;;
 
-					Game::IW4::TriggerModel trigMod = {};
+					Game::IW4::TriggerModel trigMod{};
 					trigMod.hullCount = 1;
 					trigMod.firstHull = i;
 					trigMod.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;;
 
 					auto* node = &clipMap->leafbrushNodes[clipMap->cmodels[i].leaf.leafBrushNode];
 
-					if (node->leafBrushCount) {
+					if (node->leafBrushCount)
+					{
 						for (int j = 0; j < node->leafBrushCount; ++j)
 						{
 							auto* brush = &clipMap->brushes[node->data.leaf.brushes[j]];
@@ -461,10 +469,13 @@ namespace Components
 
 				// Save slabs
 				buffer.save(slabs->size());
-				for (unsigned int i = 0; i < slabs->size(); i++) {
+				for (unsigned int i = 0; i < slabs->size(); i++)
+				{
 					Game::IW4::TriggerSlab slab = (*slabs)[i];
 					buffer.saveObject(slab);
 				}
+
+				delete slabs;
 			}
 		}
 
@@ -486,10 +497,10 @@ namespace Components
 	IclipMap_t::IclipMap_t()
 	{
 		Command::Add("dumpclipMap_t", [](Command::Params params)
-		{
-			if (params.Length() < 2) return;
-			IclipMap_t::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]).clipMap);
-		});
+			{
+				if (params.Length() < 2) return;
+				IclipMap_t::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]).clipMap);
+			});
 	}
 
 	IclipMap_t::~IclipMap_t()
