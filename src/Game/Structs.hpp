@@ -1995,6 +1995,33 @@ namespace Game
 			SoundFileRef u;
 		};
 
+		struct MSSSpeakerLevels
+		{
+			int speaker;
+			int numLevels;
+			float levels[2];
+		};
+
+		struct MSSChannelMap
+		{
+			unsigned int speakerCount;
+			MSSSpeakerLevels speakers[6];
+		};
+
+		struct SpeakerMap
+		{
+			bool isDefault;
+			const char* name;
+			MSSChannelMap channelMaps[2][2];
+		};
+
+		struct SndCurve
+		{
+			const char* filename;
+			int knotCount;
+			float knots[8][2];
+		};
+
 		const struct snd_alias_t
 		{
 			const char* aliasName;
@@ -2015,18 +2042,18 @@ namespace Game
 			float lfePercentage;
 			float centerPercentage;
 			int startDelay;
-			/*SndCurve*/void* volumeFalloffCurve;
+			SndCurve* volumeFalloffCurve;
 			float envelopMin;
 			float envelopMax;
 			float envelopPercentage;
-			/*SpeakerMap*/void* speakerMap;
+			SpeakerMap* speakerMap;
 		};
 
 		struct snd_alias_list_t
 		{
 			const char* aliasName;
 			snd_alias_t* head;
-			int count;
+			unsigned int count;
 		};
 
 		union XAssetHeader

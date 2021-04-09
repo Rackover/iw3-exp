@@ -50,6 +50,8 @@ namespace Components
 		AssetHandler::Register(new IFxEffectDef());
 		AssetHandler::Register(new IGfxLightDef());
         AssetHandler::Register(new IMaterialTechniqueSet());
+		AssetHandler::Register(new Isnd_alias_list_t());
+		AssetHandler::Register(new ILoadedSound());
 	}
 
 	AssetHandler::~AssetHandler()

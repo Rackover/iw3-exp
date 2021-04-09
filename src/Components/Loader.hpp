@@ -44,3 +44,5 @@ namespace Components
 #include "Modules/IFxEffectDef.hpp"
 #include "Modules/IGfxLightDef.hpp"
 #include "Modules/IMaterialTechniqueSet.hpp"
+#include "Modules/Isnd_alias_list_t.hpp"
+#include "Modules/ILoadedSound.hpp"
