@@ -50,7 +50,7 @@ namespace Components
 				switch (iw3Alias.soundFile->type)
 				{
 					// LOADED
-				case 1:
+				case Game::snd_alias_type_t::SAT_LOADED:
 					// Save the LoadedSound subasset
 					soundFile = iw3Alias.soundFile->u.loadSnd->name;
 					auto header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, soundFile.c_str());
@@ -58,8 +58,14 @@ namespace Components
 					break;
 
 					// STREAMED
-				case 2:
+				case Game::snd_alias_type_t::SAT_STREAMED:
 					soundFile = iw3Alias.soundFile->u.streamSnd.filename.info.raw.name;
+
+					if (iw3Alias.soundFile->u.streamSnd.filename.info.raw.dir)
+					{
+						soundFile = Utils::VA("%s/%s", iw3Alias.soundFile->u.streamSnd.filename.info.raw.dir, soundFile.c_str());
+					}
+
 					break;
 
 					// I DON'T KNOW :(

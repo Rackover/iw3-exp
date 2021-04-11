@@ -28,7 +28,6 @@ namespace Components
 			if (visuals->soundName)
 			{
 				buffer->saveString(visuals->soundName);
-				//Logger::Print("Unable to dump sounds yet!\n");
 				AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_SOUND, { Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_SOUND, visuals->soundName).sound });
 			}
 

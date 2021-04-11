@@ -56,6 +56,14 @@ namespace Game
 		ASSET_TYPE_ASSETLIST = 0x22,
 	};
 
+	enum snd_alias_type_t
+	{
+		SAT_UNKNOWN = 0x0,
+		SAT_LOADED = 0x1,
+		SAT_STREAMED = 0x2,
+		SAT_COUNT = 0x3,
+	};
+
 	struct cmd_function_s
 	{
 		cmd_function_s *next;

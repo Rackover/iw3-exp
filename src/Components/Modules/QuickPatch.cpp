@@ -20,6 +20,19 @@ namespace Components
 		}
 	}
 
+	int QuickPatch::SND_SetDataHook(Game::IW3::MssSound*, char*)
+	{
+		Game::IW3::LoadedSound*** loadedSoundPtr = reinterpret_cast<Game::IW3::LoadedSound***>(0xE34780);
+		auto loadedSound = *(*(loadedSoundPtr));
+		
+		// We do not dump rightaway, we'll do so when we need to because of soundaliases
+		Components::ILoadedSound::DuplicateSoundData(loadedSound);
+
+		// Do not call this or the sounds will actually get loaded
+		//return Utils::Hook::Call<int(Game::IW3::MssSound*, char*)>(0x5C8EE0)(sound, data);
+		return 0;
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		// enable commandline
@@ -50,117 +63,17 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x57AB09, 0xEB);
 		Utils::Hook::Nop(0x4ED366, 5);
 
+		// Intercept SND_SetData
+		Utils::Hook(0x4794C2, QuickPatch::SND_SetDataHook, HOOK_CALL).install()->quick();
+
+		Logger::Print("IW3Xport build %s %s\n", __TIME__, __DATE__);
+
 		Command::Add("materialInfoDump", [](Command::Params)
 		{
 			Game::DB_EnumXAssets_FastFile(Game::ASSET_TYPE_MATERIAL, [](Game::IW3::XAssetHeader header, void*)
 			{
 				Logger::Print("%s: %X %X %X\n", header.material->info.name, header.material->info.sortKey & 0xFF, header.material->info.gameFlags & 0xFF, header.material->stateFlags & 0xFF);
 			}, nullptr, false);
-		});
-
-		Command::Add("dumpMap", [](Command::Params params)
-		{
-			if (params.Length() < 2) return;
-			std::string mapname = params[1];
-			std::string bspname = Utils::VA("maps/mp/%s.d3dbsp", mapname.data());
-
-			Logger::Print("IW3Xport build %s %s\n", __TIME__, __DATE__);
-
-			Logger::Print("Loading map '%s'...\n", mapname.data());
-			Command::Execute(Utils::VA("map %s", mapname.data()), true);
-
-			Logger::Print("Exporting ComWorld...\n");
-			Command::Execute(Utils::VA("dumpComWorld %s", bspname.data()), true);
-
-			Logger::Print("Exporting GfxWorld...\n");
-			Command::Execute(Utils::VA("dumpGfxWorld %s", bspname.data()), true);
-
-			Logger::Print("Exporting ClipMap...\n");
-			Command::Execute(Utils::VA("dumpclipMap_t %s", bspname.data()), true);
-
-			Logger::Print("Exporting Vision...\n");
-			Command::Execute(Utils::VA("dumpRawFile vision/%s.vision", mapname.data()), true);
-
-			Logger::Print("Exporting Sun...\n");
-			Command::Execute(Utils::VA("dumpRawFile sun/%s.sun", mapname.data()), true);
-
-			Logger::Print("Exporting Compass...\n");
-			Command::Execute(Utils::VA("dumpMaterial compass_map_%s", mapname.data()), true);
-
-			Logger::Print("Exporting Loadscreen...\n");
-			Command::Execute(Utils::VA("dumpGfxImage loadscreen_%s", mapname.data()), true);
-
-			Logger::Print("Exporting environment GSCs...\n");
-			Command::Execute(Utils::VA("dumpRawFile maps/mp/%s_fx.gsc", mapname.data()), true);
-			Command::Execute(Utils::VA("dumpRawFile maps/createfx/%s_fx.gsc", mapname.data()), true);
-			Command::Execute(Utils::VA("dumpRawFile maps/createart/%s_art.gsc", mapname.data()), true);
-
-			Logger::Print("Patching GSCs...\n");
-			auto patchGSC = [](std::string file)
-			{
-				auto patchReference = [](std::string& data, std::string _old, std::string _new)
-				{
-					Utils::Replace(data, _old, _new);
-
-					// Remove double includes
-					auto lines = Utils::Explode(data, '\n');
-
-					int count = 0;
-					std::string newData;
-					for(auto& line : lines)
-					{
-						if (line == Utils::VA("#include %s;", _new.data()) && count++ > 0)
-						{
-							continue;
-						}
-
-						newData.append(line);
-						newData.append("\n");
-					}
-
-					data = newData;
-				};
-
-				if (Utils::FileExists(file))
-				{
-					std::string data = Utils::ReadFile(file);
-					Utils::Replace(data, "\r\n", "\n");
-					patchReference(data, "maps\\mp\\_utility", "common_scripts\\utility");
-					patchReference(data, "maps\\mp\\_createfx", "common_scripts\\_createfx");
-					patchReference(data, "maps\\mp\\_fx", "common_scripts\\_fx");
-					Utils::WriteFile(file, data);
-				}
-			};
-
-			patchGSC(Utils::VA("%s/maps/createfx/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapname.data()));
-			patchGSC(Utils::VA("%s/maps/mp/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapname.data()));
-
-			// Search zone index
-			int zoneIndex = 0;
-			for (; zoneIndex < 32; ++zoneIndex)
-			{
-				if(Game::g_zones[zoneIndex].name == mapname)
-				{
-					break;
-				}
-			}
-
-			if (zoneIndex < 32)
-			{
-				Logger::Print("Exporting FXs...\n");
-
-				// Dump all available fx
-				Game::DB_EnumXAssetEntries(Game::ASSET_TYPE_FX, [zoneIndex](Game::IW3::XAssetEntry* entry)
-				{
-					if (entry->zoneIndex == zoneIndex)
-					{
-						std::string name = Game::DB_GetXAssetNameHandlers[entry->asset.type](&entry->asset.header);
-						Command::Execute(Utils::VA("dumpFxEffectDef %s", name.data()), true);
-					}
-				}, false);
-			}
-
-			Logger::Print("Map '%s' successfully exported.\n", mapname.data());
 		});
 
         Command::Add("loadzone", [](Command::Params params)

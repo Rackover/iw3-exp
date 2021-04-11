@@ -11,6 +11,7 @@ namespace Components
 
 	private:
 		static void OnInitStub();
+		static int SND_SetDataHook(Game::IW3::MssSound* a1, char* a2);
 		static void PerformInit();
 	};
 }

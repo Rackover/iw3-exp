@@ -31,6 +31,8 @@ namespace Components
 #include "Modules/FileSystem.hpp"
 #include "Modules/QuickPatch.hpp"
 #include "Modules/AssetHandler.hpp"
+#include "Modules/GSC.hpp"
+#include "Modules/MapDumper.hpp"
 
 #include "Modules/IXModel.hpp"
 #include "Modules/IRawFile.hpp"
