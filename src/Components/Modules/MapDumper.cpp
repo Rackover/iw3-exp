@@ -19,6 +19,7 @@ namespace Components
 			}
 		}
 
+		Logger::Print("Exporting all sounds...\n");
 		// Ultra-heavy sound dumping
 		// It doesn't have to be this way: We could instead gather every soundname that is
 		// - In the zone (that's already the case)
@@ -98,13 +99,15 @@ namespace Components
 	void MapDumper::DumpLoadedGSCs(std::string mapName)
 	{
 		Logger::Print("Exporting environment GSCs...\n");
+		Command::Execute(Utils::VA("dumpRawFile maps/mp/%s.gsc", mapName.data()), true);
 		Command::Execute(Utils::VA("dumpRawFile maps/mp/%s_fx.gsc", mapName.data()), true);
 		Command::Execute(Utils::VA("dumpRawFile maps/createfx/%s_fx.gsc", mapName.data()), true);
 		Command::Execute(Utils::VA("dumpRawFile maps/createart/%s_art.gsc", mapName.data()), true);
 
 		Logger::Print("Patching GSCs...\n");
-		GSC::FixGSCFile(Utils::VA("%s/maps/createfx/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapName.data()));
-		GSC::FixGSCFile(Utils::VA("%s/maps/mp/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapName.data()));
+		GSC::UpgradeGSC(Utils::VA("%s/maps/createfx/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapName.data()), GSC::ConvertFXGSC);
+		GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapName.data()), GSC::ConvertFXGSC);
+		GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s.gsc", AssetHandler::GetExportPath().data(), mapName.data()), GSC::ConvertMainGSC);
 	}
 
 	MapDumper::MapDumper()
