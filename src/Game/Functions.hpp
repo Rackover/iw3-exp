@@ -27,8 +27,15 @@ namespace Game
     typedef void(*DB_LoadXAssets_t)(XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
     extern DB_LoadXAssets_t DB_LoadXAssets;
 
+	typedef signed int(*FS_Read_t)(void* buffer, size_t bufferSize, int handle);
+	extern FS_Read_t FS_Read;
+
+	typedef size_t(*FS_FOpenFileRead_t)(const char* filename, int* file);
+	extern FS_FOpenFileRead_t FS_FOpenFileRead;
+
 	int FS_ReadFile(const char* path, char** buffer);
 	void FS_FreeFile(void* buffer);
+	void FS_FCloseFile(int handle);
 
 	extern DWORD* cmd_id;
 	extern DWORD* cmd_argc;

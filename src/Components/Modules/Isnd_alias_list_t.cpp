@@ -59,6 +59,7 @@ namespace Components
 
 					// STREAMED
 				case Game::snd_alias_type_t::SAT_STREAMED:
+				{
 					soundFile = iw3Alias.soundFile->u.streamSnd.filename.info.raw.name;
 
 					if (iw3Alias.soundFile->u.streamSnd.filename.info.raw.dir)
@@ -66,15 +67,73 @@ namespace Components
 						soundFile = Utils::VA("%s/%s", iw3Alias.soundFile->u.streamSnd.filename.info.raw.dir, soundFile.c_str());
 					}
 
+					auto fullPath = Utils::VA("%s/sound/%s", AssetHandler::GetExportPath().c_str(), soundFile.c_str());
+					auto destinationDirectory = Utils::VA("%s/sound/%s", AssetHandler::GetExportPath().c_str(), iw3Alias.soundFile->u.streamSnd.filename.info.raw.dir);
+					auto internalPath = Utils::VA("sound/%s", soundFile.c_str());
+
+					Utils::CreateDir(destinationDirectory);
+					std::ofstream destination(fullPath, std::ios::binary);
+
+					int handle;
+					Game::FS_FOpenFileRead(internalPath, &handle);
+					
+					if (handle != 0)
+					{
+						char buffer[1024];
+						int bytesRead;
+
+						while ((bytesRead = Game::FS_Read(buffer, sizeof(buffer), handle)) > 0)
+						{
+							destination.write(buffer, bytesRead);
+						}
+
+						destination.flush();
+						destination.close();
+
+						Game::FS_FCloseFile(handle);
+					}
 					break;
+				}
 
 					// I DON'T KNOW :(
 				default:
 					Components::Logger::Print("Error dumping sound alias %s: unknown format %d\n", iw3Alias.aliasName, iw3Alias.soundFile->type);
 					return;
-					break;
 				}
 			}
+			
+			// Convert flags
+			IW3SoundAliasFlags iw3Flags;
+			iw3Flags.intValue = iw3Alias.flags;
+
+			IW4SoundAliasFlags outputFlags;
+			outputFlags.intValue = 0;
+			outputFlags.looping = iw3Flags.looping;
+			outputFlags.isMaster = iw3Flags.isMaster;
+			outputFlags.isSlave = iw3Flags.isSlave;
+			outputFlags.fullDryLevel = iw3Flags.fullDryLevel;
+			outputFlags.noWetLevel = iw3Flags.noWetLevel;
+			outputFlags.type = iw3Flags.type;
+
+			auto channel = iw3Flags.channel; 
+
+			// Channel conversion
+			if (channel == 0)
+			{
+				// Nothing to do!
+			}
+			else if (channel < 25)
+			{
+				channel++;
+			}
+			else
+			{
+				channel += 2;
+			}
+
+			outputFlags.channel = channel;
+
+			auto iw4Flags = outputFlags.intValue;
 
 			auto alias = json11::Json::object{
 				{"aliasName", iw3Alias.aliasName},
@@ -85,7 +144,7 @@ namespace Components
 				{"envelopMax", iw3Alias.envelopMax},
 				{"envelopMin", iw3Alias.envelopMin},
 				{"envelopPercentage", iw3Alias.envelopPercentage},
-				{"flags", iw3Alias.flags},
+				{"flags", static_cast<signed int>(iw4Flags)},
 				{"lfePercentage", iw3Alias.lfePercentage},
 				{"mixerGroup", json11::Json()},
 				{"pitchMax", iw3Alias.pitchMax},
