@@ -45,15 +45,22 @@ namespace Components
 		GSC::DumpSounds(data);
 	}
 
+	void GSC::ConvertMainFXGSC(std::string& data)
+	{
+		Utils::Replace(data, "\r\n", "\n");
+		GSC::PatchReference(data, "maps\\mp\\_fx", "common_scripts\\_fx");
+		GSC::PatchReference(data, "maps\\mp\\_createfx", "common_scripts\\_createfx");
+		GSC::PatchReference(data, "maps\\mp\\_utility", "common_scripts\\utility");
+		GSC::DumpSounds(data);
+	}
+
 	void GSC::ConvertFXGSC(std::string& data)
 	{
 		Utils::Replace(data, "\r\n", "\n");
-		GSC::PatchReference(data, "maps\\mp\\_utility", "common_scripts\\utility");
 		GSC::PatchReference(data, "maps\\mp\\_createfx", "common_scripts\\_createfx");
-		GSC::PatchReference(data, "maps\\mp\\_fx", "common_scripts\\_fx");
+		GSC::PatchReference(data, "maps\\mp\\_utility", "common_scripts\\utility");
 		GSC::DumpSounds(data);
 		data = Utils::VA("//_createfx generated. Do not touch!!\n%s", data.data());
-
 	}
 
 	void GSC::RemoveTeamDeclarations(std::string& data)
@@ -98,6 +105,11 @@ namespace Components
 		for (auto& line : lines)
 		{
 			if (line == Utils::VA("#include %s;", _new.data()) && count++ > 0)
+			{
+				continue;
+			}
+
+			if (Utils::StartsWith(line, "//_"))
 			{
 				continue;
 			}

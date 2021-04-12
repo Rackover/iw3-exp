@@ -106,7 +106,7 @@ namespace Components
 
 		Logger::Print("Patching GSCs...\n");
 		GSC::UpgradeGSC(Utils::VA("%s/maps/createfx/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapName.data()), GSC::ConvertFXGSC);
-		GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapName.data()), GSC::ConvertFXGSC);
+		GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapName.data()), GSC::ConvertMainFXGSC);
 		GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s.gsc", AssetHandler::GetExportPath().data(), mapName.data()), GSC::ConvertMainGSC);
 	}
 
