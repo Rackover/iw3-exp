@@ -2,6 +2,43 @@
 
 namespace Components
 {
+	int Isnd_alias_list_t::channelLookupTable[Game::IW3::SND_CHANNEL_COUNT]
+	{
+		Game::IW4::SND_CHANNEL_PHYSICS,
+		Game::IW4::SND_CHANNEL_AUTO,
+		Game::IW4::SND_CHANNEL_AUTO2,
+		Game::IW4::SND_CHANNEL_AUTODOG,
+		Game::IW4::SND_CHANNEL_BULLETIMPACT,
+		Game::IW4::SND_CHANNEL_BULLETWHIZBY,
+		Game::IW4::SND_CHANNEL_ELEMENT,
+		Game::IW4::SND_CHANNEL_AUTO2D,
+		Game::IW4::SND_CHANNEL_VEHICLE,
+		Game::IW4::SND_CHANNEL_VEHICLELIMITED,
+		Game::IW4::SND_CHANNEL_MENU,
+		Game::IW4::SND_CHANNEL_BODY,
+		Game::IW4::SND_CHANNEL_BODY2D,
+		Game::IW4::SND_CHANNEL_RELOAD,
+		Game::IW4::SND_CHANNEL_RELOAD2D,
+		Game::IW4::SND_CHANNEL_ITEM,
+		Game::IW4::SND_CHANNEL_EFFECTS1,
+		Game::IW4::SND_CHANNEL_EFFECTS2,
+		Game::IW4::SND_CHANNEL_WEAPON,
+		Game::IW4::SND_CHANNEL_WEAPON2D,
+		Game::IW4::SND_CHANNEL_NONSHOCK,
+		Game::IW4::SND_CHANNEL_VOICE,
+		Game::IW4::SND_CHANNEL_LOCAL,
+		Game::IW4::SND_CHANNEL_LOCAL2,
+		Game::IW4::SND_CHANNEL_AMBIENT,
+		Game::IW4::SND_CHANNEL_HURT,
+		Game::IW4::SND_CHANNEL_PLAYER1,
+		Game::IW4::SND_CHANNEL_PLAYER2,
+		Game::IW4::SND_CHANNEL_MUSIC,
+		Game::IW4::SND_CHANNEL_MUSICNOPAUSE,
+		Game::IW4::SND_CHANNEL_MISSION,
+		Game::IW4::SND_CHANNEL_ANNOUNCER,
+		Game::IW4::SND_CHANNEL_SHELLSHOCK
+	};
+
 	void Isnd_alias_list_t::Dump(Game::IW3::snd_alias_list_t* ents)
 	{
 		if (ents->count > 32)
@@ -29,18 +66,18 @@ namespace Components
 					for (size_t speakerIndex = 0; speakerIndex < iw3ChannelMap.speakerCount; speakerIndex++)
 					{
 						auto iw3Speaker = iw3ChannelMap.speakers[speakerIndex];
-						speakers.emplace_back(json11::Json::object {
+						speakers.emplace_back(json11::Json::object{
 							{"levels0", iw3Speaker.numLevels > 0 ? iw3Speaker.levels[0] : 0 },
 							{"levels1", iw3Speaker.numLevels > 1 ? iw3Speaker.levels[1] : 0 },
 							{"numLevels", iw3Speaker.numLevels },
 							{"speaker", iw3Speaker.speaker }
-						});
+							});
 					}
 
-					channelMaps.emplace_back(json11::Json::object {
+					channelMaps.emplace_back(json11::Json::object{
 						{"entryCount", static_cast<int>(iw3ChannelMap.speakerCount)},
 						{"speakers", speakers}
-					});
+						});
 				}
 			}
 
@@ -76,7 +113,7 @@ namespace Components
 
 					int handle;
 					Game::FS_FOpenFileRead(internalPath, &handle);
-					
+
 					if (handle != 0)
 					{
 						char buffer[1024];
@@ -95,13 +132,13 @@ namespace Components
 					break;
 				}
 
-					// I DON'T KNOW :(
+				// I DON'T KNOW :(
 				default:
 					Components::Logger::Print("Error dumping sound alias %s: unknown format %d\n", iw3Alias.aliasName, iw3Alias.soundFile->type);
 					return;
 				}
 			}
-			
+
 			// Convert flags
 			IW3SoundAliasFlags iw3Flags;
 			iw3Flags.intValue = iw3Alias.flags;
@@ -115,21 +152,10 @@ namespace Components
 			outputFlags.noWetLevel = iw3Flags.noWetLevel;
 			outputFlags.type = iw3Flags.type;
 
-			auto channel = iw3Flags.channel; 
+			auto channel = iw3Flags.channel;
 
 			// Channel conversion
-			if (channel == 0)
-			{
-				// Nothing to do!
-			}
-			else if (channel < 25)
-			{
-				channel++;
-			}
-			else
-			{
-				channel += 2;
-			}
+			channel = Isnd_alias_list_t::channelLookupTable[channel];
 
 			outputFlags.channel = channel;
 
@@ -158,7 +184,7 @@ namespace Components
 					{"isDefault", iw3Alias.speakerMap->isDefault},
 					{"name", iw3Alias.speakerMap->name}
 				}},
-				{"soundfile", _strdup(soundFile.c_str())},
+				{"soundFile", _strdup(soundFile.c_str())},
 				{"startDelay", iw3Alias.startDelay},
 				{"subtitle",  iw3Alias.subtitle == nullptr ? json11::Json() : json11::Json(std::string(iw3Alias.subtitle))},
 				{"type", iw3Alias.soundFile->type},
@@ -170,7 +196,7 @@ namespace Components
 			head.emplace_back(alias);
 		}
 
-		json11::Json aliasList = json11::Json::object {
+		json11::Json aliasList = json11::Json::object{
 			{"aliasName", ents->aliasName},
 			{"count", static_cast<int>(ents->count)},
 			{"head", head}

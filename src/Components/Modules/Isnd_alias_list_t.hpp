@@ -11,6 +11,7 @@ namespace Components
 		const char* getName() override { return "Isnd_alias_list_t"; };
 		Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_SOUND; };
 		void dump(Game::IW3::XAssetHeader header) override { Dump(header.sound); };
+        static int channelLookupTable[Game::IW3::SND_CHANNEL_COUNT];
 
 	private:
         union IW3SoundAliasFlags
