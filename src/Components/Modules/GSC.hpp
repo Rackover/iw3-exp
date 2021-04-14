@@ -16,5 +16,6 @@ namespace Components
 		static void PatchReference(std::string& data, std::string _old, std::string _new);
 		static void RemoveTeamDeclarations(std::string& data);
 		static void DumpSounds(std::string data);
+		static void DumpSubScripts(std::string data);
 	};
 }

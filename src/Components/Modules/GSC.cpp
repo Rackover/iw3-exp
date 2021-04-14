@@ -28,6 +28,27 @@ namespace Components
 		}
 	}
 
+	void GSC::DumpSubScripts(std::string data)
+	{
+		auto lines = Utils::Explode(data, '\n');
+		for (auto& line : lines)
+		{
+			Utils::Replace(line, " ", "");
+			std::regex regex("maps\\\\mp\\\\(.*)::"s);
+			std::smatch m;
+
+			if (std::regex_search(line, m, regex))
+			{
+				const auto& scriptDeclaredName = m[1].str();
+				if (!Utils::StartsWith(scriptDeclaredName, "_")) {
+					auto dumpCmd = Utils::VA("dumpRawFile maps/mp/%s.gsc", scriptDeclaredName.c_str());
+					Command::Execute(dumpCmd, true);
+					GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s.gsc", AssetHandler::GetExportPath().data(), scriptDeclaredName.c_str()), DumpSubScripts);
+				}
+			}
+		}
+	}
+
 	void GSC::UpgradeGSC(std::string filePath, std::function<void(std::string&)> f)
 	{
 		if (Utils::FileExists(filePath))
@@ -41,6 +62,7 @@ namespace Components
 	void GSC::ConvertMainGSC(std::string& data)
 	{
 		Utils::Replace(data, "\r\n", "\n");
+		GSC::DumpSubScripts(data);
 		GSC::RemoveTeamDeclarations(data);
 		GSC::DumpSounds(data);
 	}
