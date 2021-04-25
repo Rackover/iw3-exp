@@ -30,21 +30,39 @@ namespace Components
 
 	void GSC::DumpSubScripts(std::string data)
 	{
+
+		std::vector<std::string> systemGSCs{
+			"_load", 
+			"_compass",
+			"gametypes\\_callbacksetup"
+		};
+
 		auto lines = Utils::Explode(data, '\n');
 		for (auto& line : lines)
 		{
 			Utils::Replace(line, " ", "");
+			Utils::Replace(line, "\t", "");
+
+			if (Utils::StartsWith(line,  "//")) {
+				continue;
+			}
+
 			std::regex regex("maps\\\\mp\\\\(.*)::"s);
 			std::smatch m;
 
 			if (std::regex_search(line, m, regex))
 			{
 				const auto& scriptDeclaredName = m[1].str();
-				if (!Utils::StartsWith(scriptDeclaredName, "_")) {
+
+				// This should be enabled but... some map modders have named their custom scripts with a starting _, so...
+				//if (!Utils::StartsWith(scriptDeclaredName, "_")) {
+				if (std::find(systemGSCs.begin(), systemGSCs.end(), scriptDeclaredName) == systemGSCs.end()) {
 					auto dumpCmd = Utils::VA("dumpRawFile maps/mp/%s.gsc", scriptDeclaredName.c_str());
 					Command::Execute(dumpCmd, true);
+
 					GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s.gsc", AssetHandler::GetExportPath().data(), scriptDeclaredName.c_str()), DumpSubScripts);
 				}
+				//}
 			}
 		}
 	}
