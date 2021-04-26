@@ -681,7 +681,7 @@ namespace Components
 		map.dpvsDyn = world->dpvsDyn;
 
 		// Should we set that to true? :O
-		map.fogTypesAllowed = 3; // iw4_credits has 0x3
+		map.fogTypesAllowed = 0x1; // iw4_credits has 0x3
 
 		map.sortKeyLitDecal = 0x6;
 		map.sortKeyEffectDecal = 0x27;
@@ -703,7 +703,7 @@ namespace Components
 		}
 
 		// Specify that it's a custom map
-		map.checksum = 0xDEADBEEF;
+		map.checksum = 0x0000C0D4;
 
 		IGfxWorld::SaveConvertedWorld(&map);
 	}
