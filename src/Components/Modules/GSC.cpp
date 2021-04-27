@@ -34,6 +34,8 @@ namespace Components
 		std::vector<std::string> systemGSCs{
 			"_load", 
 			"_compass",
+			"_createfx",
+			"_utility",
 			"gametypes\\_callbacksetup"
 		};
 
