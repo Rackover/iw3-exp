@@ -47,6 +47,13 @@ namespace Components
 			return;
 		}
 
+		if (ents->count == 0) {
+			// Very weird but it happens, notably on mp_crash_snow
+			// Soundaliases with a zero-count list crash iw4 so we skip them
+			// They should be empty anyway
+			return;
+		}
+
 		// Format is pretty transparent from iw3 to iw4, so no conversion is necessary!
 		json11::Json::array head{};
 
