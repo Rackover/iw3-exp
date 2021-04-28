@@ -112,7 +112,9 @@ namespace Components
 		const unsigned int sides = 6; // Cube has 6 sides!
 		const unsigned int channels = 4; // R G B and A
 		const unsigned int iwiHeaderSize = 28; // This would be 32 for IW4, and it's 28 for IW3. This is the size of the header on .IWI file before the actual data
-
+#ifdef DEBUG
+		const unsigned int sizeOfASide = image->texture.loadDef->resourceSize / sides;
+#endif
 		std::string mapName = MapDumper::GetMapName();
 
 		// Here's the plan :
