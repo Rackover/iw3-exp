@@ -17,6 +17,10 @@ namespace Components
 		{
 			if (name[0] == '*') name.erase(name.begin());
 
+			if (Utils::StartsWith(name, "reflection_probe")) {
+				CorrectSpecularImage(image);
+			}
+
 			Utils::Stream buffer;
 			buffer.saveArray("IW4xImg" IW4X_IMG_VERSION, 8); // just stick version in the magic since we have an extra char
 
@@ -59,17 +63,17 @@ namespace Components
 					}
 				};
 
-				translateFlags(Game::IW3::IMG_FLAG_NOPICMIP,       Game::IW4::IMG_FLAG_NOPICMIP);
-				translateFlags(Game::IW3::IMG_FLAG_NOMIPMAPS,      Game::IW4::IMG_FLAG_NOMIPMAPS);
-				translateFlags(Game::IW3::IMG_FLAG_CUBEMAP,        Game::IW4::IMG_FLAG_MAPTYPE_CUBE);
-				translateFlags(Game::IW3::IMG_FLAG_VOLMAP,         Game::IW4::IMG_FLAG_MAPTYPE_3D);
-				translateFlags(Game::IW3::IMG_FLAG_STREAMING,      Game::IW4::IMG_FLAG_STREAMING);
+				translateFlags(Game::IW3::IMG_FLAG_NOPICMIP, Game::IW4::IMG_FLAG_NOPICMIP);
+				translateFlags(Game::IW3::IMG_FLAG_NOMIPMAPS, Game::IW4::IMG_FLAG_NOMIPMAPS);
+				translateFlags(Game::IW3::IMG_FLAG_CUBEMAP, Game::IW4::IMG_FLAG_MAPTYPE_CUBE);
+				translateFlags(Game::IW3::IMG_FLAG_VOLMAP, Game::IW4::IMG_FLAG_MAPTYPE_3D);
+				translateFlags(Game::IW3::IMG_FLAG_STREAMING, Game::IW4::IMG_FLAG_STREAMING);
 				translateFlags(Game::IW3::IMG_FLAG_LEGACY_NORMALS, Game::IW4::IMG_FLAG_LEGACY_NORMALS);
-				translateFlags(Game::IW3::IMG_FLAG_CLAMP_U,        Game::IW4::IMG_FLAG_CLAMP_U);
-				translateFlags(Game::IW3::IMG_FLAG_CLAMP_V,        Game::IW4::IMG_FLAG_CLAMP_V);
-// 				translateFlags(Game::IW3::IMG_FLAG_DYNAMIC,        Game::IW4::IMG_FLAG_DYNAMIC);
-// 				translateFlags(Game::IW3::IMG_FLAG_RENDER_TARGET,  Game::IW4::IMG_FLAG_RENDER_TARGET);
-// 				translateFlags(Game::IW3::IMG_FLAG_SYSTEMMEM,      Game::IW4::IMG_FLAG_SYSTEMMEM);
+				translateFlags(Game::IW3::IMG_FLAG_CLAMP_U, Game::IW4::IMG_FLAG_CLAMP_U);
+				translateFlags(Game::IW3::IMG_FLAG_CLAMP_V, Game::IW4::IMG_FLAG_CLAMP_V);
+				// 				translateFlags(Game::IW3::IMG_FLAG_DYNAMIC,        Game::IW4::IMG_FLAG_DYNAMIC);
+				// 				translateFlags(Game::IW3::IMG_FLAG_RENDER_TARGET,  Game::IW4::IMG_FLAG_RENDER_TARGET);
+				// 				translateFlags(Game::IW3::IMG_FLAG_SYSTEMMEM,      Game::IW4::IMG_FLAG_SYSTEMMEM);
 
 				header_iw4.flags |= Game::IW4::IMG_FLAG_ALPHA_WEIGHTED_COLORS;
 				header_iw4.flags |= Game::IW4::IMG_FLAG_GAMMA_SRGB;
@@ -102,9 +106,128 @@ namespace Components
 		}
 	}
 
+	void IGfxImage::CorrectSpecularImage(Game::IW3::GfxImage* image) {
+		assert(image->mapType == Game::IW3::MAPTYPE_CUBE);
+
+		auto sides = 6; // Cube has 6 sides!
+		auto channels = 4; // R G B and A
+		const unsigned int iwiHeaderSize = 28; // This would be 32 for IW4, and it's 28 for IW3. This is the size of the header on .IWI file before the actual data
+
+		std::string mapName = MapDumper::GetMapName();
+
+		// Here's the plan :
+		// 
+		// iw3 has baked images for specular reflection (metallic reflection, sniper scope reflection)
+		//	 but they're too contrasted and burnt for proper reflections in iw4
+		// They're usually damaged so badly that we can't use them at all.
+		// 
+		// As a workaround, we can use the loadscreen image of the map (as it usually has the same colors as the map or almost)
+		//	as a baked reflection probe. We still keep the alpha channel from the original probe so we have a bit of
+		//	difference between each probe on the map, but we take the RGB from the loadscreen image.
+		// That image has to be decoded manually because the game doesn't know how to decompress it. For iw3, its
+		//	format will always be DXT1.
+		// Then we also need to change the pixel data to make it a bit less contrasted and bright, otherwise
+		//	the specular reflections are very aggressive. That's about it! :)
+
+		Game::IW3::XAssetHeader baseMapHeader = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_IMAGE, Utils::VA("loadscreen_%s", mapName.c_str()));
+		auto baseMapImg = baseMapHeader.image;
+
+		const int pixels = channels * baseMapImg->width * baseMapImg->height;
+
+		// Fetch & decompress loadscreen image
+		// Note: We don't consider mipmaps here. Loadscreens shouldn't have mips, but
+		//	actually on some custom maps, they do. 
+		// I think it's okay. It will be technically incorrect but the colors will be right.
+
+		FileSystem::File baseImg(Utils::VA("images/%s.iwi", Utils::VA("loadscreen_%s", mapName.c_str())));
+		std::vector<uint32_t> replacementImageBuffer = std::vector<uint32_t>(pixels);
+		unsigned char* iwiData = reinterpret_cast<unsigned char*>(baseImg.GetBuffer().data());
+		unsigned char* dxt1RawDataStart = &iwiData[iwiHeaderSize];
+		BlockDecompressImageDXT1(baseMapImg->width, baseMapImg->height, dxt1RawDataStart, reinterpret_cast<unsigned long*>(&replacementImageBuffer[0]));
+
+		auto sizeOfASide = image->texture.loadDef->resourceSize / 6;
+		int dataIndex = 0;
+
+		std::vector<std::tuple<int, int>> mips = std::vector<std::tuple<int, int>>();
+		if (image->noPicmip == false) // => Has mipmaps
+		{
+			unsigned short maxDimension = max(image->height, image->width);
+			int mipmapFactor = 1;
+			int minBlockSize = 1;
+			int totalSize = 0;
+
+			while (maxDimension != 0)
+			{
+				maxDimension >>= 1;
+				auto x = max(image->width / mipmapFactor, minBlockSize);
+				auto y = max(image->height / mipmapFactor, minBlockSize);
+				totalSize += (x) * (y)*channels;
+				mips.emplace_back(std::tuple<int, int>(x, y));
+				mipmapFactor *= 2;
+			}
+
+			assert(totalSize == sizeOfASide);
+		}
+		else {
+			mips.emplace_back(std::tuple<int, int>(image->width, image->height));
+		}
+
+		float xStep = (float)baseMapImg->width / (float)image->width;
+		float yStep = (float)baseMapImg->height / (float)image->height;
+
+		for (int i = 0; i < mips.size(); i++)
+		{
+			short thisWidth = std::get<0>(mips[i]);
+			short thisHeight = std::get<1>(mips[i]);
+
+			for (size_t side = 0; side < sides; side++)
+			{
+				for (size_t x = 0; x < thisWidth; x++)
+				{
+					for (size_t y = 0; y < thisWidth; y++)
+					{
+						union {
+							char byteValue[4];
+							long longValue;
+						} baseMapPixels;
+
+						// Note: Rotation here is incorrect. It should be the following:
+						// 
+						//  side 0 is rotated ccw 90°
+						//  side 1 is rotated cw 90°
+						//	side 2 is rotated 180°
+						//	side 3 is not rotated
+						//	side 4 is not rotated
+						//	side 5 is not rotated
+						// 
+						// I just don't have the time to do that at the moment, but feel
+						//	free to implement it in the future! switch(side){...}
+
+						size_t newPixelIndex = std::floor(xStep * x) * baseMapImg->width + std::floor(yStep * y);
+						baseMapPixels.longValue = replacementImageBuffer[newPixelIndex];
+
+						for (size_t channel = 0; channel < channels; channel++)
+						{
+							if (channel < channels - 1) {
+								unsigned char newByte = baseMapPixels.byteValue[channel+1];
+
+								newByte = std::clamp(newByte, static_cast<unsigned char>(60), static_cast<unsigned char>(200));
+								newByte = std::lerp(newByte, 127, 0.3);
+
+								image->texture.loadDef->data[dataIndex] = newByte;
+							}
+
+							dataIndex++;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	int IGfxImage::StoreTexture()
 	{
-		Game::IW3::GfxImageLoadDef ** loadDef = *reinterpret_cast<Game::IW3::GfxImageLoadDef***>(0xE34814);
+		Game::IW3::GfxImageLoadDef** loadDef = *reinterpret_cast<Game::IW3::GfxImageLoadDef***>(0xE34814);
 		Game::IW3::GfxImage* image = *reinterpret_cast<Game::IW3::GfxImage**>(0xE346C4);
 
 		size_t size = 16 + (*loadDef)->resourceSize;
@@ -127,15 +250,15 @@ namespace Components
 	IGfxImage::IGfxImage()
 	{
 		Command::Add("dumpGfxImage", [](Command::Params params)
-		{
-			if (params.Length() < 2) return;
+			{
+				if (params.Length() < 2) return;
 
-			Game::IW3::GfxImage image;
-			image.name = params[1];
-			image.texture.loadDef = nullptr;
+				Game::IW3::GfxImage image;
+				image.name = params[1];
+				image.texture.loadDef = nullptr;
 
-			IGfxImage::Dump(&image);
-		});
+				IGfxImage::Dump(&image);
+			});
 
 		Utils::Hook(0x616E80, IGfxImage::StoreTexture, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x488C00, IGfxImage::ReleaseTexture, HOOK_JUMP).install()->quick();

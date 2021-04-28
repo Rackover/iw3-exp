@@ -2,12 +2,20 @@
 
 namespace Components
 {
+	std::string MapDumper::mapName;
+
+	std::string MapDumper::GetMapName() {
+		return MapDumper::mapName;
+	}
+
 	void MapDumper::DumpMap(std::string mapName)
 	{
+		MapDumper::mapName = mapName;
 		std::string bspName = Utils::VA("maps/mp/%s.d3dbsp", mapName.data());
 
 		Logger::Print("Loading map '%s'...\n", mapName.data());
 		Command::Execute(Utils::VA("map %s", mapName.data()), true);
+		Command::Execute(Utils::VA("loadzone %s_load", mapName.data()), true);
 
 		// Search zone index
 		int zoneIndex = 0;

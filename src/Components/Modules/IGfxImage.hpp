@@ -15,6 +15,7 @@ namespace Components
 	private:
 		static void Dump(Game::IW3::GfxImage* image);
 
+		static void CorrectSpecularImage(Game::IW3::GfxImage* image);
 		static int StoreTexture();
 		static void ReleaseTexture(Game::IW3::XAssetHeader header);
 	};

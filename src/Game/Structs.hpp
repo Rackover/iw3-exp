@@ -220,7 +220,7 @@ namespace Game
             __int16 dimensions[3];
             int format;
             int resourceSize;
-            char data[1];
+            unsigned char data[1];
         };
 
         union GfxTexture

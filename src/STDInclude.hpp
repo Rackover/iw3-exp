@@ -51,6 +51,7 @@ template <size_t S> class Sizer { };
 #include <version.hpp>
 
 #include <json11.hpp>
+#include <s3tc.h>
 
 #include "Utils/Utils.hpp"
 #include "Utils/Memory.hpp"
