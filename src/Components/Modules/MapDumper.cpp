@@ -8,20 +8,20 @@ namespace Components
 		return MapDumper::mapName;
 	}
 
-	void MapDumper::DumpMap(std::string mapName)
+	void MapDumper::DumpMap(std::string mapToDump)
 	{
-		MapDumper::mapName = mapName;
-		std::string bspName = Utils::VA("maps/mp/%s.d3dbsp", mapName.data());
+		MapDumper::mapName = mapToDump;
+		std::string bspName = Utils::VA("maps/mp/%s.d3dbsp", mapToDump.data());
 
-		Logger::Print("Loading map '%s'...\n", mapName.data());
-		Command::Execute(Utils::VA("map %s", mapName.data()), true);
-		Command::Execute(Utils::VA("loadzone %s_load", mapName.data()), true);
+		Logger::Print("Loading map '%s'...\n", mapToDump.data());
+		Command::Execute(Utils::VA("map %s", mapToDump.data()), true);
+		Command::Execute(Utils::VA("loadzone %s_load", mapToDump.data()), true);
 
 		// Search zone index
 		int zoneIndex = 0;
 		for (; zoneIndex < 32; ++zoneIndex)
 		{
-			if (Game::g_zones[zoneIndex].name == mapName)
+			if (Game::g_zones[zoneIndex].name == mapToDump)
 			{
 				break;
 			}
@@ -74,18 +74,18 @@ namespace Components
 		Command::Execute(Utils::VA("dumpclipMap_t %s", bspName.data()), true);
 
 		Logger::Print("Exporting Vision...\n");
-		Command::Execute(Utils::VA("dumpRawFile vision/%s.vision", mapName.data()), true);
+		Command::Execute(Utils::VA("dumpRawFile vision/%s.vision", mapToDump.data()), true);
 
 		Logger::Print("Exporting Sun...\n");
-		Command::Execute(Utils::VA("dumpRawFile sun/%s.sun", mapName.data()), true);
+		Command::Execute(Utils::VA("dumpRawFile sun/%s.sun", mapToDump.data()), true);
 
 		Logger::Print("Exporting Compass...\n");
-		Command::Execute(Utils::VA("dumpMaterial compass_map_%s", mapName.data()), true);
+		Command::Execute(Utils::VA("dumpMaterial compass_map_%s", mapToDump.data()), true);
 
 		Logger::Print("Exporting Loadscreen...\n");
-		Command::Execute(Utils::VA("dumpGfxImage loadscreen_%s", mapName.data()), true);
+		Command::Execute(Utils::VA("dumpGfxImage loadscreen_%s", mapToDump.data()), true);
 
-		MapDumper::DumpLoadedGSCs(mapName);
+		MapDumper::DumpLoadedGSCs(mapToDump);
 
 		if (zoneIndex < 32)
 		{
@@ -104,18 +104,18 @@ namespace Components
 
 	}
 
-	void MapDumper::DumpLoadedGSCs(std::string mapName)
+	void MapDumper::DumpLoadedGSCs(std::string mapToDump)
 	{
 		Logger::Print("Exporting environment GSCs...\n");
-		Command::Execute(Utils::VA("dumpRawFile maps/mp/%s.gsc", mapName.data()), true);
-		Command::Execute(Utils::VA("dumpRawFile maps/mp/%s_fx.gsc", mapName.data()), true);
-		Command::Execute(Utils::VA("dumpRawFile maps/createfx/%s_fx.gsc", mapName.data()), true);
-		Command::Execute(Utils::VA("dumpRawFile maps/createart/%s_art.gsc", mapName.data()), true);
+		Command::Execute(Utils::VA("dumpRawFile maps/mp/%s.gsc", mapToDump.data()), true);
+		Command::Execute(Utils::VA("dumpRawFile maps/mp/%s_fx.gsc", mapToDump.data()), true);
+		Command::Execute(Utils::VA("dumpRawFile maps/createfx/%s_fx.gsc", mapToDump.data()), true);
+		Command::Execute(Utils::VA("dumpRawFile maps/createart/%s_art.gsc", mapToDump.data()), true);
 
 		Logger::Print("Patching GSCs...\n");
-		GSC::UpgradeGSC(Utils::VA("%s/maps/createfx/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapName.data()), GSC::ConvertFXGSC);
-		GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapName.data()), GSC::ConvertMainFXGSC);
-		GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s.gsc", AssetHandler::GetExportPath().data(), mapName.data()), GSC::ConvertMainGSC);
+		GSC::UpgradeGSC(Utils::VA("%s/maps/createfx/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertFXGSC);
+		GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainFXGSC);
+		GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainGSC);
 	}
 
 	MapDumper::MapDumper()

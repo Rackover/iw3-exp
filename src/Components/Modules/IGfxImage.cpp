@@ -109,8 +109,8 @@ namespace Components
 	void IGfxImage::CorrectSpecularImage(Game::IW3::GfxImage* image) {
 		assert(image->mapType == Game::IW3::MAPTYPE_CUBE);
 
-		auto sides = 6; // Cube has 6 sides!
-		auto channels = 4; // R G B and A
+		const unsigned int sides = 6; // Cube has 6 sides!
+		const unsigned int channels = 4; // R G B and A
 		const unsigned int iwiHeaderSize = 28; // This would be 32 for IW4, and it's 28 for IW3. This is the size of the header on .IWI file before the actual data
 
 		std::string mapName = MapDumper::GetMapName();
@@ -145,10 +145,9 @@ namespace Components
 		unsigned char* dxt1RawDataStart = &iwiData[iwiHeaderSize];
 		BlockDecompressImageDXT1(baseMapImg->width, baseMapImg->height, dxt1RawDataStart, reinterpret_cast<unsigned long*>(&replacementImageBuffer[0]));
 
-		auto sizeOfASide = image->texture.loadDef->resourceSize / 6;
 		int dataIndex = 0;
 
-		std::vector<std::tuple<int, int>> mips = std::vector<std::tuple<int, int>>();
+		std::vector<std::tuple<unsigned int, unsigned int>> mips = std::vector<std::tuple<unsigned int, unsigned int>>();
 		if (image->noPicmip == false) // => Has mipmaps
 		{
 			unsigned short maxDimension = max(image->height, image->width);
@@ -175,16 +174,16 @@ namespace Components
 		float xStep = (float)baseMapImg->width / (float)image->width;
 		float yStep = (float)baseMapImg->height / (float)image->height;
 
-		for (int i = 0; i < mips.size(); i++)
+		for (size_t i = 0; i < mips.size(); i++)
 		{
-			short thisWidth = std::get<0>(mips[i]);
-			short thisHeight = std::get<1>(mips[i]);
+			unsigned int thisWidth = std::get<0>(mips[i]);
+			unsigned int thisHeight = std::get<1>(mips[i]);
 
 			for (size_t side = 0; side < sides; side++)
 			{
 				for (size_t x = 0; x < thisWidth; x++)
 				{
-					for (size_t y = 0; y < thisWidth; y++)
+					for (size_t y = 0; y < thisHeight; y++)
 					{
 						union {
 							char byteValue[4];
@@ -203,7 +202,7 @@ namespace Components
 						// I just don't have the time to do that at the moment, but feel
 						//	free to implement it in the future! switch(side){...}
 
-						size_t newPixelIndex = std::floor(xStep * x) * baseMapImg->width + std::floor(yStep * y);
+						size_t newPixelIndex = static_cast<size_t>(std::floor(xStep * x) * baseMapImg->width + std::floor(yStep * y));
 						baseMapPixels.longValue = replacementImageBuffer[newPixelIndex];
 
 						for (size_t channel = 0; channel < channels; channel++)
@@ -211,8 +210,8 @@ namespace Components
 							if (channel < channels - 1) {
 								unsigned char newByte = baseMapPixels.byteValue[channel+1];
 
-								newByte = std::clamp(newByte, static_cast<unsigned char>(60), static_cast<unsigned char>(200));
-								newByte = std::lerp(newByte, 127, 0.3);
+								newByte = std::clamp(newByte, static_cast<unsigned char>(60), static_cast<unsigned char>(170));
+								newByte = static_cast<unsigned char>(std::lerp(newByte, 127, 0.3));
 
 								image->texture.loadDef->data[dataIndex] = newByte;
 							}
