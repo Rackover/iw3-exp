@@ -110,6 +110,7 @@ namespace Components
 		Command::Execute(Utils::VA("dumpRawFile maps/mp/%s.gsc", mapToDump.data()), true);
 		Command::Execute(Utils::VA("dumpRawFile maps/mp/%s_fx.gsc", mapToDump.data()), true);
 		Command::Execute(Utils::VA("dumpRawFile maps/createfx/%s_fx.gsc", mapToDump.data()), true);
+
 		Command::Execute(Utils::VA("dumpRawFile maps/createart/%s_art.gsc", mapToDump.data()), true);
 
 		Logger::Print("Patching GSCs...\n");

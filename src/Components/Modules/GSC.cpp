@@ -36,7 +36,8 @@ namespace Components
 			"_compass",
 			"_createfx",
 			"_utility",
-			"gametypes\\_callbacksetup"
+			"gametypes\\_callbacksetup",
+			Utils::VA("%s_fx", MapDumper::GetMapName().c_str())
 		};
 
 		auto lines = Utils::Explode(data, '\n');
