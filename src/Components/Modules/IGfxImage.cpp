@@ -144,8 +144,20 @@ namespace Components
 		FileSystem::File baseImg(Utils::VA("images/%s.iwi", Utils::VA("loadscreen_%s", mapName.c_str())));
 		std::vector<uint32_t> replacementImageBuffer = std::vector<uint32_t>(pixels);
 		unsigned char* iwiData = reinterpret_cast<unsigned char*>(baseImg.GetBuffer().data());
-		unsigned char* dxt1RawDataStart = &iwiData[iwiHeaderSize];
-		BlockDecompressImageDXT1(baseMapImg->width, baseMapImg->height, dxt1RawDataStart, reinterpret_cast<unsigned long*>(&replacementImageBuffer[0]));
+		unsigned char* dxtRawDataStart = &iwiData[iwiHeaderSize];
+
+		if (baseMapImg->category == Game::GfxImageFileFormat::IMG_FORMAT_DXT1) {
+			BlockDecompressImageDXT1(baseMapImg->width, baseMapImg->height, dxtRawDataStart, reinterpret_cast<unsigned long*>(&replacementImageBuffer[0]));
+		}
+
+		else if (baseMapImg->category == Game::GfxImageFileFormat::IMG_FORMAT_DXT5) {
+			BlockDecompressImageDXT5(baseMapImg->width, baseMapImg->height, dxtRawDataStart, reinterpret_cast<unsigned long*>(&replacementImageBuffer[0]));
+		}
+		else {
+			// No can do! I don't know how to decompress this image.
+			// No correction will be applied
+			return;
+		}
 
 		int dataIndex = 0;
 
