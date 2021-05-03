@@ -144,13 +144,13 @@ namespace Components
 		FileSystem::File baseImg(Utils::VA("images/%s.iwi", Utils::VA("loadscreen_%s", mapName.c_str())));
 		std::vector<uint32_t> replacementImageBuffer = std::vector<uint32_t>(pixels);
 		unsigned char* iwiData = reinterpret_cast<unsigned char*>(baseImg.GetBuffer().data());
+		char iwiFormat = iwiData[4]; // I + W + i + 6  and the next char is => format.
 		unsigned char* dxtRawDataStart = &iwiData[iwiHeaderSize];
 
-		if (baseMapImg->category == Game::GfxImageFileFormat::IMG_FORMAT_DXT1) {
+		if (iwiFormat == Game::GfxImageFileFormat::IMG_FORMAT_DXT1) {
 			BlockDecompressImageDXT1(baseMapImg->width, baseMapImg->height, dxtRawDataStart, reinterpret_cast<unsigned long*>(&replacementImageBuffer[0]));
 		}
-
-		else if (baseMapImg->category == Game::GfxImageFileFormat::IMG_FORMAT_DXT5) {
+		else if (iwiFormat == Game::GfxImageFileFormat::IMG_FORMAT_DXT5) {
 			BlockDecompressImageDXT5(baseMapImg->width, baseMapImg->height, dxtRawDataStart, reinterpret_cast<unsigned long*>(&replacementImageBuffer[0]));
 		}
 		else {
