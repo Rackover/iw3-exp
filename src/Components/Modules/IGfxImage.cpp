@@ -109,11 +109,12 @@ namespace Components
 	void IGfxImage::CorrectSpecularImage(Game::IW3::GfxImage* image) {
 		assert(image->mapType == Game::IW3::MAPTYPE_CUBE);
 
-		const unsigned int sides = 6; // Cube has 6 sides!
-		const unsigned int channels = 4; // R G B and A
-		const unsigned int iwiHeaderSize = 28; // This would be 32 for IW4, and it's 28 for IW3. This is the size of the header on .IWI file before the actual data
+		#define SIDES 6 // Cube has 6 SIDES!
+		#define CHANNELS 4 // R G B and A
+		#define IWI_HEADER_SIZE 28 // This would be 32 for IW4, and it's 28 for IW3. This is the size of the header on .IWI file before the actual data
+
 #ifdef DEBUG
-		const unsigned int sizeOfASide = image->texture.loadDef->resourceSize / sides;
+		const unsigned int sizeOfASide = image->texture.loadDef->resourceSize / SIDES;
 #endif
 		std::string mapName = MapDumper::GetMapName();
 
@@ -134,7 +135,7 @@ namespace Components
 		Game::IW3::XAssetHeader baseMapHeader = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_IMAGE, Utils::VA("loadscreen_%s", mapName.c_str()));
 		auto baseMapImg = baseMapHeader.image;
 
-		const int pixels = channels * baseMapImg->width * baseMapImg->height;
+		const int pixels = CHANNELS * baseMapImg->width * baseMapImg->height;
 
 		// Fetch & decompress loadscreen image
 		// Note: We don't consider mipmaps here. Loadscreens shouldn't have mips, but
@@ -145,7 +146,7 @@ namespace Components
 		std::vector<uint32_t> replacementImageBuffer = std::vector<uint32_t>(pixels);
 		unsigned char* iwiData = reinterpret_cast<unsigned char*>(baseImg.GetBuffer().data());
 		char iwiFormat = iwiData[4]; // I + W + i + 6  and the next char is => format.
-		unsigned char* dxtRawDataStart = &iwiData[iwiHeaderSize];
+		unsigned char* dxtRawDataStart = &iwiData[IWI_HEADER_SIZE];
 
 		if (iwiFormat == Game::GfxImageFileFormat::IMG_FORMAT_DXT1) {
 			BlockDecompressImageDXT1(baseMapImg->width, baseMapImg->height, dxtRawDataStart, reinterpret_cast<unsigned long*>(&replacementImageBuffer[0]));
@@ -174,7 +175,7 @@ namespace Components
 				maxDimension >>= 1;
 				auto x = max(image->width / mipmapFactor, minBlockSize);
 				auto y = max(image->height / mipmapFactor, minBlockSize);
-				totalSize += (x) * (y)*channels;
+				totalSize += (x) * (y)*CHANNELS;
 				mips.emplace_back(std::tuple<int, int>(x, y));
 				mipmapFactor *= 2;
 			}
@@ -193,7 +194,7 @@ namespace Components
 			unsigned int thisWidth = std::get<0>(mips[i]);
 			unsigned int thisHeight = std::get<1>(mips[i]);
 
-			for (size_t side = 0; side < sides; side++)
+			for (size_t side = 0; side < SIDES; side++)
 			{
 				for (size_t x = 0; x < thisWidth; x++)
 				{
@@ -219,17 +220,25 @@ namespace Components
 						size_t newPixelIndex = static_cast<size_t>(std::floor(xStep * x) * baseMapImg->width + std::floor(yStep * y));
 						baseMapPixels.longValue = replacementImageBuffer[newPixelIndex];
 
-						for (size_t channel = 0; channel < channels; channel++)
+						for (size_t channel = 0; channel < CHANNELS; channel++)
 						{
-							if (channel < channels - 1) {
-								unsigned char newByte = baseMapPixels.byteValue[channel+1];
+							// RGB only
+							unsigned char newByte = baseMapPixels.byteValue[channel + 1];
 
-								newByte = std::clamp(newByte, static_cast<unsigned char>(60), static_cast<unsigned char>(170));
+							if (channel < CHANNELS - 1) {
+
+								unsigned char posterizationRange = 200;
+								unsigned char posterizationFactor = UCHAR_MAX / posterizationRange;
+
+								newByte = newByte / posterizationFactor + (UCHAR_MAX - posterizationRange) / 2;
 								newByte = static_cast<unsigned char>(std::lerp(newByte, 127, 0.3));
-
-								image->texture.loadDef->data[dataIndex] = newByte;
+							}
+							else {
+								// Alpha channel - we lower it a little bit
+								newByte = static_cast<unsigned char>(newByte * 0.75);
 							}
 
+							image->texture.loadDef->data[dataIndex] = newByte;
 							dataIndex++;
 						}
 					}
