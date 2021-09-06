@@ -168,7 +168,7 @@ namespace Components
 			unsigned short maxDimension = max(image->height, image->width);
 			int mipmapFactor = 1;
 			int minBlockSize = 1;
-			int totalSize = 0;
+			unsigned int totalSize = 0;
 
 			while (maxDimension != 0)
 			{
@@ -179,8 +179,9 @@ namespace Components
 				mips.emplace_back(std::tuple<int, int>(x, y));
 				mipmapFactor *= 2;
 			}
-
+#if DEBUG
 			assert(totalSize == sizeOfASide);
+#endif
 		}
 		else {
 			mips.emplace_back(std::tuple<int, int>(image->width, image->height));
@@ -222,19 +223,16 @@ namespace Components
 
 						for (size_t channel = 0; channel < CHANNELS; channel++)
 						{
-							// RGB only
-							unsigned char newByte = baseMapPixels.byteValue[channel + 1];
+							unsigned char newByte;
 
 							if (channel < CHANNELS - 1) {
-
-								unsigned char posterizationRange = 200;
-								unsigned char posterizationFactor = UCHAR_MAX / posterizationRange;
-
-								newByte = newByte / posterizationFactor + (UCHAR_MAX - posterizationRange) / 2;
-								newByte = static_cast<unsigned char>(std::lerp(newByte, 127, 0.3));
+								newByte = baseMapPixels.byteValue[channel + 1];
+								newByte = std::clamp(newByte, static_cast<unsigned char>(60), static_cast<unsigned char>(170));
+								newByte = static_cast<unsigned char>(std::lerp(newByte, 127, 0.3f));
 							}
 							else {
 								// Alpha channel - we lower it a little bit
+								newByte = baseMapPixels.byteValue[channel - CHANNELS + 1];
 								newByte = static_cast<unsigned char>(newByte * 0.75);
 							}
 
