@@ -363,6 +363,9 @@ namespace Components
 				target->radiusSquared = source->radiusSquared;
 
 				target->bounds.compute(source->bounds[0], source->bounds[1]);
+				target->bounds.midPoint[0] += source->offset[0];
+				target->bounds.midPoint[1] += source->offset[1];
+				target->bounds.midPoint[2] += source->offset[2];
 			}
 		}
 
@@ -389,7 +392,42 @@ namespace Components
 				Game::IW4::PhysGeomInfo* target = &xmodel.physCollmap->geoms[i];
 				Game::IW3::PhysGeomInfo* source = &model->physGeoms->geoms[i];
 
-				std::memcpy(target, source, sizeof(Game::IW4::PhysGeomInfo));
+				std::memcpy(target, source, sizeof(Game::IW4::PhysGeomInfo)); // This is ok: IW3 already has "bounds" the way iw4 has, for this struct precisely
+
+				if (source->type >= 4) 
+				{
+					// We're going from
+					/*
+						PHYS_GEOM_NONE = 0x0,
+						PHYS_GEOM_BOX = 0x1,
+						PHYS_GEOM_BRUSHMODEL = 0x2,
+						PHYS_GEOM_BRUSH = 0x3,
+						PHYS_GEOM_CYLINDER = 0x4,
+						PHYS_GEOM_CAPSULE = 0x5,
+							PHYS_GEOM_COUNT = 0x6,
+					
+					to
+					
+						PHYS_GEOM_NONE = 0x0,
+						PHYS_GEOM_BOX = 0x1,
+						PHYS_GEOM_BRUSHMODEL = 0x2,
+						PHYS_GEOM_BRUSH = 0x3,
+							PHYS_GEOM_COLLMAP = 0x4,
+						PHYS_GEOM_CYLINDER = 0x5,
+						PHYS_GEOM_CAPSULE = 0x6,
+							PHYS_GEOM_GLASS = 0x7,
+							PHYS_GEOM_COUNT = 0x8,
+					*/
+
+					target->type += 1; 
+
+					Components::Logger::Print("Translated physGeomType %i into %i (geom %i from model %s)\n", source->type, target->type, i, model->name);
+
+					if (source->type >= 0x6) 
+					{
+						Components::Logger::Error("Unexpected geom type %i (geom %i from model %s)\n", source->type, i, model->name);
+					}
+				}
 
 				if (source->brush)
 				{

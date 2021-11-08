@@ -233,7 +233,7 @@ namespace Components
 							else {
 								// Alpha channel - we lower it a little bit
 								newByte = baseMapPixels.byteValue[channel - CHANNELS + 1];
-								newByte = static_cast<unsigned char>(newByte * 0.75);
+								newByte = static_cast<unsigned char>(newByte * 0.75); // pretty sure this does nothing! Alpha channel seems unused once ingame
 							}
 
 							image->texture.loadDef->data[dataIndex] = newByte;

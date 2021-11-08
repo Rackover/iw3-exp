@@ -2780,8 +2780,8 @@ namespace Game
 			const char *name;
 			unsigned int count;
 			PhysGeomInfo *geoms;
-			char unknown[0x18];
 			IW3::PhysMass mass;
+			Bounds bounds;
 		};
 
 		struct XSurface
