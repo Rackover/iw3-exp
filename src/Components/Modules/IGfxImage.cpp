@@ -107,6 +107,9 @@ namespace Components
 	}
 
 	void IGfxImage::CorrectSpecularImage(Game::IW3::GfxImage* image) {
+
+		Components::Logger::Print("Regenerating specular image %s...\n", image->name);
+
 		assert(image->mapType == Game::IW3::MAPTYPE_CUBE);
 
 		#define SIDES 6 // Cube has 6 SIDES!

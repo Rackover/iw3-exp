@@ -16,6 +16,8 @@ namespace Game
     DB_LoadXAssets_t DB_LoadXAssets = DB_LoadXAssets_t(0x48A2B0);
 	FS_Read_t FS_Read = FS_Read_t(0x55C120);
 	FS_FOpenFileRead_t FS_FOpenFileRead = FS_FOpenFileRead_t(0x55C050);
+	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = Image_LoadFromFileWithReader_t(0x642380);
+	FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase = FS_FOpenFileReadDatabase_t(0x55C030);
 
 	DWORD* cmd_id = reinterpret_cast<DWORD*>(0x1410B40);
 	DWORD* cmd_argc = reinterpret_cast<DWORD*>(0x1410B84);

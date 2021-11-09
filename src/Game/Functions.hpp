@@ -33,6 +33,12 @@ namespace Game
 	typedef size_t(*FS_FOpenFileRead_t)(const char* filename, int* file);
 	extern FS_FOpenFileRead_t FS_FOpenFileRead;
 
+	typedef char (*Image_LoadFromFileWithReader_t)(Game::IW3::GfxImage* a1, int(__cdecl* a2)(char*, int*));
+	extern Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader;
+
+	typedef int (*FS_FOpenFileReadDatabase_t)(char* a1, int* file);
+	extern FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase;
+
 	int FS_ReadFile(const char* path, char** buffer);
 	void FS_FreeFile(void* buffer);
 	void FS_FCloseFile(int handle);

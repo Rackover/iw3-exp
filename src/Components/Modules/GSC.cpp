@@ -32,11 +32,12 @@ namespace Components
 	{
 
 		std::vector<std::string> systemGSCs{
-			"_load", 
+			"_load",
 			"_compass",
 			"_createfx",
 			"_utility",
-			"gametypes\\_callbacksetup",
+			"_fx",
+			"gametypes/_callbacksetup",
 			Utils::VA("%s_fx", MapDumper::GetMapName().c_str())
 		};
 
@@ -55,7 +56,9 @@ namespace Components
 
 			if (std::regex_search(line, m, regex))
 			{
-				const auto& scriptDeclaredName = m[1].str();
+				std::string scriptDeclaredName = m[1].str();
+				
+				Utils::Replace(scriptDeclaredName, "\\", "/");
 
 				// This should be enabled but... some map modders have named their custom scripts with a starting _, so...
 				//if (!Utils::StartsWith(scriptDeclaredName, "_")) {
