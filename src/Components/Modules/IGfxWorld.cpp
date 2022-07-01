@@ -644,7 +644,16 @@ namespace Components
 				map.dpvs.surfaces[i].lightmapIndex = world->dpvs.surfaces[i].lightmapIndex;
 				map.dpvs.surfaces[i].reflectionProbeIndex = world->dpvs.surfaces[i].reflectionProbeIndex;
 				map.dpvs.surfaces[i].primaryLightIndex = world->dpvs.surfaces[i].primaryLightIndex;
-				map.dpvs.surfaces[i].flags = world->dpvs.surfaces[i].flags;
+
+				if (world->dpvs.surfaces[i].flags & 0x1) // STATIC_MODEL_FLAG_NO_SHADOW
+				{
+					map.dpvs.surfaces[i].flags = 0x10; // STATIC_MODEL_FLAG_NO_CAST_SHADOW
+				} 
+				else 
+				{
+					// No other flags in iw3
+					map.dpvs.surfaces[i].flags = 0;
+				}
 
 				map.dpvs.surfacesBounds[i].bounds.compute(world->dpvs.surfaces[i].bounds[0], world->dpvs.surfaces[i].bounds[1]); // Verified
 			}
