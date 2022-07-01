@@ -2644,6 +2644,27 @@ namespace Game
 			//char flags;
 		};
 
+		struct GfxDrawSurfFields
+		{
+			unsigned __int64 objectId : 16;
+			unsigned __int64 reflectionProbeIndex : 8;
+			unsigned __int64 hasGfxEntIndex : 1;
+			unsigned __int64 customIndex : 5;
+			unsigned __int64 materialSortedIndex : 12;
+			unsigned __int64 prepass : 2;
+			unsigned __int64 useHeroLighting : 1;
+			unsigned __int64 sceneLightIndex : 8;
+			unsigned __int64 surfType : 4;
+			unsigned __int64 primarySortKey : 6;
+			unsigned __int64 unused : 1;
+		};
+
+		union GfxDrawSurf
+		{
+			GfxDrawSurfFields fields;
+			unsigned long long packed;
+		};
+
 		struct GfxWorldDpvsStatic
 		{
 			unsigned int smodelCount;
@@ -2666,7 +2687,7 @@ namespace Game
 			GfxSurface *surfaces;
 			GfxSurfaceBounds *surfacesBounds;
 			GfxStaticModelDrawInst *smodelDrawInsts;
-			IW3::GfxDrawSurf *surfaceMaterials;
+			IW4::GfxDrawSurf *surfaceMaterials;
 			unsigned int *surfaceCastsSunShadow;
 			volatile int usageCount;
 		};
@@ -3098,27 +3119,6 @@ namespace Game
             char unused[1];
             MaterialTechniqueSet *remappedTechniqueSet;
             IW3::MaterialTechnique *techniques[48];
-        };
-
-        struct GfxDrawSurfFields
-        {
-            unsigned __int64 objectId : 16;
-            unsigned __int64 reflectionProbeIndex : 8;
-            unsigned __int64 hasGfxEntIndex : 1;
-            unsigned __int64 customIndex : 5;
-            unsigned __int64 materialSortedIndex : 12;
-            unsigned __int64 prepass : 2;
-            unsigned __int64 useHeroLighting : 1;
-            unsigned __int64 sceneLightIndex : 8;
-            unsigned __int64 surfType : 4;
-            unsigned __int64 primarySortKey : 6;
-            unsigned __int64 unused : 1;
-        };
-
-        union GfxDrawSurf
-        {
-            GfxDrawSurfFields fields;
-            unsigned long long packed;
         };
 
 		struct FxTrailDef

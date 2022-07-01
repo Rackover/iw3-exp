@@ -683,7 +683,22 @@ namespace Components
 			}
 		}
 
-		map.dpvs.surfaceMaterials = world->dpvs.surfaceMaterials;
+
+		map.dpvs.surfaceMaterials = allocator.allocateArray<Game::IW4::GfxDrawSurf>(world->surfaceCount);
+		for (auto i = 0; i < world->surfaceCount; i++)
+		{
+			map.dpvs.surfaceMaterials[i].fields.objectId = world->dpvs.surfaceMaterials[i].fields.objectId;
+			map.dpvs.surfaceMaterials[i].fields.reflectionProbeIndex = world->dpvs.surfaceMaterials[i].fields.reflectionProbeIndex;
+			map.dpvs.surfaceMaterials[i].fields.customIndex = world->dpvs.surfaceMaterials[i].fields.customIndex;
+			map.dpvs.surfaceMaterials[i].fields.materialSortedIndex = world->dpvs.surfaceMaterials[i].fields.materialSortedIndex;
+			map.dpvs.surfaceMaterials[i].fields.prepass = world->dpvs.surfaceMaterials[i].fields.prepass;
+			map.dpvs.surfaceMaterials[i].fields.sceneLightIndex = world->dpvs.surfaceMaterials[i].fields.primaryLightIndex;
+			map.dpvs.surfaceMaterials[i].fields.surfType = world->dpvs.surfaceMaterials[i].fields.surfType;
+			map.dpvs.surfaceMaterials[i].fields.primarySortKey = world->dpvs.surfaceMaterials[i].fields.primarySortKey;
+			map.dpvs.surfaceMaterials[i].fields.unused = world->dpvs.surfaceMaterials[i].fields.unused;
+		}
+
+
 		map.dpvs.surfaceCastsSunShadow = world->dpvs.surfaceCastsSunShadow;
 		map.dpvs.usageCount = world->dpvs.usageCount;
 
