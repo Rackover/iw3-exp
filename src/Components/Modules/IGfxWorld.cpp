@@ -704,8 +704,8 @@ namespace Components
 
 		map.dpvsDyn = world->dpvsDyn;
 
-		// Should we set that to true? :O
-		map.fogTypesAllowed = 0x1; // iw4_credits has 0x3
+		// iw4_credits has 0x3
+		map.fogTypesAllowed = Game::IW4::FogTypes::FOG_DFOG | Game::IW4::FogTypes::FOG_NORMAL;
 
 		map.sortKeyLitDecal = 0x6;
 		map.sortKeyEffectDecal = 0x27;
