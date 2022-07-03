@@ -2265,6 +2265,12 @@ namespace Game
 			SND_CHANNEL_COUNT
 		};
 
+		enum FogTypes
+		{
+			FOG_NORMAL = 0x1,
+			FOG_DFOG = 0x2,
+		};
+
 		struct GfxImageFileHeader
 		{
 			char tag[3];

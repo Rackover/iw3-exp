@@ -383,7 +383,7 @@ namespace Components
 			xmodel.physCollmap->name = allocator.duplicateString(Utils::VA("%s_colmap", model->name));
 			xmodel.physCollmap->count = model->physGeoms->count;
 			xmodel.physCollmap->mass = model->physGeoms->mass;
-
+			xmodel.physCollmap->bounds = xmodel.bounds; // it's fine right?
 			xmodel.physCollmap->geoms = allocator.allocateArray<Game::IW4::PhysGeomInfo>(model->physGeoms->count);
 
 			for (unsigned int i = 0; i < model->physGeoms->count; ++i)
@@ -466,6 +466,14 @@ namespace Components
 					}
 				}
 			}
+
+			// Physical collision maps don't work!
+			// Porting these on iw4 maps result in models with fucked up physics bouncing everywhere and making noise
+			// and in some cases results in freezes if too many of them move over (fruits in carentan, papers on backlot)
+			// Killing the physCollmap during porting solves this issue with no apparent drawback, surprisingly
+			// The objects (car doors, fruits, ...) still work as expected when this is null. So let's keep it that way until we know what's going on!
+			// The error may lie in the above codeblock, or in zonebuilder's reading of physcollmaps.
+			xmodel.physCollmap = nullptr;
 		}
 
 		IXModel::SaveConvertedModel(&xmodel);

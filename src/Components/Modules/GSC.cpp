@@ -35,6 +35,7 @@ namespace Components
 			"_load",
 			"_compass",
 			"_createfx",
+			"_art",
 			"_utility",
 			"_fx",
 			"gametypes/_callbacksetup",
@@ -89,6 +90,7 @@ namespace Components
 		GSC::DumpSubScripts(data);
 		GSC::RemoveTeamDeclarations(data);
 		GSC::DumpSounds(data);
+		GSC::UpgradeCreateFog(data); // It's sometimes in main.gsc! mp_carentan for instance
 	}
 
 	void GSC::ConvertMainFXGSC(std::string& data)
@@ -100,6 +102,12 @@ namespace Components
 		GSC::DumpSounds(data);
 	}
 
+	void GSC::ConvertMainArtGSC(std::string& data)
+	{
+		Utils::Replace(data, "\r\n", "\n");
+		GSC::UpgradeCreateFog(data);
+	}
+
 	void GSC::ConvertFXGSC(std::string& data)
 	{
 		Utils::Replace(data, "\r\n", "\n");
@@ -107,6 +115,13 @@ namespace Components
 		GSC::PatchReference(data, "maps\\mp\\_utility", "common_scripts\\utility");
 		GSC::DumpSounds(data);
 		data = Utils::VA("//_createfx generated. Do not touch!!\n%s", data.data());
+	}
+
+	void GSC::UpgradeCreateFog(std::string& data)
+	{
+		std::regex regex("setExpFog\\(((?:(?:[0-9]*|\\.| )*,*){6}),"s, std::regex_constants::icase);
+
+		data = std::regex_replace(data, regex, "setExpFog($1, 0.10,");
 	}
 
 	void GSC::RemoveTeamDeclarations(std::string& data)
