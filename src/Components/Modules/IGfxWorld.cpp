@@ -645,15 +645,10 @@ namespace Components
 				map.dpvs.surfaces[i].reflectionProbeIndex = world->dpvs.surfaces[i].reflectionProbeIndex;
 				map.dpvs.surfaces[i].primaryLightIndex = world->dpvs.surfaces[i].primaryLightIndex;
 
-				if (world->dpvs.surfaces[i].flags & 0x1) // STATIC_MODEL_FLAG_NO_SHADOW
-				{
-					map.dpvs.surfaces[i].flags = 0x10; // STATIC_MODEL_FLAG_NO_CAST_SHADOW
-				} 
-				else 
-				{
-					// No other flags in iw3
-					map.dpvs.surfaces[i].flags = 0;
-				}
+				// Static model flags in iw3 do not correspond to static model flags in iw4
+				// I think they're intentionally misaligned because iw3:STATIC_MODEL_FLAG_NO_SHADOW does NOT correspond to iw4:STATIC_MODEL_FLAG_NO_CAST_SHADOW
+				// If you make them match you'll get fucked up shadows. So let's put everything to zero instead!
+				map.dpvs.surfaces[i].flags = world->dpvs.surfaces[i].flags;
 
 				map.dpvs.surfacesBounds[i].bounds.compute(world->dpvs.surfaces[i].bounds[0], world->dpvs.surfaces[i].bounds[1]); // Verified
 			}
