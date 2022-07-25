@@ -407,54 +407,6 @@ namespace Components
 		}
 
 		Utils::WriteFile(Utils::VA("%s/gfxworld/%s.iw4xGfxWorld", AssetHandler::GetExportPath().data(), asset->baseName), buffer.toBuffer());
-
-
-		rapidjson::Document output{};
-		auto& allocator = output.GetAllocator();
-
-		rapidjson::Value gfxWorld(rapidjson::kObjectType);
-
-#define CUSTOM_JSON_ENTRY(x, y) gfxWorld.AddMember("x", y, allocator) 
-#define DITTO_JSON_ENTRY_STR(x) CUSTOM_JSON_ENTRY(x, RAPIDJSON_STR(asset->x)) 
-#define DITTO_JSON_ENTRY(x) CUSTOM_JSON_ENTRY(x, asset->x)
-
-		DITTO_JSON_ENTRY_STR(name);
-		DITTO_JSON_ENTRY_STR(baseName);
-		DITTO_JSON_ENTRY(planeCount);
-		DITTO_JSON_ENTRY(nodeCount);
-		DITTO_JSON_ENTRY(surfaceCount);
-		DITTO_JSON_ENTRY(skyCount);
-		DITTO_JSON_ENTRY(planeCount);
-		CUSTOM_JSON_ENTRY("skies", rapidjson::Value()); // #todo
-		DITTO_JSON_ENTRY(lastSunPrimaryLightIndex);
-		DITTO_JSON_ENTRY(primaryLightCount);
-		DITTO_JSON_ENTRY(sortKeyLitDecal);
-		DITTO_JSON_ENTRY(sortKeyEffectDecal);
-		DITTO_JSON_ENTRY(sortKeyEffectAuto);
-		DITTO_JSON_ENTRY(sortKeyDistortion);
-		CUSTOM_JSON_ENTRY("dpvsPlanes", rapidjson::Value()); // #todo
-		CUSTOM_JSON_ENTRY("aabbTreeCounts", rapidjson::Value()); // #todo
-		CUSTOM_JSON_ENTRY("aabbTrees", rapidjson::Value()); // #todo
-		CUSTOM_JSON_ENTRY("cells", rapidjson::Value()); // #todo
-		CUSTOM_JSON_ENTRY("draw", rapidjson::Value()); // #todo
-		CUSTOM_JSON_ENTRY("lightGrid", rapidjson::Value()); // #todo
-		DITTO_JSON_ENTRY(modelCount);
-		CUSTOM_JSON_ENTRY("models", rapidjson::Value()); // #todo
-		CUSTOM_JSON_ENTRY("bounds", rapidjson::Value()); // #todo
-		CUSTOM_JSON_ENTRY("checksum", rapidjson::Value()); /*std::format("CUSTOM_JSON_ENTRY:x}"; asset->checksum)*/ // #TODO
-		DITTO_JSON_ENTRY(materialMemoryCount);
-		CUSTOM_JSON_ENTRY("materialMemory", rapidjson::Value()); // #todo
-		CUSTOM_JSON_ENTRY("sun", rapidjson::Value()); // #todo
-
-
-		output.AddMember("version", IW4X_GFXMAP_VERSION, allocator);
-		output.AddMember("gfxWorld", gfxWorld, allocator);
-
-		rapidjson::StringBuffer buff;
-		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
-		output.Accept(writer);
-
-		Utils::WriteFile(Utils::VA("%s/gfxworld/%s.json", AssetHandler::GetExportPath().data(), asset->baseName), output.GetString());
 	}
 
 	void IGfxWorld::Dump(Game::IW3::GfxWorld* world)
