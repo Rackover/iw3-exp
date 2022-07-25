@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #pragma warning(push, 2)
 
 // unsigned long PackRGBA(): Helper method that packs RGBA channels into a single 4 byte pixel.
