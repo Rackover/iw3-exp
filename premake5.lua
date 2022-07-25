@@ -104,27 +104,14 @@ workspace "iw3-exp"
 			"./src/**.hpp",
 			"./src/**.cpp",
 		}
-		links { "rapidjson" }
-		includedirs {
-			"%{prj.location}/src",
-			"./src",
-			
-			"./deps/rapidjson/include", 
-		}
 		links { "s3tc-dxt-decompression" }
 		includedirs {
 			"%{prj.location}/src",
 			"./src",
 			
 			"./deps/s3tc-dxt-decompression", 
+			"./deps/rapidjson/include"
 		}
-		links { "s3tc-dxt-decompression" }
-        includedirs {
-            "%{prj.location}/src",
-            "./src",
-            
-            "./deps/s3tc-dxt-decompression", 
-        }
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE
 		}
@@ -171,21 +158,6 @@ workspace "iw3-exp"
 
 	group "External dependencies"
 
-		-- rapidjson
-		project "rapidjson"
-			language "C++"
-
-			files
-			{
-				"./deps/rapidjson/include/rapidjson/*.h"
-			}
-			
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			-- always build as static lib, as json11 doesn't export anything
-			kind "StaticLib"
-			
 		-- s3tc-dxt-decompression
 		project "s3tc-dxt-decompression"
 			language "C++"
