@@ -463,7 +463,10 @@ namespace Components
 					for (int j = 0; j < world->cells[i].aabbTreeCount; ++j)
 					{
 						static_assert(sizeof Game::IW4::GfxAabbTree == sizeof Game::IW3::GfxAabbTree, "Size mismatch");
-						map.aabbTrees[i].aabbTree[j].bounds.compute(world->cells[i].aabbTree[j].mins, world->cells[i].aabbTree[j].maxs); // Verified
+						Game::IW4::GfxAabbTree* iw4Cell = &map.aabbTrees[i].aabbTree[j];
+						Game::IW3::GfxAabbTree* iw3Cell = &world->cells[i].aabbTree[j];
+
+						iw4Cell->bounds.compute(iw3Cell->mins, iw3Cell->maxs); // Verified
 					}
 				}
 

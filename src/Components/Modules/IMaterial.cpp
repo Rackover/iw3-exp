@@ -183,7 +183,7 @@ namespace Components
 		mat.textureCount   = material->textureCount;
 		mat.constantCount  = material->constantCount;
 		mat.stateBitsCount = material->stateBitsCount;
-		mat.stateFlags     = material->stateFlags;
+		mat.stateFlags     = static_cast<Game::IW4::StateFlags>(material->stateFlags);
 		mat.cameraRegion   = material->cameraRegion;
 		mat.techniqueSet   = material->techniqueSet;
 		mat.textureTable   = material->textureTable;
