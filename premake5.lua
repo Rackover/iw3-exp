@@ -67,6 +67,9 @@ workspace "iw3-exp"
 	buildlog "%{wks.location}/obj/%{cfg.architecture}/%{cfg.buildcfg}/%{prj.name}/%{prj.name}.log"
 	configurations { "Debug", "Release" }
 	architecture "x32"
+	platforms "x86"
+
+	buildoptions "/std:c++latest"
 	systemversion "latest"
 	
 	defines { "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" }
@@ -115,6 +118,13 @@ workspace "iw3-exp"
 			
 			"./deps/s3tc-dxt-decompression", 
 		}
+		links { "s3tc-dxt-decompression" }
+        includedirs {
+            "%{prj.location}/src",
+            "./src",
+            
+            "./deps/s3tc-dxt-decompression", 
+        }
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE
 		}
@@ -173,8 +183,9 @@ workspace "iw3-exp"
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"
 
+			-- always build as static lib, as json11 doesn't export anything
 			kind "StaticLib"
-		
+			
 		-- s3tc-dxt-decompression
 		project "s3tc-dxt-decompression"
 			language "C++"
