@@ -109,6 +109,13 @@ workspace "iw3-exp"
 			
 			"./deps/json11", 
 		}
+		links { "s3tc-dxt-decompression" }
+        includedirs {
+            "%{prj.location}/src",
+            "./src",
+            
+            "./deps/s3tc-dxt-decompression", 
+        }
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE
 		}
@@ -168,6 +175,22 @@ workspace "iw3-exp"
 			-- remove dropbox's testing code
 			removefiles { "./deps/json11/test.cpp" }
 
+			-- not our code, ignore POSIX usage warnings for now
+			warnings "Off"
+
+			-- always build as static lib, as json11 doesn't export anything
+			kind "StaticLib"
+			
+		-- s3tc-dxt-decompression
+        project "s3tc-dxt-decompression"
+            language "C++"
+
+            files
+            {
+                "./deps/s3tc-dxt-decompression/*.cpp",
+                "./deps/s3tc-dxt-decompression/*.h"
+            }
+                
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"
 
