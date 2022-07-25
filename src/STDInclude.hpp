@@ -44,14 +44,18 @@ template <size_t S> class Sizer { };
 // Revision number
 #define STRINGIZE_(x) #x
 #define STRINGIZE(x) STRINGIZE_(x)
-
+#define RAPIDJSON_STR(str) rapidjson::Value(str, strnlen_s(str, 128), allocator)
 #define AssertSize(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.")
 
 // Version number
 #include <version.hpp>
 
-#include <json11.hpp>
 #include <s3tc.h>
+
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
 
 #include "Utils/Utils.hpp"
 #include "Utils/Memory.hpp"

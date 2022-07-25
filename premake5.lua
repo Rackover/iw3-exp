@@ -67,9 +67,6 @@ workspace "iw3-exp"
 	buildlog "%{wks.location}/obj/%{cfg.architecture}/%{cfg.buildcfg}/%{prj.name}/%{prj.name}.log"
 	configurations { "Debug", "Release" }
 	architecture "x32"
-	platforms "x86"
-
-	buildoptions "/std:c++latest"
 	systemversion "latest"
 	
 	defines { "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" }
@@ -97,17 +94,26 @@ workspace "iw3-exp"
 	project "iw3x"
 		kind "SharedLib"
 		language "C++"
+		cppdialect  "C++20"
+	
 		files {
 			"./src/**.rc",
 			"./src/**.hpp",
 			"./src/**.cpp",
 		}
-		links { "json11" }
+		links { "rapidjson" }
 		includedirs {
 			"%{prj.location}/src",
 			"./src",
 			
-			"./deps/json11", 
+			"./deps/rapidjson/include", 
+		}
+		links { "s3tc-dxt-decompression" }
+		includedirs {
+			"%{prj.location}/src",
+			"./src",
+			
+			"./deps/s3tc-dxt-decompression", 
 		}
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE
@@ -116,7 +122,7 @@ workspace "iw3-exp"
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
 		pchsource "src/STDInclude.cpp" -- real path
-		buildoptions { "/Zm100 -Zm100" }
+		buildoptions { "/Zm100 -Zm100", "/std:c++20" }
 
 		-- Virtual paths
 		if not _OPTIONS["no-new-structure"] then
@@ -155,21 +161,31 @@ workspace "iw3-exp"
 
 	group "External dependencies"
 
-		-- json11
-		project "json11"
+		-- rapidjson
+		project "rapidjson"
 			language "C++"
 
 			files
 			{
-				"./deps/json11/*.cpp",
-				"./deps/json11/*.hpp"
+				"./deps/rapidjson/include/rapidjson/*.h"
 			}
 			
-			-- remove dropbox's testing code
-			removefiles { "./deps/json11/test.cpp" }
-
 			-- not our code, ignore POSIX usage warnings for now
 			warnings "Off"
 
-			-- always build as static lib, as json11 doesn't export anything
+			kind "StaticLib"
+		
+		-- s3tc-dxt-decompression
+		project "s3tc-dxt-decompression"
+			language "C++"
+
+			files
+			{
+				"./deps/s3tc-dxt-decompression/*.cpp",
+				"./deps/s3tc-dxt-decompression/*.h"
+			}
+				
+			-- not our code, ignore POSIX usage warnings for now
+			warnings "Off"
+
 			kind "StaticLib"
