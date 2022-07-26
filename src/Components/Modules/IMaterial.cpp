@@ -120,8 +120,7 @@ namespace Components
         newSurf.fields.sceneLightIndex = material->info.drawSurf.fields.primaryLightIndex;
         newSurf.fields.surfType = material->info.drawSurf.fields.surfType;
         newSurf.fields.primarySortKey = material->info.drawSurf.fields.primarySortKey;
-        if (newSurf.fields.primarySortKey)
-            OutputDebugStringA("");
+
         mat.drawSurf.packed = newSurf.packed;
 
 		mat.surfaceTypeBits         = material->info.surfaceTypeBits;
@@ -183,7 +182,7 @@ namespace Components
 		mat.textureCount   = material->textureCount;
 		mat.constantCount  = material->constantCount;
 		mat.stateBitsCount = material->stateBitsCount;
-		mat.stateFlags     = material->stateFlags;
+		mat.stateFlags = static_cast<Game::IW4::StateFlags>(material->stateFlags); // Correspondance is identical
 		mat.cameraRegion   = material->cameraRegion;
 		mat.techniqueSet   = material->techniqueSet;
 		mat.textureTable   = material->textureTable;
