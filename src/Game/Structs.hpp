@@ -706,7 +706,7 @@ namespace Game
 			int toolFlags;
 		};
 
-		enum StateFlags : char {
+		enum StateFlags : unsigned char {
 			STATE_FLAG_CULL_BACK = 0x1,
 			STATE_FLAG_CULL_FRONT = 0x2,
 			STATE_FLAG_DECAL = 0x4,
@@ -734,7 +734,7 @@ namespace Game
 		struct Material
 		{
 			MaterialInfo info;
-			char stateBitsEntry[34];
+			unsigned char stateBitsEntry[34];
 			char textureCount;
 			char constantCount;
 			char stateBitsCount;
@@ -3095,7 +3095,7 @@ namespace Game
 			TECHNIQUE_NONE = 0x32,
 		};
 
-		enum StateFlags : char {
+		enum StateFlags : unsigned char {
 			STATE_FLAG_CULL_BACK = 0x1,
 			STATE_FLAG_AMBIENT = 0x2,
 			STATE_FLAG_DECAL = 0x4,
@@ -3132,7 +3132,7 @@ namespace Game
 			int surfaceTypeBits;
 			unsigned __int16 hashIndex;
 			unsigned __int16 pad;
-			char stateBitsEntry[48];
+			unsigned char stateBitsEntry[48];
 			char textureCount;
 			char constantCount;
 			char stateBitsCount;

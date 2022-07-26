@@ -119,7 +119,7 @@ workspace "iw3-exp"
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
 		pchsource "src/STDInclude.cpp" -- real path
-		buildoptions { "/Zm100 -Zm100", "/std:c++20" }
+		buildoptions { "/Zm100 -Zm100" }
 
 		-- Virtual paths
 		if not _OPTIONS["no-new-structure"] then

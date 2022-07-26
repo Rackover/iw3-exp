@@ -54,8 +54,9 @@ namespace Components
 			return;
 		}
 
-		rapidjson::Document output{};
+		rapidjson::Document output(rapidjson::kObjectType);
 		auto& allocator = output.GetAllocator();
+		Utils::Memory::Allocator strDuplicator;
 
 		// Format is pretty transparent from iw3 to iw4, so no conversion is necessary!
 		rapidjson::Value head(rapidjson::kArrayType);
@@ -201,7 +202,7 @@ namespace Components
 			alias.AddMember("sequence", iw3Alias.sequence, allocator);
 			alias.AddMember("slavePercentage", iw3Alias.slavePercentage, allocator);
 			alias.AddMember("speakerMap",speakerMap, allocator);
-			alias.AddMember("soundFile", RAPIDJSON_STR(soundFile.data()), allocator);
+			alias.AddMember("soundFile", RAPIDJSON_STR(strDuplicator.duplicateString(soundFile)), allocator);
 			alias.AddMember("startDelay", iw3Alias.startDelay, allocator);
 			alias.AddMember("subtitle", RAPIDJSON_STR(iw3Alias.subtitle), allocator);
 			alias.AddMember("type", iw3Alias.soundFile->type, allocator);
@@ -219,8 +220,10 @@ namespace Components
 		rapidjson::StringBuffer buff;
 		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
 		output.Accept(writer);
+		
+		const auto& dump = buff.GetString();
 
-		Utils::WriteFile(Utils::VA("%s/sounds/%s", AssetHandler::GetExportPath().data(), ents->aliasName), output.GetString());
+		Utils::WriteFile(Utils::VA("%s/sounds/%s.json", AssetHandler::GetExportPath().data(), ents->aliasName), dump);
 	}
 
 
