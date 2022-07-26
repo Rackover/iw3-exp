@@ -14,6 +14,7 @@
 
 #pragma warning(push)
 #pragma warning(disable: 4244)
+#include <array>
 #include <map>
 #include <mutex>
 #include <string>
@@ -45,7 +46,8 @@ template <size_t S> class Sizer { };
 // Revision number
 #define STRINGIZE_(x) #x
 #define STRINGIZE(x) STRINGIZE_(x)
-#define RAPIDJSON_STR(str) rapidjson::Value(str, strnlen_s(str, 128), allocator)
+#define RAPIDJSON_STR(str) (str == nullptr ? rapidjson::Value(rapidjson::kNullType) : static_cast<rapidjson::Value>(rapidjson::StringRef(str)))
+
 #define AssertSize(x, size) static_assert(sizeof(x) == size, STRINGIZE(x) " structure has an invalid size.")
 
 // Version number
@@ -62,6 +64,7 @@ template <size_t S> class Sizer { };
 #include "Utils/Stream.hpp"
 #include "Utils/Hooking.hpp"
 #include "Utils/Entities.hpp"
+#include "Utils/Base64.hpp"
 
 #include "Game/Structs.hpp"
 #include "Game/Functions.hpp"

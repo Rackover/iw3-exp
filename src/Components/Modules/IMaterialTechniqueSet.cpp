@@ -16,11 +16,6 @@ namespace Components
         buffer.saveObject(tech->flags);
         buffer.saveObject(tech->passCount);
 
-        if (tech->passCount == 0)
-        {
-            OutputDebugStringA("");
-        }
-
         buffer.saveArray(tech->passArray, tech->passCount);
 
         for (int i = 0; i < tech->passCount; i++)
