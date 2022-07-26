@@ -6,8 +6,46 @@ namespace Components
 {
 	void IMaterial::SaveConvertedMaterial(Game::IW4::Material* asset)
 	{
-		Utils::Stream buffer;
-		buffer.saveArray("IW4xMat" IW4X_MAT_VERSION, 8); // just stick version in the magic since we have an extra char
+		rapidjson::Document output{};
+		auto& allocator = output.GetAllocator();
+		rapidjson::StringBuffer buff;
+		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
+		output.Accept(writer);
+
+		output.AddMember("version", RAPIDJSON_STR(IW4X_MAT_VERSION), allocator);
+
+		output.AddMember("name", RAPIDJSON_STR(asset->name), allocator);
+
+		const auto gameFlags = std::format("{:b}", asset->gameFlags);
+		output.AddMember("gameFlags", RAPIDJSON_STR(gameFlags), allocator);
+
+#define SAME_NAME_JSON_MEMBER(x) output.AddMember("x", asset->x, allocator)
+
+		SAME_NAME_JSON_MEMBER(sortKey);
+		SAME_NAME_JSON_MEMBER(textureAtlasRowCount);
+		SAME_NAME_JSON_MEMBER(textureAtlasColumnCount);
+
+		rapidjson::Value gfxDrawSurface(rapidjson::kObjectType);
+
+#define SAME_NAME_GFXDRAWSURF_MEMBER(x) gfxDrawSurface.AddMember("x", asset->drawSurf.fields.x, allocator)
+
+		SAME_NAME_GFXDRAWSURF_MEMBER(objectId);
+		SAME_NAME_GFXDRAWSURF_MEMBER(reflectionProbeIndex);
+		SAME_NAME_GFXDRAWSURF_MEMBER(hasGfxEntIndex);
+		SAME_NAME_GFXDRAWSURF_MEMBER(customIndex);
+		SAME_NAME_GFXDRAWSURF_MEMBER(materialSortedIndex);
+		SAME_NAME_GFXDRAWSURF_MEMBER(prepass);
+		SAME_NAME_GFXDRAWSURF_MEMBER(useHeroLighting);
+		SAME_NAME_GFXDRAWSURF_MEMBER(sceneLightIndex);
+		SAME_NAME_GFXDRAWSURF_MEMBER(surfType);
+		SAME_NAME_GFXDRAWSURF_MEMBER(primarySortKey);
+		SAME_NAME_GFXDRAWSURF_MEMBER(unused);
+
+		output.AddMember("gfxDrawSurface", gfxDrawSurface, allocator);
+
+
+		SAME_NAME_JSON_MEMBER(hashIndex);
+		SAME_NAME_JSON_MEMBER(pad);
 
 		buffer.saveObject(*asset);
 
@@ -120,7 +158,6 @@ namespace Components
         newSurf.fields.sceneLightIndex = material->info.drawSurf.fields.primaryLightIndex;
         newSurf.fields.surfType = material->info.drawSurf.fields.surfType;
         newSurf.fields.primarySortKey = material->info.drawSurf.fields.primarySortKey;
-
         mat.drawSurf.packed = newSurf.packed;
 
 		mat.surfaceTypeBits         = material->info.surfaceTypeBits;
