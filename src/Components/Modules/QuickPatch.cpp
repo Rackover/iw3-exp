@@ -72,7 +72,7 @@ namespace Components
 		{
 			Game::DB_EnumXAssets_FastFile(Game::ASSET_TYPE_MATERIAL, [](Game::IW3::XAssetHeader header, void*)
 			{
-				Logger::Print("%s: %X %X %X\n", header.material->info.name, header.material->info.sortKey & 0xFF, header.material->info.gameFlags & 0xFF, header.material->stateFlags & 0xFF);
+				Logger::Print("%s: %X %X %X\n", header.material->info.name, header.material->info.sortKey & 0xFF, header.material->info.gameFlags.packed & 0xFF, header.material->stateFlags & 0xFF);
 			}, nullptr, false);
 		});
 

@@ -84,6 +84,25 @@ namespace Game
 		SAT_COUNT = 0x3,
 	};
 
+	struct MaterialGameFlagsFields
+	{
+		unsigned char unk1 : 1;
+		unsigned char unk2 : 1;
+		unsigned char unk3 : 1;
+		unsigned char unk4 : 1;
+		unsigned char unk5 : 1;
+		unsigned char unk6 : 1;
+		unsigned char unk7 : 1;
+		unsigned char unk8 : 1;
+	};
+
+	union MaterialGameFlags
+	{
+		MaterialGameFlagsFields fields;
+		unsigned char packed;
+	};
+
+
 	struct cmd_function_s
 	{
 		cmd_function_s *next;
@@ -646,7 +665,7 @@ namespace Game
 		struct MaterialInfo
 		{
 			const char *name;
-			char gameFlags;
+			MaterialGameFlags gameFlags;
 			char sortKey;
 			char textureAtlasRowCount;
 			char textureAtlasColumnCount;
@@ -734,7 +753,7 @@ namespace Game
 		struct Material
 		{
 			MaterialInfo info;
-			unsigned char stateBitsEntry[34];
+			char stateBitsEntry[34];
 			char textureCount;
 			char constantCount;
 			char stateBitsCount;
@@ -2675,6 +2694,7 @@ namespace Game
 			//char flags;
 		};
 
+
 		struct GfxDrawSurfFields
 		{
 			unsigned __int64 objectId : 16;
@@ -3124,7 +3144,7 @@ namespace Game
 		struct Material
 		{
 			const char *name;
-			char gameFlags;
+			MaterialGameFlags gameFlags;
 			char sortKey;
 			char textureAtlasRowCount;
 			char textureAtlasColumnCount;
@@ -3132,7 +3152,7 @@ namespace Game
 			int surfaceTypeBits;
 			unsigned __int16 hashIndex;
 			unsigned __int16 pad;
-			unsigned char stateBitsEntry[48];
+			char stateBitsEntry[48];
 			char textureCount;
 			char constantCount;
 			char stateBitsCount;
