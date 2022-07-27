@@ -259,7 +259,7 @@ namespace Components
 		mat.gameFlags.fields.unk8 = material->info.gameFlags.fields.unk7;
 		mat.gameFlags.fields.unk7 = material->info.gameFlags.fields.unk8;
 			
-		mat.sortKey                 = material->info.sortKey; // Will be recalculated in IW4
+		mat.sortKey                 = GetConvertedSortKey(material); // Might be recalculated in IW4
 		mat.textureAtlasRowCount    = material->info.textureAtlasRowCount;
 		mat.textureAtlasColumnCount = material->info.textureAtlasColumnCount;
 
