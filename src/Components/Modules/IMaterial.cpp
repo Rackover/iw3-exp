@@ -1,6 +1,6 @@
 ﻿#include "STDInclude.hpp"
 
-#define IW4X_MAT_VERSION "1"
+#define IW4X_MAT_VERSION 1
 
 namespace Components
 {
@@ -10,12 +10,15 @@ namespace Components
 		rapidjson::Document output(rapidjson::kObjectType);
 		auto& allocator = output.GetAllocator();
 
-		output.AddMember("version", RAPIDJSON_STR(IW4X_MAT_VERSION), allocator);
+		output.AddMember("version", IW4X_MAT_VERSION, allocator);
 
 		output.AddMember("name", RAPIDJSON_STR(asset->name), allocator);
 
-		const auto gameFlags = std::format("{:b}", asset->gameFlags);
+		const auto gameFlags = std::format("{:b}", asset->gameFlags.packed);
 		output.AddMember("gameFlags", RAPIDJSON_STR(gameFlags.c_str()), allocator);
+
+		const auto stateFlags = std::format("{:b}", static_cast<char>(asset->stateFlags));
+		output.AddMember("stateFlags", RAPIDJSON_STR(stateFlags.c_str()), allocator);
 
 #define SAME_NAME_JSON_MEMBER(x) output.AddMember(#x, asset->x, allocator)
 
@@ -27,8 +30,12 @@ namespace Components
 			AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, { asset->techniqueSet });
 		}
 
+
 		SAME_NAME_JSON_MEMBER(textureAtlasRowCount);
 		SAME_NAME_JSON_MEMBER(textureAtlasColumnCount);
+
+		const auto surfaceTypeBits = std::format("{:b}", asset->surfaceTypeBits);
+		output.AddMember("surfaceTypeBits", RAPIDJSON_STR(surfaceTypeBits.c_str()), allocator);
 
 		rapidjson::Value textureTable(rapidjson::kArrayType);
 
@@ -38,6 +45,12 @@ namespace Components
 			{
 				Game::IW3::MaterialTextureDef* textureDef = &asset->textureTable[i];
 				rapidjson::Value textureJson(rapidjson::kObjectType);
+
+				textureJson.AddMember("nameStart", textureDef->nameStart, allocator);
+				textureJson.AddMember("nameEnd", textureDef->nameEnd, allocator);
+				textureJson.AddMember("nameHash", textureDef->nameHash, allocator);
+				textureJson.AddMember("samplerState", textureDef->samplerState, allocator); // $6961E030A9677F7C86FC6FF9B5901495
+				textureJson.AddMember("semantic", textureDef->semantic, allocator);
 
 				if (textureDef->semantic == TS_WATER_MAP)
 				{
@@ -127,7 +140,7 @@ namespace Components
 			stateBitsEntry.PushBack(asset->stateBitsEntry[i], allocator);
 		}
 
-		output.AddMember("stateBits", stateBitsEntry, allocator);
+		output.AddMember("stateBitsEntry", stateBitsEntry, allocator);
 
 		SAME_NAME_JSON_MEMBER(cameraRegion);
 
@@ -195,7 +208,18 @@ namespace Components
 		ZeroMemory(&mat, sizeof mat);
 
 		mat.name                    = material->info.name;
-		mat.gameFlags               = material->info.gameFlags;
+		mat.gameFlags.packed               = material->info.gameFlags.packed;
+
+		
+		// mtl_restaurantstainlessteelshelf
+
+		if (Utils::EndsWith(material->info.name, "stainlessteelshelf"s)) {
+			printf("");
+		}
+
+		mat.gameFlags.fields.unk8 = material->info.gameFlags.fields.unk7;
+		mat.gameFlags.fields.unk7 = material->info.gameFlags.fields.unk8;
+			
 		mat.sortKey                 = material->info.sortKey; // Will be recalculated in IW4
 		mat.textureAtlasRowCount    = material->info.textureAtlasRowCount;
 		mat.textureAtlasColumnCount = material->info.textureAtlasColumnCount;
@@ -271,6 +295,8 @@ namespace Components
 		mat.stateBitsCount = material->stateBitsCount;
 		mat.stateFlags = static_cast<Game::IW4::StateFlags>(material->stateFlags); // Correspondance is identical
 		mat.cameraRegion   = material->cameraRegion;
+
+
 
 		if (mat.cameraRegion == 0x4) {
 			// 0x4 is NONE in iw3, but DEPTH_HACK in iw4

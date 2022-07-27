@@ -192,7 +192,7 @@ namespace Components
 			alias.AddMember("envelopMax", iw3Alias.envelopMax, allocator);
 			alias.AddMember("envelopMin", iw3Alias.envelopMin, allocator);
 			alias.AddMember("envelopPercentage", iw3Alias.envelopPercentage, allocator);
-			alias.AddMember("flags", static_cast<signed int>(iw4Flags), allocator);
+			alias.AddMember("flags", iw4Flags, allocator);
 			alias.AddMember("lfePercentage", iw3Alias.lfePercentage, allocator);
 			alias.AddMember("mixerGroup", rapidjson::Value(rapidjson::kNullType), allocator);
 			alias.AddMember("pitchMax", iw3Alias.pitchMax, allocator);
