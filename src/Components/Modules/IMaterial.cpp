@@ -4,6 +4,45 @@
 
 namespace Components
 {
+	std::unordered_map<char, char> IMaterial::sortKeysTable = {
+		{0, 43},	// Distortion
+					// Opaque water (never used)
+					// Boat hull (never used)
+		{3, 0},		// Opaque ambient
+		{4, 1},		// Opaque
+		{5, 2},		// Sky
+		{6, 3},		// Skybox sun/moon
+		{7, 4},		// Clouds  NOT SURE
+		{8, 5},		// Horizon NOT SURE
+		{9, 6},		// Decal bottom 1
+		{10, 7},	// Decal bottom 2
+		{11, 8},	// Decal bottom 3
+		{12, 9},	// Decal static
+		{13, 10},	// Decal mid 1
+		{14, 11},	// Decal mid 2
+		{15, 12},	// Decal mid 3
+		{24, 13},	// Weapon Impact
+		{29, 14},	// Decal top 1
+		{30, 15},	// Decal top 2
+		{31, 16},	// Decal top 3
+		{32, 41},	// Multiplicative
+		{33, 17},	// Banner/ Curtain (wild guess!)
+		{34, 4 },	// Hair. I matched it with german shepherd material sortkey, i hope its ok.
+		{35, 19},	// Underwater
+		{36, 20},	// Transparent water
+		{37, 33},	// Corona (wild guess)
+		{38, 24},	// Window inside
+		{39, 25},	// Window outside
+		{40, 44},	// Before effects 1 (wild guess)
+		{41, 45},	// Before effects 2 (wild guess)
+		{42, 46},	// Before effects 3 (extremely wild guess)
+		{48, 48},	// Effect auto sort!
+		{56, 49},	// AE Bottom
+		{57, 50},	// AE Middle
+		{58, 51},	// AE top
+		{59, 53}	// Viewmodel effect
+	};
+
 	void IMaterial::SaveConvertedMaterial(Game::IW4::Material* asset)
 	{
 		Utils::Stream buffer;
@@ -107,8 +146,13 @@ namespace Components
 		ZeroMemory(&mat, sizeof mat);
 
 		mat.name                    = material->info.name;
-		mat.gameFlags               = material->info.gameFlags;
-		mat.sortKey                 = material->info.sortKey; // Will be recalculated in IW4
+		mat.gameFlags.packed               = material->info.gameFlags.packed;
+
+
+		mat.gameFlags.fields.unk8 = material->info.gameFlags.fields.unk7;
+		mat.gameFlags.fields.unk7 = material->info.gameFlags.fields.unk8;
+			
+		mat.sortKey                 = GetConvertedSortKey(material); // Might be recalculated in IW4
 		mat.textureAtlasRowCount    = material->info.textureAtlasRowCount;
 		mat.textureAtlasColumnCount = material->info.textureAtlasColumnCount;
 
@@ -120,7 +164,6 @@ namespace Components
         newSurf.fields.sceneLightIndex = material->info.drawSurf.fields.primaryLightIndex;
         newSurf.fields.surfType = material->info.drawSurf.fields.surfType;
         newSurf.fields.primarySortKey = material->info.drawSurf.fields.primarySortKey;
-
         mat.drawSurf.packed = newSurf.packed;
 
 		mat.surfaceTypeBits         = material->info.surfaceTypeBits;
@@ -184,6 +227,16 @@ namespace Components
 		mat.stateBitsCount = material->stateBitsCount;
 		mat.stateFlags = static_cast<Game::IW4::StateFlags>(material->stateFlags); // Correspondance is identical
 		mat.cameraRegion   = material->cameraRegion;
+
+
+
+		if (mat.cameraRegion == 0x4) {
+			// 0x4 is NONE in iw3, but DEPTH_HACK in iw4
+			// In iw4 NONE is 0x5
+			Logger::Print(Utils::VA("Swapped material %s camera region from 0x4 to 0x5 (NONE)\n", mat.name));
+			mat.cameraRegion = 0x5;
+		}
+
 		mat.techniqueSet   = material->techniqueSet;
 		mat.textureTable   = material->textureTable;
 		mat.constantTable  = material->constantTable;
@@ -191,6 +244,20 @@ namespace Components
 
 		IMaterial::SaveConvertedMaterial(&mat);
 	}
+
+	char IMaterial::GetConvertedSortKey(Game::IW3::Material* material) 
+	{
+		char iw3Key = material->info.sortKey;
+
+		if (IMaterial::sortKeysTable.contains(iw3Key)) {
+			return IMaterial::sortKeysTable[iw3Key];
+		}
+
+		Components::Logger::Print(Utils::VA("Could not find a fitting key for sortkey %i in material %s\n", iw3Key, material->info.name));
+
+		return iw3Key;
+	}
+
 
 	IMaterial::IMaterial()
 	{
