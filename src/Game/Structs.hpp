@@ -84,6 +84,25 @@ namespace Game
 		SAT_COUNT = 0x3,
 	};
 
+	struct MaterialGameFlagsFields
+	{
+		unsigned char unk1 : 1;
+		unsigned char unk2 : 1;
+		unsigned char unk3 : 1;
+		unsigned char unk4 : 1;
+		unsigned char unk5 : 1;
+		unsigned char unk6 : 1;
+		unsigned char unk7 : 1;
+		unsigned char unk8 : 1;
+	};
+
+	union MaterialGameFlags
+	{
+		MaterialGameFlagsFields fields;
+		unsigned char packed;
+	};
+
+
 	struct cmd_function_s
 	{
 		cmd_function_s *next;
@@ -646,7 +665,7 @@ namespace Game
 		struct MaterialInfo
 		{
 			const char *name;
-			char gameFlags;
+			MaterialGameFlags gameFlags;
 			char sortKey;
 			char textureAtlasRowCount;
 			char textureAtlasColumnCount;
@@ -706,7 +725,7 @@ namespace Game
 			int toolFlags;
 		};
 
-		enum StateFlags : char {
+		enum StateFlags : unsigned char {
 			STATE_FLAG_CULL_BACK = 0x1,
 			STATE_FLAG_CULL_FRONT = 0x2,
 			STATE_FLAG_DECAL = 0x4,
@@ -715,6 +734,20 @@ namespace Game
 			STATE_FLAG_USES_STENCIL_BUFFER = 0x20,
 			STATE_FLAG_CULL_BACK_SHADOW = 0x40,
 			STATE_FLAG_CULL_FRONT_SHADOW = 0x80
+		};
+		enum MaterialStateSet
+		{
+			MTL_STATE_SET_ALPHA_TEST = 0x0,
+			MTL_STATE_SET_BLEND_FUNC_RGB = 0x1,
+			MTL_STATE_SET_BLEND_FUNC_ALPHA = 0x2,
+			MTL_STATE_SET_CULL_FACE = 0x3,
+			MTL_STATE_SET_DEPTH_TEST = 0x4,
+			MTL_STATE_SET_DEPTH_WRITE = 0x5,
+			MTL_STATE_SET_COLOR_WRITE = 0x6,
+			MTL_STATE_SET_POLYGON_OFFSET = 0x7,
+			MTL_STATE_SET_STENCIL = 0x8,
+			MTL_STATE_SET_WIREFRAME = 0x9,
+			MTL_STATE_SET_COUNT = 0xA,
 		};
 
 		struct Material
@@ -2661,6 +2694,7 @@ namespace Game
 			//char flags;
 		};
 
+
 		struct GfxDrawSurfFields
 		{
 			unsigned __int64 objectId : 16;
@@ -3081,7 +3115,7 @@ namespace Game
 			TECHNIQUE_NONE = 0x32,
 		};
 
-		enum StateFlags : char {
+		enum StateFlags : unsigned char {
 			STATE_FLAG_CULL_BACK = 0x1,
 			STATE_FLAG_AMBIENT = 0x2,
 			STATE_FLAG_DECAL = 0x4,
@@ -3090,16 +3124,31 @@ namespace Game
 			STATE_FLAG_USES_STENCIL_BUFFER = 0x20,
 			STATE_FLAG_CULL_BACK_SHADOW = 0x40,
 		};
+		enum MaterialStateSet
+		{
+			MTL_STATE_SET_ALPHA_TEST = 0x0,
+			MTL_STATE_SET_BLEND_FUNC_RGB = 0x1,
+			MTL_STATE_SET_BLEND_FUNC_ALPHA = 0x2,
+			MTL_STATE_SET_CULL_FACE = 0x3,
+			MTL_STATE_SET_DEPTH_TEST = 0x4,
+			MTL_STATE_SET_DEPTH_WRITE = 0x5,
+			MTL_STATE_SET_COLOR_WRITE = 0x6,
+			MTL_STATE_SET_GAMMA_WRITE = 0x7,
+			MTL_STATE_SET_POLYGON_OFFSET = 0x8,
+			MTL_STATE_SET_STENCIL = 0x9,
+			MTL_STATE_SET_WIREFRAME = 0xA,
+			MTL_STATE_SET_COUNT = 0xB,
+		};
 
 #pragma pack(push, 4)
 		struct Material
 		{
 			const char *name;
-			char gameFlags;
+			MaterialGameFlags gameFlags;
 			char sortKey;
 			char textureAtlasRowCount;
 			char textureAtlasColumnCount;
-			IW3::GfxDrawSurf drawSurf;
+			IW4::GfxDrawSurf drawSurf;
 			int surfaceTypeBits;
 			unsigned __int16 hashIndex;
 			unsigned __int16 pad;

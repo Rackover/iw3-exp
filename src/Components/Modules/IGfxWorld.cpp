@@ -487,7 +487,7 @@ namespace Components
 						Game::IW4::GfxPortal* destPortal = &map.cells[i].portals[j];
 
 						destPortal->cellIndex = static_cast<unsigned short>(portal->cell - world->cells);
-						if(destPortal->cellIndex >= static_cast<unsigned short>(world->dpvsPlanes.cellCount))
+						if (destPortal->cellIndex >= static_cast<unsigned short>(world->dpvsPlanes.cellCount))
 						{
 							Logger::Print("Unable to calculate cell index. This should not happen!\n");
 							destPortal->cellIndex = 0;
@@ -502,7 +502,7 @@ namespace Components
 						destPortal->writable.hullPointCount = portal->writable.hullPointCount;
 						destPortal->writable.hullPoints = portal->writable.hullPoints;
 
-						if(portalMap.find(portal->writable.queuedParent) != portalMap.end())
+						if (portalMap.find(portal->writable.queuedParent) != portalMap.end())
 						{
 							destPortal->writable.queuedParent = portalMap[portal->writable.queuedParent];
 						}
@@ -677,7 +677,7 @@ namespace Components
 				map.dpvs.smodelDrawInsts[i].flags = world->dpvs.smodelDrawInsts[i].flags;
 
 				// This has been moved
-				if(world->dpvs.smodelInsts) map.dpvs.smodelDrawInsts[i].groundLighting = world->dpvs.smodelInsts[i].groundLighting;
+				if (world->dpvs.smodelInsts) map.dpvs.smodelDrawInsts[i].groundLighting = world->dpvs.smodelInsts[i].groundLighting;
 			}
 		}
 
@@ -733,10 +733,10 @@ namespace Components
 	IGfxWorld::IGfxWorld()
 	{
 		Command::Add("dumpGfxWorld", [](Command::Params params)
-		{
-			if (params.Length() < 2) return;
-			IGfxWorld::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFXWORLD, params[1]).gfxWorld);
-		});
+			{
+				if (params.Length() < 2) return;
+				IGfxWorld::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFXWORLD, params[1]).gfxWorld);
+			});
 	}
 
 	IGfxWorld::~IGfxWorld()
