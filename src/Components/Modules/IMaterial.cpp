@@ -36,6 +36,7 @@ namespace Components
 		{40, 44},	// Before effects 1 (wild guess)
 		{41, 45},	// Before effects 2 (wild guess)
 		{42, 46},	// Before effects 3 (extremely wild guess)
+		{43, 29},	// Blend / additive => to a decal layer
 		{48, 48},	// Effect auto sort!
 		{56, 49},	// AE Bottom
 		{57, 50},	// AE Middle
@@ -169,6 +170,7 @@ namespace Components
 		mat.surfaceTypeBits         = material->info.surfaceTypeBits;
 		mat.hashIndex               = material->info.hashIndex;
 
+		// Set them all to -1 so they're not used if they dont exist in iw3
 		std::memset(mat.stateBitsEntry, 0xFF, sizeof(mat.stateBitsEntry));
 
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_DEPTH_PREPASS]                  = material->stateBitsEntry[Game::IW3::TECHNIQUE_DEPTH_PREPASS];
@@ -177,38 +179,39 @@ namespace Components
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_BUILD_SHADOWMAP_COLOR]          = material->stateBitsEntry[Game::IW3::TECHNIQUE_BUILD_SHADOWMAP_COLOR];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_UNLIT]                          = material->stateBitsEntry[Game::IW3::TECHNIQUE_UNLIT];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_EMISSIVE]                       = material->stateBitsEntry[Game::IW3::TECHNIQUE_EMISSIVE];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_EMISSIVE_DFOG]                  = material->stateBitsEntry[Game::IW3::TECHNIQUE_EMISSIVE];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_EMISSIVE_DFOG]                  = material->stateBitsEntry[Game::IW3::TECHNIQUE_EMISSIVE];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_EMISSIVE_SHADOW]                = material->stateBitsEntry[Game::IW3::TECHNIQUE_EMISSIVE_SHADOW];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_EMISSIVE_SHADOW_DFOG]           = material->stateBitsEntry[Game::IW3::TECHNIQUE_EMISSIVE_SHADOW];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_EMISSIVE_SHADOW_DFOG]           = material->stateBitsEntry[Game::IW3::TECHNIQUE_EMISSIVE_SHADOW];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_BEGIN]                      = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_BEGIN];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT]                            = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_DFOG]                       = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_DFOG]                       = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_SUN]                        = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_SUN];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_SUN_DFOG]                   = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_SUN];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_SUN_DFOG]                   = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_SUN];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_SUN_SHADOW]                 = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_SUN_SHADOW];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_SUN_SHADOW_DFOG]            = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_SUN_SHADOW];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_SUN_SHADOW_DFOG]            = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_SUN_SHADOW];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_SPOT]                       = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_SPOT];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_SPOT_DFOG]                  = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_SPOT];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_SPOT_DFOG]                  = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_SPOT];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_SPOT_SHADOW]                = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_SPOT_SHADOW];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_SPOT_SHADOW_DFOG]           = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_SPOT_SHADOW];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_SPOT_SHADOW_DFOG]           = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_SPOT_SHADOW];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_OMNI]                       = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_OMNI];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_OMNI_DFOG]                  = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_OMNI];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_OMNI_DFOG]                  = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_OMNI];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_OMNI_SHADOW]                = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_OMNI_SHADOW];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_OMNI_SHADOW_DFOG]           = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_OMNI_SHADOW];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_OMNI_SHADOW_DFOG]           = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_OMNI_SHADOW];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED]                  = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_DFOG]             = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_DFOG]             = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN]              = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN_DFOG]         = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN_DFOG]         = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW]       = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW_DFOG]  = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW_DFOG]  = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT]             = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT_DFOG]        = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT_DFOG]        = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW]      = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW_DFOG] = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW_DFOG] = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI]             = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI_DFOG]        = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI_DFOG]        = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW]      = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW];
-		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW_DFOG] = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW];
+		//mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW_DFOG] = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW];
+
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT_END]                        = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIT_END];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIGHT_SPOT]                     = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIGHT_SPOT];
 		mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIGHT_OMNI]                     = material->stateBitsEntry[Game::IW3::TECHNIQUE_LIGHT_OMNI];
@@ -228,13 +231,11 @@ namespace Components
 		mat.stateFlags = static_cast<Game::IW4::StateFlags>(material->stateFlags); // Correspondance is identical
 		mat.cameraRegion   = material->cameraRegion;
 
-
-
-		if (mat.cameraRegion == 0x4) {
-			// 0x4 is NONE in iw3, but DEPTH_HACK in iw4
-			// In iw4 NONE is 0x5
-			Logger::Print(Utils::VA("Swapped material %s camera region from 0x4 to 0x5 (NONE)\n", mat.name));
-			mat.cameraRegion = 0x5;
+		if (mat.cameraRegion == 0x3) {
+			// 0x3 is NONE in iw3, but DEPTH_HACK in iw4
+			// In iw4 NONE is 0x4
+			Logger::Print(Utils::VA("Swapped material %s camera region from 0x3 to 0x4 (NONE)\n", mat.name));
+			mat.cameraRegion = 0x4;
 		}
 
 		mat.techniqueSet   = material->techniqueSet;
@@ -248,6 +249,20 @@ namespace Components
 	char IMaterial::GetConvertedSortKey(Game::IW3::Material* material) 
 	{
 		char iw3Key = material->info.sortKey;
+
+		const std::string& name = material->info.name;
+
+		if (Utils::StartsWith(name, "compass"s)) 
+		{
+			//"blend / additive" => SORTKEY_BLEND_ADDITIVE
+			return 47;
+		}
+
+		if (Utils::StartsWith(name, "mc/mtl_facade"))
+		{
+			// Opaque => Opaque_Ambient
+			return 0;
+		}
 
 		if (IMaterial::sortKeysTable.contains(iw3Key)) {
 			return IMaterial::sortKeysTable[iw3Key];
