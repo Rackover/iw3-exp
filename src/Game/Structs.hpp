@@ -56,6 +56,22 @@ namespace Game
 		ASSET_TYPE_ASSETLIST = 0x22,
 	};
 
+	enum TextureSemantic : char
+	{
+		TS_2D = 0x0,
+		TS_FUNCTION = 0x1,
+		TS_COLOR_MAP = 0x2,
+		TS_DETAIL_MAP = 0x3,
+		TS_UNUSED_2 = 0x4,
+		TS_NORMAL_MAP = 0x5,
+		TS_UNUSED_3 = 0x6,
+		TS_UNUSED_4 = 0x7,
+		TS_SPECULAR_MAP = 0x8,
+		TS_UNUSED_5 = 0x9,
+		TS_UNUSED_6 = 0xA,
+		TS_WATER_MAP = 0xB,
+	};
+
 	enum GfxImageFileFormat
 	{
 		IMG_FORMAT_INVALID = 0x0,
@@ -87,7 +103,7 @@ namespace Game
 	struct MaterialGameFlagsFields
 	{
 		unsigned char unk1 : 1;
-		unsigned char unk2 : 1;
+		unsigned char addShadowToPrimaryLight : 1;
 		unsigned char unk3 : 1;
 		unsigned char unk4 : 1;
 		unsigned char unk5 : 1;
@@ -278,7 +294,7 @@ namespace Game
 			GfxTexture texture;
 			Picmip picmip;
 			bool noPicmip;
-			char semantic;
+			TextureSemantic semantic;
 			char track;
 			CardMemory cardMemory;
 			unsigned __int16 width;
@@ -435,7 +451,7 @@ namespace Game
 			char nameStart;
 			char nameEnd;
 			char samplerState;
-			char semantic;
+			TextureSemantic semantic;
 			MaterialTextureDefInfo u;
 		};
 
@@ -795,6 +811,12 @@ namespace Game
 		{
 			short vertCount[4];
 			unsigned short *vertsBlend;
+		};
+
+
+		struct GameWorldMp
+		{
+			const char* name;
 		};
 
 		union GfxColor
@@ -2201,7 +2223,7 @@ namespace Game
  			clipMap_t *clipMap;
 			ComWorld *comWorld;
 // 			GameWorldSp *gameWorldSp;
-// 			GameWorldMp *gameWorldMp;
+ 			GameWorldMp *gameWorldMp;
 			MapEnts *mapEnts;
 			GfxWorld *gfxWorld;
 			GfxLightDef *lightDef;
@@ -2814,6 +2836,41 @@ namespace Game
 			IMG_FLAG_DYNAMIC = 0x1000000,
 			IMG_FLAG_RENDER_TARGET = 0x2000000,
 			IMG_FLAG_SYSTEMMEM = 0x4000000,
+		};
+
+		struct __declspec(align(2)) G_GlassPiece
+		{
+			unsigned __int16 damageTaken;
+			unsigned __int16 collapseTime;
+			int lastStateChangeTime;
+			char impactDir;
+			char impactPos[2];
+		};
+
+		struct G_GlassName
+		{
+			char* nameStr;
+			unsigned __int16 name;
+			unsigned __int16 pieceCount;
+			unsigned __int16* pieceIndices;
+		};
+
+		struct G_GlassData
+		{
+			G_GlassPiece* glassPieces;
+			unsigned int pieceCount;
+			unsigned __int16 damageToWeaken;
+			unsigned __int16 damageToDestroy;
+			unsigned int glassNameCount;
+			G_GlassName* glassNames;
+			char pad[108];
+		};
+
+
+		struct GameWorldMp
+		{
+			const char* name;
+			G_GlassData* g_glassData;
 		};
 
 		struct CollisionAabbTree

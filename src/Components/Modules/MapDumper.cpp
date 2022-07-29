@@ -67,6 +67,9 @@ namespace Components
 		Logger::Print("Exporting ComWorld...\n");
 		Command::Execute(Utils::VA("dumpComWorld %s", bspName.data()), true);
 
+		Logger::Print("Exporting GameWorld...\n");
+		Command::Execute(Utils::VA("dumpGameWorld %s", bspName.data()), true);
+
 		Logger::Print("Exporting GfxWorld...\n");
 		Command::Execute(Utils::VA("dumpGfxWorld %s", bspName.data()), true);
 

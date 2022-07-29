@@ -52,6 +52,7 @@ namespace Components
         AssetHandler::Register(new IMaterialTechniqueSet());
 		AssetHandler::Register(new Isnd_alias_list_t());
 		AssetHandler::Register(new ILoadedSound());
+		AssetHandler::Register(new IGameWorld());
 	}
 
 	AssetHandler::~AssetHandler()

@@ -36,7 +36,7 @@ namespace Components
 		{40, 44},	// Before effects 1 (wild guess)
 		{41, 45},	// Before effects 2 (wild guess)
 		{42, 46},	// Before effects 3 (extremely wild guess)
-		{43, 29},	// Blend / additive => to a decal layer
+		{43, 29},	// Blend / additive => to a decal layer (shouldn't this be to 47?)
 		{48, 48},	// Effect auto sort!
 		{56, 49},	// AE Bottom
 		{57, 50},	// AE Middle
@@ -54,10 +54,10 @@ namespace Components
 
 		output.AddMember("name", RAPIDJSON_STR(asset->name), allocator);
 
-		const auto gameFlags = std::format("{:b}", asset->gameFlags.packed);
+		const auto gameFlags = std::format("{:08b}", asset->gameFlags.packed);
 		output.AddMember("gameFlags", RAPIDJSON_STR(gameFlags.c_str()), allocator);
 
-		const auto stateFlags = std::format("{:b}", static_cast<char>(asset->stateFlags));
+		const auto stateFlags = std::format("{:08b}", static_cast<char>(asset->stateFlags));
 		output.AddMember("stateFlags", RAPIDJSON_STR(stateFlags.c_str()), allocator);
 
 #define SAME_NAME_JSON_MEMBER(x) output.AddMember(#x, asset->x, allocator)
@@ -74,7 +74,7 @@ namespace Components
 		SAME_NAME_JSON_MEMBER(textureAtlasRowCount);
 		SAME_NAME_JSON_MEMBER(textureAtlasColumnCount);
 
-		const auto surfaceTypeBits = std::format("{:b}", asset->surfaceTypeBits);
+		const auto surfaceTypeBits = std::format("{:032b}", asset->surfaceTypeBits);
 		output.AddMember("surfaceTypeBits", RAPIDJSON_STR(surfaceTypeBits.c_str()), allocator);
 
 		rapidjson::Value textureTable(rapidjson::kArrayType);
@@ -111,21 +111,21 @@ namespace Components
 						// Save_water_t
 						if (water->H0)
 						{
-							auto buffer = std::vector<uint8_t>(water->M * water->N * sizeof(Game::IW3::complex_s));
-							memcpy_s(&buffer, buffer.size(), water->H0, buffer.size());
+							auto ptr = reinterpret_cast<uint8_t*>(&water->H0);
+							auto buffer = std::vector<uint8_t>(ptr, ptr + water->M * water->N * sizeof(Game::IW3::complex_s));
 
 							waterJson.AddMember("H0", RAPIDJSON_STR(strDuplicator.duplicateString(Utils::Base64::Encode(buffer))), allocator);
 						}
 
 						if (water->wTerm)
 						{
-							auto buffer = std::vector<uint8_t>(water->M * water->N * sizeof(float));
-							memcpy_s(&buffer, buffer.size(), water->wTerm, buffer.size());
+							auto ptr = reinterpret_cast<uint8_t*>(&water->wTerm);
+							auto buffer = std::vector<uint8_t>(ptr, ptr + water->M * water->N * sizeof(float));
 
 							waterJson.AddMember("wTerm", RAPIDJSON_STR(strDuplicator.duplicateString(Utils::Base64::Encode(buffer))), allocator);
 						}
 
-						#define SAME_NAME_WATER_MEMBER(x) waterJson.AddMember("x", water->x, allocator)
+						#define SAME_NAME_WATER_MEMBER(x) waterJson.AddMember(#x, water->x, allocator)
 
 						SAME_NAME_WATER_MEMBER(M);
 						SAME_NAME_WATER_MEMBER(N);
@@ -209,8 +209,14 @@ namespace Components
 				// "detailScale" might need some work too 🤔
 
 				constantDefJson.AddMember("nameHash", constantDef.nameHash, allocator);
-				constantDefJson.AddMember("name", RAPIDJSON_STR(strDuplicator.duplicateString(constantDef.name)), allocator);
 				constantDefJson.AddMember("literal", Utils::MakeJsonArray(constantDef.literal, 4, allocator), allocator);
+
+
+				std::string constantDefName = constantDef.name;
+				constantDefName = constantDefName.substr(0, 12);
+
+				constantDefJson.AddMember("name", RAPIDJSON_STR(strDuplicator.duplicateString(constantDefName.c_str())), allocator);
+
 
 				constantTable.PushBack(constantDefJson, allocator);
 			}
@@ -229,6 +235,8 @@ namespace Components
 			const char* data = b64.data();
 			output.AddMember("stateBitsTable", RAPIDJSON_STR(data), allocator);
 		}
+
+		output.AddMember("stateBitsCount", asset->stateBitsCount, allocator);
 
 		rapidjson::StringBuffer buff;
 		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
@@ -353,17 +361,32 @@ namespace Components
 
 		const std::string& name = material->info.name;
 
-		if (Utils::StartsWith(name, "compass"s)) 
+		if (material->techniqueSet->name == "2d"s)
 		{
 			//"blend / additive" => SORTKEY_BLEND_ADDITIVE
 			return 47;
 		}
 
-		if (Utils::StartsWith(name, "mc/mtl_facade"))
+		if (iw3Key == 4) 
 		{
-			// Opaque => Opaque_Ambient
-			return 0;
+			if (std::string(material->techniqueSet->name).contains("ambient"s))
+			{
+				// Opaque => Opaque_Ambient
+				return 0;
+			}
 		}
+
+		// decal - static decal got broken down in multiple categorries
+		if (iw3Key == 12) 
+		{
+			if (std::string(material->techniqueSet->name).contains("shadow"s))
+			{
+				return 34;
+			}
+
+		}
+
+
 
 		if (IMaterial::sortKeysTable.contains(iw3Key)) {
 			return IMaterial::sortKeysTable[iw3Key];
