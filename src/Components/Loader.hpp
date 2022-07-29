@@ -48,3 +48,4 @@ namespace Components
 #include "Modules/IMaterialTechniqueSet.hpp"
 #include "Modules/Isnd_alias_list_t.hpp"
 #include "Modules/ILoadedSound.hpp"
+#include "Modules/IGameWorld.hpp"

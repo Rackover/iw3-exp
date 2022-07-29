@@ -40,7 +40,9 @@ namespace Components
 			if (!img.Exists())
 			{
 				// Ignore that
-				if (Utils::StartsWith(image->name, "watersetup")) return;
+				if (Utils::StartsWith(image->name, "watersetup")) {
+					return;
+				}
 
 				Logger::Print("Image %s not found, mapping to normalmap!\n", name.data());
 				img = FileSystem::File("images/$identitynormalmap.iwi");
