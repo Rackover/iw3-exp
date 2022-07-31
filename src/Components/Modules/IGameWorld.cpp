@@ -90,6 +90,7 @@ namespace Components
 			glassNames.PushBack(name, allocator);
 		}
 
+		glassData.AddMember("glassNames", glassNames, allocator);
 
 		//
 		/////////////////////////
