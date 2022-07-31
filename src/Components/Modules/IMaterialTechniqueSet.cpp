@@ -1,56 +1,152 @@
 #include "STDInclude.hpp"
 
-#define IW4X_TECHSET_VERSION '0'
+#define IW4X_TECHSET_VERSION 1
 
 namespace Components
 {
+    const std::string IMaterialTechniqueSet::techsetPrefix = "iw3x_";
+
+    const std::unordered_map<Game::IW4::MaterialTechniqueType, Game::IW3::MaterialTechniqueType> IMaterialTechniqueSet::techniqueTypeTableFromIW4 = {
+        { Game::IW4::TECHNIQUE_DEPTH_PREPASS, Game::IW3::TECHNIQUE_DEPTH_PREPASS},
+        { Game::IW4::TECHNIQUE_BUILD_FLOAT_Z, Game::IW3::TECHNIQUE_BUILD_FLOAT_Z},
+        { Game::IW4::TECHNIQUE_BUILD_SHADOWMAP_DEPTH, Game::IW3::TECHNIQUE_BUILD_SHADOWMAP_DEPTH},
+        { Game::IW4::TECHNIQUE_BUILD_SHADOWMAP_COLOR, Game::IW3::TECHNIQUE_BUILD_SHADOWMAP_COLOR},
+        { Game::IW4::TECHNIQUE_UNLIT, Game::IW3::TECHNIQUE_UNLIT},
+        { Game::IW4::TECHNIQUE_EMISSIVE, Game::IW3::TECHNIQUE_EMISSIVE},
+        { Game::IW4::TECHNIQUE_EMISSIVE_SHADOW, Game::IW3::TECHNIQUE_EMISSIVE_SHADOW},
+        { Game::IW4::TECHNIQUE_LIT_BEGIN, Game::IW3::TECHNIQUE_LIT_BEGIN},
+        { Game::IW4::TECHNIQUE_LIT, Game::IW3::TECHNIQUE_LIT},
+        { Game::IW4::TECHNIQUE_LIT_SUN, Game::IW3::TECHNIQUE_LIT_SUN},
+        { Game::IW4::TECHNIQUE_LIT_SUN_SHADOW, Game::IW3::TECHNIQUE_LIT_SUN_SHADOW},
+        { Game::IW4::TECHNIQUE_LIT_SPOT, Game::IW3::TECHNIQUE_LIT_SPOT},
+        { Game::IW4::TECHNIQUE_LIT_SPOT_SHADOW, Game::IW3::TECHNIQUE_LIT_SPOT_SHADOW},
+        { Game::IW4::TECHNIQUE_LIT_OMNI, Game::IW3::TECHNIQUE_LIT_OMNI},
+        { Game::IW4::TECHNIQUE_LIT_OMNI_SHADOW, Game::IW3::TECHNIQUE_LIT_OMNI_SHADOW},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED, Game::IW3::TECHNIQUE_LIT_INSTANCED},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN, Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW, Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT, Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW, Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI, Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW, Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW},
+
+        { Game::IW4::TECHNIQUE_LIT_END, Game::IW3::TECHNIQUE_LIT_END},
+        { Game::IW4::TECHNIQUE_LIGHT_SPOT, Game::IW3::TECHNIQUE_LIGHT_SPOT},
+        { Game::IW4::TECHNIQUE_LIGHT_OMNI, Game::IW3::TECHNIQUE_LIGHT_OMNI},
+        { Game::IW4::TECHNIQUE_LIGHT_SPOT_SHADOW, Game::IW3::TECHNIQUE_LIGHT_SPOT_SHADOW},
+        { Game::IW4::TECHNIQUE_FAKELIGHT_NORMAL, Game::IW3::TECHNIQUE_FAKELIGHT_NORMAL},
+        { Game::IW4::TECHNIQUE_FAKELIGHT_VIEW, Game::IW3::TECHNIQUE_FAKELIGHT_VIEW},
+        { Game::IW4::TECHNIQUE_SUNLIGHT_PREVIEW, Game::IW3::TECHNIQUE_SUNLIGHT_PREVIEW},
+        { Game::IW4::TECHNIQUE_CASE_TEXTURE, Game::IW3::TECHNIQUE_CASE_TEXTURE},
+        { Game::IW4::TECHNIQUE_WIREFRAME_SOLID, Game::IW3::TECHNIQUE_WIREFRAME_SOLID},
+        { Game::IW4::TECHNIQUE_WIREFRAME_SHADED, Game::IW3::TECHNIQUE_WIREFRAME_SHADED},
+        { Game::IW4::TECHNIQUE_DEBUG_BUMPMAP, Game::IW3::TECHNIQUE_DEBUG_BUMPMAP},
+        { Game::IW4::TECHNIQUE_DEBUG_BUMPMAP_INSTANCED, Game::IW3::TECHNIQUE_DEBUG_BUMPMAP_INSTANCED}
+
+    };
+
+    const std::unordered_map<Game::IW3::MaterialTextureSource, Game::IW4::MaterialTextureSource> IMaterialTechniqueSet::samplerTableToIW4 =
+    {
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_BLACK, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_BLACK },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_WHITE , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_WHITE },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_IDENTITY_NORMAL_MAP , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_IDENTITY_NORMAL_MAP },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_MODEL_LIGHTING , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_MODEL_LIGHTING },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHTMAP_PRIMARY,Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHTMAP_PRIMARY },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHTMAP_SECONDARY,Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHTMAP_SECONDARY },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWCOOKIE, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_BLACK }, // incorrect!
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SUN, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SUN },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SPOT , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SPOT },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_FEEDBACK , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_FEEDBACK },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_RESOLVED_POST_SUN ,Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_RESOLVED_POST_SUN }, 
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_RESOLVED_SCENE , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_RESOLVED_SCENE}, 
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_POST_EFFECT_0 , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_POST_EFFECT_0},
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_POST_EFFECT_1 , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_POST_EFFECT_1},
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SKY , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_WHITE }, // Incorrect!
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHT_ATTENUATION , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHT_ATTENUATION},
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_DYNAMIC_SHADOWS , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_BLACK }, // Incorrect!
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_OUTDOOR , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_OUTDOOR },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_FLOATZ , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_FLOATZ },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_PROCESSED_FLOATZ, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_PROCESSED_FLOATZ },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_RAW_FLOATZ, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_RAW_FLOATZ },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_CASE_TEXTURE, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_CASE_TEXTURE },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_CINEMATIC_Y, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_CINEMATIC_Y },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_CINEMATIC_CR, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_CINEMATIC_CR },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_CINEMATIC_CB, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_CINEMATIC_CB},
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_CINEMATIC_A, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_CINEMATIC_A },
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_REFLECTION_PROBE, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_REFLECTION_PROBE }
+    };
 
     void IMaterialTechniqueSet::DumpTechnique(Game::IW3::MaterialTechnique* tech)
     {
         AssertSize(Game::IW3::MaterialPass, 20);
         if (!tech) return;
-        Utils::Stream buffer;
-        buffer.saveArray("IW4xTECH", 8);
-        buffer.saveObject(IW4X_TECHSET_VERSION);
+        
+        Utils::Memory::Allocator strDuplicator;
+        rapidjson::Document output(rapidjson::kObjectType);
+        auto& allocator = output.GetAllocator();
 
-        buffer.saveObject(tech->flags);
-        buffer.saveObject(tech->passCount);
+        output.AddMember("version", IW4X_TECHSET_VERSION, allocator);
+        output.AddMember("name", RAPIDJSON_STR(tech->name), allocator);
 
-        buffer.saveArray(tech->passArray, tech->passCount);
+        const auto flags = std::format("{:08b}", tech->flags);
+        output.AddMember("flags", RAPIDJSON_STR(flags.c_str()), allocator);
+
+        rapidjson::Value passArray(rapidjson::kArrayType);
 
         for (int i = 0; i < tech->passCount; i++)
         {
             Game::IW3::MaterialPass* pass = &tech->passArray[i];
 
+            rapidjson::Value jsonPass(rapidjson::kObjectType);
+
             if (pass->vertexDecl)
             {
                 std::string name = IMaterialTechniqueSet::DumpDecl(pass->vertexDecl);
-                buffer.saveString(name.data());
+                jsonPass.AddMember("vertexDeclaration", rapidjson::Value(name.data(), allocator), allocator);
             }
 
             if (pass->vertexShader)
             {
-                buffer.saveString(pass->vertexShader->name);
                 IMaterialTechniqueSet::DumpVS(pass->vertexShader);
+                jsonPass.AddMember("vertexShader", RAPIDJSON_STR(pass->vertexShader->name), allocator);
             }
 
             if (pass->pixelShader)
             {
-                buffer.saveString(pass->pixelShader->name);
-                IMaterialTechniqueSet::DumpPS(pass->pixelShader);
+                IMaterialTechniqueSet::DumpPS(pass->pixelShader); 
+                jsonPass.AddMember("pixelShader", RAPIDJSON_STR(pass->pixelShader->name), allocator);
             }
 
-            buffer.saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
+            jsonPass.AddMember("perPrimArgCount", pass->perPrimArgCount, allocator);
+            jsonPass.AddMember("perObjArgCount", pass->perObjArgCount, allocator);
+            jsonPass.AddMember("stableArgCount", pass->stableArgCount, allocator);
+            jsonPass.AddMember("customSamplerFlags", pass->customSamplerFlags, allocator);
+
+            rapidjson::Value argumentsArray(rapidjson::kArrayType);
 
             for (int k = 0; k < pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount; ++k)
             {
                 Game::IW3::MaterialShaderArgument* arg = &pass->args[k];
-                if (arg->type == MTL_ARG_LITERAL_VERTEX_CONST || arg->type == MTL_ARG_LITERAL_PIXEL_CONST)
-                {
-                    buffer.saveArray(arg->u.literalConst, 4);
-                }
 
-                if (arg->type == MTL_ARG_CODE_VERTEX_CONST || arg->type == MTL_ARG_CODE_PIXEL_CONST)
+                rapidjson::Value argJson(rapidjson::kObjectType);
+
+                argJson.AddMember("type", arg->type, allocator);
+                argJson.AddMember("dest", arg->dest, allocator); // Need conversion? This is not MSRD (bigger than Stream_DST_Count)
+
+                if (arg->type == Game::MaterialShaderArgumentType::MTL_ARG_LITERAL_VERTEX_CONST ||
+                    arg->type == Game::MaterialShaderArgumentType::MTL_ARG_LITERAL_PIXEL_CONST)
+                {
+                    rapidjson::Value literalsArray(rapidjson::kArrayType);
+
+                    for (size_t j = 0; j < 4; j++)
+                    {
+                        literalsArray.PushBack(arg->u.literalConst[j], allocator);
+                    }
+
+                    argJson.AddMember("literals", literalsArray, allocator);
+                }
+                else if (arg->type == Game::MaterialShaderArgumentType::MTL_ARG_CODE_VERTEX_CONST 
+                    || arg->type == Game::MaterialShaderArgumentType::MTL_ARG_CODE_PIXEL_CONST)
                 {
                     auto newIndex = IMaterialTechniqueSet::iw3CodeConstMap.find(arg->u.codeConst.index);
                     if (newIndex == IMaterialTechniqueSet::iw3CodeConstMap.end())
@@ -59,14 +155,44 @@ namespace Components
                         return;
                     }
                     unsigned short val = (unsigned short)newIndex->second;
-                    buffer.saveObject(val);
-                    buffer.saveObject(arg->u.codeConst.firstRow);
-                    buffer.saveObject(arg->u.codeConst.rowCount);
+
+                    rapidjson::Value codeConst(rapidjson::kObjectType);
+
+                    codeConst.AddMember("val", val, allocator);
+                    codeConst.AddMember("firstRow", arg->u.codeConst.firstRow, allocator);
+                    codeConst.AddMember("rowCount", arg->u.codeConst.rowCount, allocator);
+                    codeConst.AddMember("nameHash", arg->u.nameHash, allocator);
+
+                    argJson.AddMember("codeConst", codeConst, allocator);
                 }
+                else if (arg->type == Game::MaterialShaderArgumentType::MTL_ARG_MATERIAL_PIXEL_SAMPLER
+                    || arg->type == Game::MaterialShaderArgumentType::MTL_ARG_MATERIAL_VERTEX_CONST
+                    || arg->type == Game::MaterialShaderArgumentType::MTL_ARG_MATERIAL_PIXEL_CONST)
+                {
+                    argJson.AddMember("nameHash", arg->u.nameHash, allocator);
+                }
+                else if (arg->type == Game::MaterialShaderArgumentType::MTL_ARG_CODE_PIXEL_SAMPLER)
+                {
+                    arg->u.codeSampler = samplerTableToIW4.at(static_cast<Game::IW3::MaterialTextureSource>(arg->u.codeSampler));
+                    argJson.AddMember("codeSampler", arg->u.codeSampler, allocator);
+                }
+
+
+                argumentsArray.PushBack(argJson, allocator);
             }
+
+            jsonPass.AddMember("arguments", argumentsArray, allocator);
+
+            passArray.PushBack(jsonPass, allocator);
         }
 
-        Utils::WriteFile(Utils::VA("%s/techniques/%s.iw4xTech", AssetHandler::GetExportPath().data(), tech->name), buffer.toBuffer());
+        output.AddMember("passArray", passArray, allocator);
+
+        rapidjson::StringBuffer buff;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
+        output.Accept(writer);
+
+        Utils::WriteFile(Utils::VA("%s/techniques/%s.iw4x.json", AssetHandler::GetExportPath().data(), tech->name), buff.GetString());
     }
 
     std::string IMaterialTechniqueSet::DumpDecl(Game::IW3::MaterialVertexDeclaration* decl)
@@ -83,17 +209,27 @@ namespace Components
         iw4Decl->hasOptionalSource = decl->hasOptionalSource;
         iw4Decl->streamCount = decl->streamCount;
 
+        // Is this related to GfxRenderTargetId ??
+        // iw3 has 16
+        // iw4 has 13
+        // Just like the routing info ! 
+        // Probably unrelated but interesting to note
+
         memcpy(&iw4Decl->routing, &decl->routing, sizeof(Game::IW4::MaterialVertexStreamRouting));
 
         for (int i = 0; i < iw4Decl->streamCount; i++)
         {
-            // add in depth destination
+            // add STREAM_DST_DEPTH destination
             if (iw4Decl->routing.data[i].dest >= 4)
             {
-                iw4Decl->routing.data[i].dest += 1;
+                iw4Decl->routing.data[i].dest = 
+                    static_cast<Game::IW4::MaterialStreamRoutingDestination>(
+                        static_cast<char>(iw4Decl->routing.data[i].dest) + 1
+                    );
             }
 
-            if (iw4Decl->routing.data[i].dest > 12 || iw4Decl->routing.data[i].source > 8)
+            if (iw4Decl->routing.data[i].dest >= Game::IW4::MaterialStreamRoutingDestination::STREAM_DST_COUNT 
+                || iw4Decl->routing.data[i].source >= Game::IW4::MaterialStreamRoutingSource::STREAM_SRC_COUNT)
             {
                 Logger::Print("Warning: routing data is wrong (%d, %d)\n", iw4Decl->routing.data[i].source, iw4Decl->routing.data[i].dest);
             }
@@ -153,93 +289,84 @@ namespace Components
         Utils::WriteFile(Utils::VA("%s/ps/%s.iw4xPS", AssetHandler::GetExportPath().data(), ps->name), buffer.toBuffer());
     }
 
+    void IMaterialTechniqueSet::SaveConvertedTechset(Game::IW4::MaterialTechniqueSet* techset)
+    {
+        rapidjson::Document output(rapidjson::kObjectType);
+        auto& allocator = output.GetAllocator();
+
+        output.AddMember("version", IW4X_TECHSET_VERSION, allocator);
+
+        if (techset->name)
+        {
+            output.AddMember("name", RAPIDJSON_STR(techset->name), allocator);
+        }
+
+        // Will litterally never happened - iw3 has none of those
+        if (techset->remappedTechniqueSet)
+        {
+            IMaterialTechniqueSet::SaveConvertedTechset(techset->remappedTechniqueSet);
+            output.AddMember("remappedTechniqueSet", RAPIDJSON_STR(techset->name), allocator);
+        }
+
+        output.AddMember("hasBeenUploaded", techset->hasBeenUploaded, allocator);
+        output.AddMember("worldVertFormat", techset->worldVertFormat, allocator);
+
+        rapidjson::Value techniqueArray(rapidjson::kArrayType);
+
+        for (size_t i = 0; i < Game::IW4::TECHNIQUE_COUNT; i++)
+        {
+            if (techset->techniques[i])
+            {
+                techniqueArray.PushBack(rapidjson::Value(techset->techniques[i]->name, allocator), allocator);
+                IMaterialTechniqueSet::DumpTechnique(techset->techniques[i]);
+            }
+            else
+            {
+                techniqueArray.PushBack(rapidjson::Value(rapidjson::kNullType), allocator);
+            }
+        }
+
+        output.AddMember("techniques", techniqueArray, allocator);
+
+        rapidjson::StringBuffer buff;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
+        output.Accept(writer);
+
+        Utils::WriteFile(Utils::VA("%s/techsets/%s.iw4x.json", AssetHandler::GetExportPath().data(), techset->name), buff.GetString());
+    }
+
     void IMaterialTechniqueSet::Dump(Game::IW3::MaterialTechniqueSet* techset)
     {
         if (!techset) return;
 
         static int numDecls = 0;
-        Utils::Memory::Allocator allocator;
 
-        Game::IW4::MaterialTechniqueSet* iw4Techset = allocator.allocate<Game::IW4::MaterialTechniqueSet>();
+        Utils::Memory::Allocator iw3xAllocator;
+        Game::IW4::MaterialTechniqueSet* iw4Techset = iw3xAllocator.allocate<Game::IW4::MaterialTechniqueSet>();
 
-        iw4Techset->name = techset->name;
+
+        auto name = std::format("{}{}", techsetPrefix, techset->name);
+        iw4Techset->name = name.c_str();
         iw4Techset->worldVertFormat = techset->worldVertFormat; // enum didn't change
         iw4Techset->hasBeenUploaded = false;
         iw4Techset->remappedTechniqueSet = nullptr;
 
+
         // copy techniques to correct spots
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_DEPTH_PREPASS] = techset->techniques[Game::IW3::TECHNIQUE_DEPTH_PREPASS];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_BUILD_FLOAT_Z] = techset->techniques[Game::IW3::TECHNIQUE_BUILD_FLOAT_Z];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_BUILD_SHADOWMAP_DEPTH] = techset->techniques[Game::IW3::TECHNIQUE_BUILD_SHADOWMAP_DEPTH];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_BUILD_SHADOWMAP_COLOR] = techset->techniques[Game::IW3::TECHNIQUE_BUILD_SHADOWMAP_COLOR];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_UNLIT] = techset->techniques[Game::IW3::TECHNIQUE_UNLIT];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_EMISSIVE] = techset->techniques[Game::IW3::TECHNIQUE_EMISSIVE];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_EMISSIVE_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_EMISSIVE];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_EMISSIVE_SHADOW] = techset->techniques[Game::IW3::TECHNIQUE_EMISSIVE_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_EMISSIVE_SHADOW_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_EMISSIVE_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_BEGIN] = techset->techniques[Game::IW3::TECHNIQUE_LIT_BEGIN];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT] = techset->techniques[Game::IW3::TECHNIQUE_LIT];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_SUN] = techset->techniques[Game::IW3::TECHNIQUE_LIT_SUN];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_SUN_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT_SUN];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_SUN_SHADOW] = techset->techniques[Game::IW3::TECHNIQUE_LIT_SUN_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_SUN_SHADOW_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT_SUN_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_SPOT] = techset->techniques[Game::IW3::TECHNIQUE_LIT_SPOT];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_SPOT_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT_SPOT];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_SPOT_SHADOW] = techset->techniques[Game::IW3::TECHNIQUE_LIT_SPOT_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_SPOT_SHADOW_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT_SPOT_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_OMNI] = techset->techniques[Game::IW3::TECHNIQUE_LIT_OMNI];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_OMNI_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT_OMNI];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_OMNI_SHADOW] = techset->techniques[Game::IW3::TECHNIQUE_LIT_OMNI_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_OMNI_SHADOW_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT_OMNI_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW_DFOG] = techset->techniques[Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIT_END] = techset->techniques[Game::IW3::TECHNIQUE_LIT_END];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIGHT_SPOT] = techset->techniques[Game::IW3::TECHNIQUE_LIGHT_SPOT];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIGHT_OMNI] = techset->techniques[Game::IW3::TECHNIQUE_LIGHT_OMNI];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_LIGHT_SPOT_SHADOW] = techset->techniques[Game::IW3::TECHNIQUE_LIGHT_SPOT_SHADOW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_FAKELIGHT_NORMAL] = techset->techniques[Game::IW3::TECHNIQUE_FAKELIGHT_NORMAL];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_FAKELIGHT_VIEW] = techset->techniques[Game::IW3::TECHNIQUE_FAKELIGHT_VIEW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_SUNLIGHT_PREVIEW] = techset->techniques[Game::IW3::TECHNIQUE_SUNLIGHT_PREVIEW];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_CASE_TEXTURE] = techset->techniques[Game::IW3::TECHNIQUE_CASE_TEXTURE];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_WIREFRAME_SOLID] = techset->techniques[Game::IW3::TECHNIQUE_WIREFRAME_SOLID];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_WIREFRAME_SHADED] = techset->techniques[Game::IW3::TECHNIQUE_WIREFRAME_SHADED];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_DEBUG_BUMPMAP] = techset->techniques[Game::IW3::TECHNIQUE_DEBUG_BUMPMAP];
-        iw4Techset->techniques[Game::IW4::TECHNIQUE_DEBUG_BUMPMAP_INSTANCED] = techset->techniques[Game::IW3::TECHNIQUE_DEBUG_BUMPMAP_INSTANCED];
-
-        Utils::Stream buffer;
-        buffer.saveArray("IW4xTSET", 8);
-        buffer.saveObject(IW4X_TECHSET_VERSION);
-
-        buffer.saveObject(*iw4Techset);
-
-        if (iw4Techset->name)
+        for (size_t i = 0; i < Game::IW4::TECHNIQUE_COUNT; i++)
         {
-            buffer.saveString(iw4Techset->name);
-        }
-
-        for (int i = 0; i < 48; i++)
-        {
-            if (iw4Techset->techniques[i])
+            Game::IW4::MaterialTechniqueType technique = static_cast<Game::IW4::MaterialTechniqueType>(i);
+            if (techniqueTypeTableFromIW4.contains(technique))
             {
-                buffer.saveString(iw4Techset->techniques[i]->name);
-                IMaterialTechniqueSet::DumpTechnique(iw4Techset->techniques[i]);
+                iw4Techset->techniques[technique] = techset->techniques[techniqueTypeTableFromIW4.at(technique)];
+            }
+            else
+            {
+                iw4Techset->techniques[technique] = nullptr;
             }
         }
 
-        Utils::WriteFile(Utils::VA("%s/techsets/%s.iw4xTS", AssetHandler::GetExportPath().data(), iw4Techset->name), buffer.toBuffer());
+        IMaterialTechniqueSet::SaveConvertedTechset(iw4Techset);
     }
 
     IMaterialTechniqueSet::IMaterialTechniqueSet()
