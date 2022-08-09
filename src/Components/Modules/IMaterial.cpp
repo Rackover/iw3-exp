@@ -69,7 +69,7 @@ namespace Components
 		{
 			AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, { asset->techniqueSet });
 
-			techsetName = std::format("{}{}", IMaterialTechniqueSet::techsetPrefix, asset->techniqueSet->name);
+			techsetName = std::format("{}{}", asset->techniqueSet->name, IMaterialTechniqueSet::techsetSuffix);
 			output.AddMember("techniqueSet", RAPIDJSON_STR(techsetName.c_str()), allocator);
 		}
 
@@ -227,25 +227,126 @@ namespace Components
 			output.AddMember("constantTable", constantTable, allocator);
 		}
 
-		std::string b64;
 		if (asset->stateBitTable)
 		{
-			auto size = asset->stateBitsCount * sizeof(Game::IW3::GfxStateBits);
-			auto* statebitsHead = reinterpret_cast<std::uint8_t*>(asset->stateBitTable);
-			auto buffer = std::vector<uint8_t>(statebitsHead, statebitsHead+size);
-
-			b64 = Utils::Base64::Encode(buffer);
-			const char* data = b64.data();
-			output.AddMember("stateBitsTable", RAPIDJSON_STR(data), allocator);
+			output.AddMember("stateBitsTable", StateBitsToJsonArray(asset->stateBitTable, asset->stateBitsCount, allocator), allocator);
 		}
-
-		output.AddMember("stateBitsCount", asset->stateBitsCount, allocator);
 
 		rapidjson::StringBuffer buff;
 		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
 		output.Accept(writer);
 
 		Utils::WriteFile(Utils::VA("%s/materials/%s.iw4x.json", AssetHandler::GetExportPath().data(), asset->name), buff.GetString());
+	}
+
+	rapidjson::Value IMaterial::StateBitsToJsonArray(Game::IW3::GfxStateBits* stateBits, unsigned char count, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator) 
+	{
+		rapidjson::Value arr(rapidjson::kArrayType);
+
+		for (auto index = 0u; index < count; index++)
+		{
+			const auto& entry = stateBits[index];
+
+			const auto srcBlendRgb = (entry.flags.loadbit0 & Game::IW3::GFXS0_SRCBLEND_RGB_MASK) >> Game::IW3::GFXS0_SRCBLEND_RGB_SHIFT;
+			const auto dstBlendRgb = (entry.flags.loadbit0 & Game::IW3::GFXS0_DSTBLEND_RGB_MASK) >> Game::IW3::GFXS0_DSTBLEND_RGB_SHIFT;
+			const auto blendOpRgb = (entry.flags.loadbit0 & Game::IW3::GFXS0_BLENDOP_RGB_MASK) >> Game::IW3::GFXS0_BLENDOP_RGB_SHIFT;
+			const auto srcBlendAlpha = (entry.flags.loadbit0 & Game::IW3::GFXS0_SRCBLEND_ALPHA_MASK) >> Game::IW3::GFXS0_SRCBLEND_ALPHA_SHIFT;
+			const auto dstBlendAlpha = (entry.flags.loadbit0 & Game::IW3::GFXS0_DSTBLEND_ALPHA_MASK) >> Game::IW3::GFXS0_DSTBLEND_ALPHA_SHIFT;
+			const auto blendOpAlpha = (entry.flags.loadbit0 & Game::IW3::GFXS0_BLENDOP_ALPHA_MASK) >> Game::IW3::GFXS0_BLENDOP_ALPHA_SHIFT;
+			const auto depthTest = (entry.flags.loadbit1 & Game::IW3::GFXS1_DEPTHTEST_DISABLE) ? -1 : (entry.flags.loadbit1 & Game::IW3::GFXS1_DEPTHTEST_MASK) >> Game::IW3::GFXS1_DEPTHTEST_SHIFT;
+			const auto polygonOffset = (entry.flags.loadbit1 & Game::IW3::GFXS1_POLYGON_OFFSET_MASK) >> Game::IW3::GFXS1_POLYGON_OFFSET_SHIFT;
+
+			const auto* alphaTest = "disable"; 
+			if ((entry.flags.loadbit0 & Game::IW3::GFXS0_ATEST_MASK) == Game::IW3::GFXS0_ATEST_GE_128)
+			{
+				alphaTest = ">=128";
+			}
+			else if ((entry.flags.loadbit0 & Game::IW3::GFXS0_ATEST_MASK) == Game::IW3::GFXS0_ATEST_GT_0)
+			{
+				alphaTest = ">0";
+			}
+			else if ((entry.flags.loadbit0 & Game::IW3::GFXS0_ATEST_MASK) == Game::IW3::GFXS0_ATEST_LT_128)
+			{
+				alphaTest = "<128";
+			}
+			else
+			{
+				assert(entry.flags.loadbit0 & Game::IW3::GFXS0_ATEST_DISABLE);
+			}
+
+			const auto* cullFace = "none";
+			if ((entry.flags.loadbit0 & Game::IW3::GFXS0_CULL_MASK) == Game::IW3::GFXS0_CULL_BACK)
+			{
+				cullFace = "back";
+			}
+			else if ((entry.flags.loadbit0 & Game::IW3::GFXS0_CULL_MASK) == Game::IW3::GFXS0_CULL_FRONT)
+			{
+				cullFace = "front";
+			}
+			else
+			{
+				assert((entry.flags.loadbit0 & Game::IW3::GFXS0_CULL_MASK) == Game::IW3::GFXS0_CULL_NONE);
+			}
+
+			rapidjson::Value stateBitEntry(rapidjson::kObjectType);
+			
+			const auto colorWriteRgb = entry.flags.loadbit0 & Game::IW3::GFXS0_COLORWRITE_RGB ? true : false;
+			const auto colorWriteAlpha = entry.flags.loadbit0 & Game::IW3::GFXS0_COLORWRITE_ALPHA ? true : false;
+			const auto polymodeLine = entry.flags.loadbit0 & Game::IW3::GFXS0_POLYMODE_LINE ? true : false;
+
+			// Missing gamma write here, present in iw4 and absent in iw3
+			const auto gammaWrite = false; // Makes everything too bright if we set it to true.
+
+			const auto depthWrite = (entry.flags.loadbit1 & Game::IW3::GFXS1_DEPTHWRITE) ? true : false;
+			const auto stencilFrontEnabled = (entry.flags.loadbit1 & Game::IW3::GFXS1_STENCIL_FRONT_ENABLE) ? true : false;
+			const auto stencilBackEnabled = (entry.flags.loadbit1 & Game::IW3::GFXS1_STENCIL_BACK_ENABLE) ? true : false;
+			const auto stencilFrontPass = (entry.flags.loadbit1 >> Game::IW3::GFXS1_STENCIL_FRONT_PASS_SHIFT) & Game::IW3::GFXS_STENCILOP_MASK;
+			const auto stencilFrontFail = (entry.flags.loadbit1 >> Game::IW3::GFXS1_STENCIL_FRONT_FAIL_SHIFT) & Game::IW3::GFXS_STENCILOP_MASK;
+			const auto stencilFrontZFail = (entry.flags.loadbit1 >> Game::IW3::GFXS1_STENCIL_FRONT_ZFAIL_SHIFT) & Game::IW3::GFXS_STENCILOP_MASK;
+			const auto stencilFrontFunc = (entry.flags.loadbit1 >> Game::IW3::GFXS1_STENCIL_FRONT_FUNC_SHIFT) & Game::IW3::GFXS_STENCILOP_MASK;
+			const auto stencilBackPass = (entry.flags.loadbit1 >> Game::IW3::GFXS1_STENCIL_BACK_PASS_SHIFT) & Game::IW3::GFXS_STENCILOP_MASK;
+			const auto stencilBackFail = (entry.flags.loadbit1 >> Game::IW3::GFXS1_STENCIL_BACK_FAIL_SHIFT) & Game::IW3::GFXS_STENCILOP_MASK;
+			const auto stencilBackZFail = (entry.flags.loadbit1 >> Game::IW3::GFXS1_STENCIL_BACK_ZFAIL_SHIFT) & Game::IW3::GFXS_STENCILOP_MASK;
+			const auto stencilBackFunc = (entry.flags.loadbit1 >> Game::IW3::GFXS1_STENCIL_BACK_FUNC_SHIFT) & Game::IW3::GFXS_STENCILOP_MASK;
+
+#define ADD_TO_JSON(x) stateBitEntry.AddMember(#x, x, allocator)
+#define ADD_TO_JSON_STR(x) stateBitEntry.AddMember(#x, RAPIDJSON_STR(x), allocator)
+
+			ADD_TO_JSON_STR(alphaTest);
+			ADD_TO_JSON(blendOpAlpha);
+			ADD_TO_JSON(blendOpRgb);
+			ADD_TO_JSON(colorWriteAlpha);
+			ADD_TO_JSON(colorWriteRgb);
+			ADD_TO_JSON_STR(cullFace);
+			ADD_TO_JSON(depthTest);
+			ADD_TO_JSON(depthWrite);
+			ADD_TO_JSON(dstBlendAlpha);
+			ADD_TO_JSON(dstBlendRgb);
+			ADD_TO_JSON(gammaWrite);
+			ADD_TO_JSON(polygonOffset);
+			ADD_TO_JSON(polymodeLine);
+			ADD_TO_JSON(srcBlendRgb);
+			ADD_TO_JSON(srcBlendAlpha);
+			ADD_TO_JSON(stencilBackEnabled);
+			ADD_TO_JSON(stencilBackFail);
+			ADD_TO_JSON(stencilBackFunc);
+			ADD_TO_JSON(stencilBackPass);
+			ADD_TO_JSON(stencilBackZFail);
+			ADD_TO_JSON(stencilFrontEnabled);
+			ADD_TO_JSON(stencilFrontFail);
+			ADD_TO_JSON(stencilFrontFunc);
+			ADD_TO_JSON(stencilFrontPass);
+			ADD_TO_JSON(stencilFrontZFail);
+
+#if DEBUG
+			stateBitEntry.AddMember("check0", entry.flags.loadbit0, allocator);
+			stateBitEntry.AddMember("check1", entry.flags.loadbit1, allocator);
+#endif
+
+			arr.PushBack(stateBitEntry, allocator);
+		}
+
+		return arr;
 	}
 
 	void IMaterial::Dump(Game::IW3::Material* material)
@@ -296,7 +397,7 @@ namespace Components
 			else
 			{
 				// Not necessary
-				mat.stateBitsEntry[technique] = 0xFF;
+				//mat.stateBitsEntry[technique] = 0xFF;
 			}
 		}
 
