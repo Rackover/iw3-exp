@@ -4,7 +4,7 @@
 
 namespace Components
 {
-    const std::string IMaterialTechniqueSet::techsetPrefix = "iw3x_";
+    const std::string IMaterialTechniqueSet::techsetSuffix = ".3x";
 
     const std::unordered_map<Game::IW4::MaterialTechniqueType, Game::IW3::MaterialTechniqueType> IMaterialTechniqueSet::techniqueTypeTableFromIW4 = {
         { Game::IW4::TECHNIQUE_DEPTH_PREPASS, Game::IW3::TECHNIQUE_DEPTH_PREPASS},
@@ -14,7 +14,6 @@ namespace Components
         { Game::IW4::TECHNIQUE_UNLIT, Game::IW3::TECHNIQUE_UNLIT},
         { Game::IW4::TECHNIQUE_EMISSIVE, Game::IW3::TECHNIQUE_EMISSIVE},
         { Game::IW4::TECHNIQUE_EMISSIVE_SHADOW, Game::IW3::TECHNIQUE_EMISSIVE_SHADOW},
-        { Game::IW4::TECHNIQUE_LIT_BEGIN, Game::IW3::TECHNIQUE_LIT_BEGIN},
         { Game::IW4::TECHNIQUE_LIT, Game::IW3::TECHNIQUE_LIT},
         { Game::IW4::TECHNIQUE_LIT_SUN, Game::IW3::TECHNIQUE_LIT_SUN},
         { Game::IW4::TECHNIQUE_LIT_SUN_SHADOW, Game::IW3::TECHNIQUE_LIT_SUN_SHADOW},
@@ -30,7 +29,6 @@ namespace Components
         { Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI, Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI},
         { Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW, Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW},
 
-        { Game::IW4::TECHNIQUE_LIT_END, Game::IW3::TECHNIQUE_LIT_END},
         { Game::IW4::TECHNIQUE_LIGHT_SPOT, Game::IW3::TECHNIQUE_LIGHT_SPOT},
         { Game::IW4::TECHNIQUE_LIGHT_OMNI, Game::IW3::TECHNIQUE_LIGHT_OMNI},
         { Game::IW4::TECHNIQUE_LIGHT_SPOT_SHADOW, Game::IW3::TECHNIQUE_LIGHT_SPOT_SHADOW},
@@ -41,8 +39,25 @@ namespace Components
         { Game::IW4::TECHNIQUE_WIREFRAME_SOLID, Game::IW3::TECHNIQUE_WIREFRAME_SOLID},
         { Game::IW4::TECHNIQUE_WIREFRAME_SHADED, Game::IW3::TECHNIQUE_WIREFRAME_SHADED},
         { Game::IW4::TECHNIQUE_DEBUG_BUMPMAP, Game::IW3::TECHNIQUE_DEBUG_BUMPMAP},
-        { Game::IW4::TECHNIQUE_DEBUG_BUMPMAP_INSTANCED, Game::IW3::TECHNIQUE_DEBUG_BUMPMAP_INSTANCED}
+        { Game::IW4::TECHNIQUE_DEBUG_BUMPMAP_INSTANCED, Game::IW3::TECHNIQUE_DEBUG_BUMPMAP_INSTANCED},
 
+        // Wild guesses :
+        { Game::IW4::TECHNIQUE_EMISSIVE_DFOG, Game::IW3::TECHNIQUE_EMISSIVE},
+        { Game::IW4::TECHNIQUE_EMISSIVE_SHADOW_DFOG, Game::IW3::TECHNIQUE_EMISSIVE_SHADOW},
+        { Game::IW4::TECHNIQUE_LIT_DFOG, Game::IW3::TECHNIQUE_LIT},
+        { Game::IW4::TECHNIQUE_LIT_SUN_DFOG, Game::IW3::TECHNIQUE_LIT_SUN},
+        { Game::IW4::TECHNIQUE_LIT_SUN_SHADOW_DFOG, Game::IW3::TECHNIQUE_LIT_SUN_SHADOW},
+        { Game::IW4::TECHNIQUE_LIT_SPOT_DFOG, Game::IW3::TECHNIQUE_LIT_SPOT},
+        { Game::IW4::TECHNIQUE_LIT_SPOT_SHADOW_DFOG, Game::IW3::TECHNIQUE_LIT_SPOT_SHADOW},
+        { Game::IW4::TECHNIQUE_LIT_OMNI_DFOG, Game::IW3::TECHNIQUE_LIT_OMNI},
+        { Game::IW4::TECHNIQUE_LIT_OMNI_SHADOW_DFOG, Game::IW3::TECHNIQUE_LIT_OMNI_SHADOW},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED_DFOG, Game::IW3::TECHNIQUE_LIT_INSTANCED},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN_DFOG, Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW_DFOG, Game::IW3::TECHNIQUE_LIT_INSTANCED_SUN_SHADOW},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT_DFOG, Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW_DFOG, Game::IW3::TECHNIQUE_LIT_INSTANCED_SPOT_SHADOW},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI_DFOG, Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI},
+        { Game::IW4::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW_DFOG, Game::IW3::TECHNIQUE_LIT_INSTANCED_OMNI_SHADOW},
     };
 
     const std::unordered_map<Game::IW3::MaterialTextureSource, Game::IW4::MaterialTextureSource> IMaterialTechniqueSet::samplerTableToIW4 =
@@ -76,19 +91,25 @@ namespace Components
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_REFLECTION_PROBE, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_REFLECTION_PROBE }
     };
 
-    void IMaterialTechniqueSet::DumpTechnique(Game::IW3::MaterialTechnique* tech)
+    Utils::Memory::Allocator IMaterialTechniqueSet::localAllocator;
+
+    std::string IMaterialTechniqueSet::DumpTechnique(Game::IW3::MaterialTechnique* tech)
     {
         AssertSize(Game::IW3::MaterialPass, 20);
-        if (!tech) return;
+        if (!tech) return std::string();
         
         Utils::Memory::Allocator strDuplicator;
         rapidjson::Document output(rapidjson::kObjectType);
         auto& allocator = output.GetAllocator();
 
-        output.AddMember("version", IW4X_TECHSET_VERSION, allocator);
-        output.AddMember("name", RAPIDJSON_STR(tech->name), allocator);
+        std::string techniqueName = std::format("{}{}", tech->name, techsetSuffix);
 
-        const auto flags = std::format("{:08b}", tech->flags);
+        output.AddMember("version", IW4X_TECHSET_VERSION, allocator);
+        output.AddMember("name", rapidjson::Value(techniqueName.data(), allocator), allocator);
+
+        auto shiftedFlags = tech->flags << 2;
+
+        const auto flags = std::format("{:016b}", shiftedFlags);
         output.AddMember("flags", RAPIDJSON_STR(flags.c_str()), allocator);
 
         rapidjson::Value passArray(rapidjson::kArrayType);
@@ -101,20 +122,20 @@ namespace Components
 
             if (pass->vertexDecl)
             {
-                std::string name = IMaterialTechniqueSet::DumpDecl(pass->vertexDecl);
+                auto name = IMaterialTechniqueSet::DumpDecl(pass->vertexDecl);
                 jsonPass.AddMember("vertexDeclaration", rapidjson::Value(name.data(), allocator), allocator);
             }
 
             if (pass->vertexShader)
             {
-                IMaterialTechniqueSet::DumpVS(pass->vertexShader);
-                jsonPass.AddMember("vertexShader", RAPIDJSON_STR(pass->vertexShader->name), allocator);
+                auto name = IMaterialTechniqueSet::DumpVS(pass->vertexShader);
+                jsonPass.AddMember("vertexShader", rapidjson::Value(name.data(), allocator), allocator);
             }
 
             if (pass->pixelShader)
             {
-                IMaterialTechniqueSet::DumpPS(pass->pixelShader); 
-                jsonPass.AddMember("pixelShader", RAPIDJSON_STR(pass->pixelShader->name), allocator);
+                auto name = IMaterialTechniqueSet::DumpPS(pass->pixelShader); 
+                jsonPass.AddMember("pixelShader", rapidjson::Value(name.data(), allocator), allocator);
             }
 
             jsonPass.AddMember("perPrimArgCount", pass->perPrimArgCount, allocator);
@@ -152,16 +173,15 @@ namespace Components
                     if (newIndex == IMaterialTechniqueSet::iw3CodeConstMap.end())
                     {
                         Logger::Print("Unable to map code constant %d for technique '%s'! Not exporting technique\n", arg->u.codeConst.index, tech->name);
-                        return;
+                        return tech->name;
                     }
                     unsigned short val = (unsigned short)newIndex->second;
 
                     rapidjson::Value codeConst(rapidjson::kObjectType);
 
-                    codeConst.AddMember("val", val, allocator);
+                    codeConst.AddMember("index", val, allocator);
                     codeConst.AddMember("firstRow", arg->u.codeConst.firstRow, allocator);
                     codeConst.AddMember("rowCount", arg->u.codeConst.rowCount, allocator);
-                    codeConst.AddMember("nameHash", arg->u.nameHash, allocator);
 
                     argJson.AddMember("codeConst", codeConst, allocator);
                 }
@@ -173,8 +193,8 @@ namespace Components
                 }
                 else if (arg->type == Game::MaterialShaderArgumentType::MTL_ARG_CODE_PIXEL_SAMPLER)
                 {
-                    arg->u.codeSampler = samplerTableToIW4.at(static_cast<Game::IW3::MaterialTextureSource>(arg->u.codeSampler));
-                    argJson.AddMember("codeSampler", arg->u.codeSampler, allocator);
+                    auto codeSampler = samplerTableToIW4.at(static_cast<Game::IW3::MaterialTextureSource>(arg->u.codeSampler));
+                    argJson.AddMember("codeSampler", codeSampler, allocator);
                 }
 
 
@@ -192,7 +212,9 @@ namespace Components
         rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
         output.Accept(writer);
 
-        Utils::WriteFile(Utils::VA("%s/techniques/%s.iw4x.json", AssetHandler::GetExportPath().data(), tech->name), buff.GetString());
+        Utils::WriteFile(Utils::VA("%s/techniques/%s.iw4x.json", AssetHandler::GetExportPath().data(), techniqueName.data()), buff.GetString());
+
+        return techniqueName;
     }
 
     std::string IMaterialTechniqueSet::DumpDecl(Game::IW3::MaterialVertexDeclaration* decl)
@@ -237,7 +259,7 @@ namespace Components
 
         Utils::Stream buffer;
         buffer.saveArray("IW4xDECL", 8);
-        buffer.saveObject(IW4X_TECHSET_VERSION);
+        buffer.saveObject(static_cast<char>(IW4X_TECHSET_VERSION));
 
         buffer.saveObject(*iw4Decl);
 
@@ -251,42 +273,73 @@ namespace Components
         return iw4Decl->name;
     }
 
-    void IMaterialTechniqueSet::DumpVS(Game::IW3::MaterialVertexShader* vs)
+    std::string IMaterialTechniqueSet::DumpVS(Game::IW3::MaterialVertexShader* vs)
     {
-        if (!vs) return;
+        if (!vs) return std::string();
         Utils::Stream buffer;
         buffer.saveArray("IW4xVERT", 8);
-        buffer.saveObject(IW4X_TECHSET_VERSION);
+        buffer.saveObject(static_cast<char>(IW4X_TECHSET_VERSION));
 
-        buffer.saveObject(*vs);
+        Game::IW3::MaterialVertexShader vertexShaderCpy = *vs;
 
+        if (vertexShaderCpy.prog.loadDef.loadForRenderer == Game::IW3::GfxRenderer::GFX_RENDERER_SHADER_2)
+        {
+            Logger::Print("Not exporting vertex shader %s because they're targeting a SM2 renderer which iw4 does not have!", vs->name);
+            return std::string();
+        }
+        else
+        {
+            vertexShaderCpy.prog.loadDef.loadForRenderer = static_cast<Game::IW3::GfxRenderer>(vertexShaderCpy.prog.loadDef.loadForRenderer - 1);
+        }
+
+        buffer.saveObject(vertexShaderCpy);
+
+        std::string name{};
         if (vs->name)
         {
-            buffer.saveString(vs->name);
+            name = std::format("{}{}", vs->name, IMaterialTechniqueSet::techsetSuffix);
+            buffer.saveString(name.c_str());
         }
 
         buffer.saveArray(vs->prog.loadDef.program, vs->prog.loadDef.programSize);
 
-        Utils::WriteFile(Utils::VA("%s/vs/%s.iw4xVS", AssetHandler::GetExportPath().data(), vs->name), buffer.toBuffer());
+        Utils::WriteFile(Utils::VA("%s/vs/%s.iw4xVS", AssetHandler::GetExportPath().data(), name.data()), buffer.toBuffer());
+
+        return name;
     }
 
-    void IMaterialTechniqueSet::DumpPS(Game::IW3::MaterialPixelShader* ps)
+    std::string IMaterialTechniqueSet::DumpPS(Game::IW3::MaterialPixelShader* ps)
     {
-        if (!ps) return;
+        if (!ps) return std::string();
         Utils::Stream buffer;
         buffer.saveArray("IW4xPIXL", 8);
-        buffer.saveObject(IW4X_TECHSET_VERSION);
+        buffer.saveObject(static_cast<char>(IW4X_TECHSET_VERSION));
 
-        buffer.saveObject(*ps);
+        Game::IW3::MaterialPixelShader pixelShaderCpy = *ps;
 
+        if (pixelShaderCpy.prog.loadDef.loadForRenderer == Game::IW3::GfxRenderer::GFX_RENDERER_SHADER_2)
+        {
+            Logger::Print("Not exporting pixel shader %s because they're targeting a SM2 renderer which iw4 does not have!", ps->name);
+            return std::string();
+        }
+        else
+        {
+            pixelShaderCpy.prog.loadDef.loadForRenderer = static_cast<Game::IW3::GfxRenderer>(pixelShaderCpy.prog.loadDef.loadForRenderer - 1);
+        }
+
+        buffer.saveObject(pixelShaderCpy);
+
+        std::string name{};
         if (ps->name)
         {
-            buffer.saveString(ps->name);
+            name = std::format("{}{}", ps->name, IMaterialTechniqueSet::techsetSuffix);
+            buffer.saveString(name);
         }
 
         buffer.saveArray(ps->prog.loadDef.program, ps->prog.loadDef.programSize);
 
-        Utils::WriteFile(Utils::VA("%s/ps/%s.iw4xPS", AssetHandler::GetExportPath().data(), ps->name), buffer.toBuffer());
+        Utils::WriteFile(Utils::VA("%s/ps/%s.iw4xPS", AssetHandler::GetExportPath().data(), name.data()), buffer.toBuffer());
+        return name;
     }
 
     void IMaterialTechniqueSet::SaveConvertedTechset(Game::IW4::MaterialTechniqueSet* techset)
@@ -301,32 +354,40 @@ namespace Components
             output.AddMember("name", RAPIDJSON_STR(techset->name), allocator);
         }
 
-        // Will litterally never happened - iw3 has none of those
         if (techset->remappedTechniqueSet)
         {
-            IMaterialTechniqueSet::SaveConvertedTechset(techset->remappedTechniqueSet);
-            output.AddMember("remappedTechniqueSet", RAPIDJSON_STR(techset->name), allocator);
+            output.AddMember("remappedTechniqueSet", RAPIDJSON_STR(techset->remappedTechniqueSet->name), allocator);
         }
 
         output.AddMember("hasBeenUploaded", techset->hasBeenUploaded, allocator);
         output.AddMember("worldVertFormat", techset->worldVertFormat, allocator);
 
-        rapidjson::Value techniqueArray(rapidjson::kArrayType);
+        // This could be an array but it's practical to have the enum index in front
+        // Otherwise on a ~48 keys long array the mapping is not immediatly obvious
+        rapidjson::Value techniqueMap(rapidjson::kObjectType);
 
         for (size_t i = 0; i < Game::IW4::TECHNIQUE_COUNT; i++)
         {
+            rapidjson::Value value = rapidjson::Value(rapidjson::kNullType);
+            
+            
             if (techset->techniques[i])
             {
-                techniqueArray.PushBack(rapidjson::Value(techset->techniques[i]->name, allocator), allocator);
-                IMaterialTechniqueSet::DumpTechnique(techset->techniques[i]);
+                std::string techniqueName = IMaterialTechniqueSet::DumpTechnique(techset->techniques[i]);
+
+                value = rapidjson::Value(
+                    techniqueName.data(),
+                    allocator
+                );
             }
-            else
-            {
-                techniqueArray.PushBack(rapidjson::Value(rapidjson::kNullType), allocator);
-            }
+
+            techniqueMap.AddMember(
+                rapidjson::Value(std::to_string(i).c_str(), allocator),
+                value,
+                allocator);
         }
 
-        output.AddMember("techniques", techniqueArray, allocator);
+        output.AddMember("techniques", techniqueMap, allocator);
 
         rapidjson::StringBuffer buff;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buff);
@@ -335,22 +396,35 @@ namespace Components
         Utils::WriteFile(Utils::VA("%s/techsets/%s.iw4x.json", AssetHandler::GetExportPath().data(), techset->name), buff.GetString());
     }
 
-    void IMaterialTechniqueSet::Dump(Game::IW3::MaterialTechniqueSet* techset)
+    Game::IW4::MaterialTechniqueSet* IMaterialTechniqueSet::Dump(Game::IW3::MaterialTechniqueSet* techset)
     {
-        if (!techset) return;
+        if (!techset) return nullptr;
 
         static int numDecls = 0;
 
-        Utils::Memory::Allocator iw3xAllocator;
-        Game::IW4::MaterialTechniqueSet* iw4Techset = iw3xAllocator.allocate<Game::IW4::MaterialTechniqueSet>();
+        Game::IW4::MaterialTechniqueSet* iw4Techset = localAllocator.allocate<Game::IW4::MaterialTechniqueSet>();
 
+        auto name = std::format("{}{}",techset->name, techsetSuffix);
+        iw4Techset->name = localAllocator.duplicateString(name);
+        
 
-        auto name = std::format("{}{}", techsetPrefix, techset->name);
-        iw4Techset->name = name.c_str();
         iw4Techset->worldVertFormat = techset->worldVertFormat; // enum didn't change
-        iw4Techset->hasBeenUploaded = false;
-        iw4Techset->remappedTechniqueSet = nullptr;
+        iw4Techset->hasBeenUploaded = techset->hasBeenUploaded;
+        iw4Techset->unused[0] = techset->unused[0]; // ?
 
+        static std::regex zFeatherRegx = std::regex("_zfeather");
+        static std::regex smRegx = std::regex("_sm");
+
+        if (name.contains("_zfeather"))
+        {
+            techset->remappedTechniqueSet = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, std::regex_replace(techset->name, zFeatherRegx, "").data()).techniqueSet;
+            iw4Techset->remappedTechniqueSet = Dump(techset->remappedTechniqueSet);
+        }
+        else if (name.contains("_sm"))
+        {
+            techset->remappedTechniqueSet = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, std::regex_replace(techset->name, smRegx, "_hsm").data()).techniqueSet;
+            iw4Techset->remappedTechniqueSet = Dump(techset->remappedTechniqueSet);
+        }
 
         // copy techniques to correct spots
         for (size_t i = 0; i < Game::IW4::TECHNIQUE_COUNT; i++)
@@ -367,6 +441,8 @@ namespace Components
         }
 
         IMaterialTechniqueSet::SaveConvertedTechset(iw4Techset);
+
+        return iw4Techset;
     }
 
     IMaterialTechniqueSet::IMaterialTechniqueSet()
@@ -393,8 +469,10 @@ namespace Components
         { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_ORG, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_ORG },
         { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_DX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_DX },
         { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_DY, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_DY },
+        
         // missing
-        // { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOW_PARMS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_SHADOW_PARAMS },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOW_PARMS, Game::IW4::ShaderCodeConstants::CONST_SRC_NONE },
+
         { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_POLYGON_OFFSET, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_POLYGON_OFFSET },
         { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_RENDER_TARGET_SIZE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_RENDER_TARGET_SIZE },
         { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_FALLOFF_PLACEMENT, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_FALLOFF_PLACEMENT },
@@ -428,7 +506,7 @@ namespace Components
         { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DEBUG_BUMPMAP, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DEBUG_BUMPMAP },
         { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_MATERIAL_COLOR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_MATERIAL_COLOR },
         { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FOG, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR }, // ~not necessarily a great match. 
         { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_GLOW_SETUP, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_GLOW_SETUP },
         { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_GLOW_APPLY, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_GLOW_APPLY },
         { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COLOR_BIAS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COLOR_BIAS },
