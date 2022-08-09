@@ -361,11 +361,19 @@ namespace Game
 			int fileSizeForPicmip[4];
 		};
 
+		enum GfxRenderer : unsigned __int16
+		{
+			GFX_RENDERER_SHADER_2 = 0x0,
+			GFX_RENDERER_SHADER_3 = 0x1,
+			GFX_RENDERER_COUNT = 0x2,
+			GFX_RENDERER_UNSPECIFIED = 0x2,
+		};
+
         struct GfxVertexShaderLoadDef
         {
             unsigned int *program;
             unsigned __int16 programSize;
-            unsigned __int16 loadForRenderer;
+			GfxRenderer loadForRenderer;
         };
 
         struct MaterialVertexShaderProgram
@@ -380,12 +388,11 @@ namespace Game
             MaterialVertexShaderProgram prog;
         };
 
-
         struct GfxPixelShaderLoadDef
         {
             unsigned int *program;
             unsigned __int16 programSize;
-            unsigned __int16 loadForRenderer;
+			GfxRenderer loadForRenderer;
         };
 
         struct MaterialPixelShaderProgram
@@ -471,6 +478,21 @@ namespace Game
 			GFXS1_STENCIL_BACK_MASK = 0xFFF00000,
 			GFXS1_STENCILFUNC_FRONTBACK_MASK = 0xE00E0000,
 			GFXS1_STENCILOP_FRONTBACK_MASK = 0x1FF1FF00,
+		};
+
+		enum GfxStencilOp
+		{
+			GFXS_STENCILOP_KEEP = 0x0,
+			GFXS_STENCILOP_ZERO = 0x1,
+			GFXS_STENCILOP_REPLACE = 0x2,
+			GFXS_STENCILOP_INCRSAT = 0x3,
+			GFXS_STENCILOP_DECRSAT = 0x4,
+			GFXS_STENCILOP_INVERT = 0x5,
+			GFXS_STENCILOP_INCR = 0x6,
+			GFXS_STENCILOP_DECR = 0x7,
+
+			GFXS_STENCILOP_COUNT,
+			GFXS_STENCILOP_MASK = 0x7
 		};
 
 		struct GfxStatebitsFlags {
@@ -806,6 +828,9 @@ namespace Game
 		{
 			char *name;
 			MaterialWorldVertexFormat worldVertFormat;
+			bool hasBeenUploaded;
+			char unused[1];
+			MaterialTechniqueSet* remappedTechniqueSet;
 			MaterialTechnique *techniques[34];
 		};
 
