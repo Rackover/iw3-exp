@@ -13,7 +13,7 @@ namespace Components
 		if (!image) return;
 		std::string name = image->name;
 
-		if (image->texture.loadDef && image->texture.loadDef->resourceSize > 0)
+		if (image->texture.loadDef)
 		{
 			if (name[0] == '*') name.erase(name.begin());
 
