@@ -118,9 +118,8 @@ namespace Components
 		#define CHANNELS 4 // R G B and A
 		#define IWI_HEADER_SIZE 28 // This would be 32 for IW4, and it's 28 for IW3. This is the size of the header on .IWI file before the actual data
 
-#ifdef DEBUG
 		const unsigned int sizeOfASide = image->texture.loadDef->resourceSize / SIDES;
-#endif
+		
 		std::string mapName = MapDumper::GetMapName();
 
 		// Here's the plan :
@@ -137,43 +136,13 @@ namespace Components
 		// Then we also need to change the pixel data to make it a bit less contrasted and bright, otherwise
 		//	the specular reflections are very aggressive. That's about it! :)
 
-		Game::IW3::XAssetHeader baseMapHeader = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_IMAGE, Utils::VA("loadscreen_%s", mapName.c_str()));
-		auto baseMapImg = baseMapHeader.image;
-
-		const int pixels = CHANNELS * baseMapImg->width * baseMapImg->height;
-
-		// Fetch & decompress loadscreen image
-		// Note: We don't consider mipmaps here. Loadscreens shouldn't have mips, but
-		//	actually on some custom maps, they do. 
-		// I think it's okay. It will be technically incorrect but the colors will be right.
-
-		FileSystem::File baseImg(Utils::VA("images/%s.iwi", Utils::VA("loadscreen_%s", mapName.c_str())));
-		std::vector<uint32_t> replacementImageBuffer = std::vector<uint32_t>(pixels);
-		unsigned char* iwiData = reinterpret_cast<unsigned char*>(baseImg.GetBuffer().data());
-		char iwiFormat = iwiData[4]; // I + W + i + 6  and the next char is => format.
-		unsigned char* dxtRawDataStart = &iwiData[IWI_HEADER_SIZE];
-
-		if (iwiFormat == Game::GfxImageFileFormat::IMG_FORMAT_DXT1) {
-			BlockDecompressImageDXT1(baseMapImg->width, baseMapImg->height, dxtRawDataStart, reinterpret_cast<unsigned long*>(&replacementImageBuffer[0]));
-		}
-		else if (iwiFormat == Game::GfxImageFileFormat::IMG_FORMAT_DXT5) {
-			BlockDecompressImageDXT5(baseMapImg->width, baseMapImg->height, dxtRawDataStart, reinterpret_cast<unsigned long*>(&replacementImageBuffer[0]));
-		}
-		else {
-			// No can do! I don't know how to decompress this image.
-			// No correction will be applied
-			return;
-		}
-
-		int dataIndex = 0;
-
 		std::vector<std::tuple<unsigned int, unsigned int>> mips = std::vector<std::tuple<unsigned int, unsigned int>>();
+		unsigned int totalSize = 0;
 		if (image->noPicmip == false) // => Has mipmaps
 		{
 			unsigned short maxDimension = max(image->height, image->width);
 			int mipmapFactor = 1;
 			int minBlockSize = 1;
-			unsigned int totalSize = 0;
 
 			while (maxDimension != 0)
 			{
@@ -184,61 +153,64 @@ namespace Components
 				mips.emplace_back(std::tuple<int, int>(x, y));
 				mipmapFactor *= 2;
 			}
-#if DEBUG
+
 			assert(totalSize == sizeOfASide);
-#endif
+
 		}
 		else {
+			totalSize = image->width * image->height * CHANNELS;
 			mips.emplace_back(std::tuple<int, int>(image->width, image->height));
 		}
 
-		float xStep = (float)baseMapImg->width / (float)image->width;
-		float yStep = (float)baseMapImg->height / (float)image->height;
-
+		size_t dataIndex = 0;
 		for (size_t i = 0; i < mips.size(); i++)
 		{
 			unsigned int thisWidth = std::get<0>(mips[i]);
 			unsigned int thisHeight = std::get<1>(mips[i]);
 
+			size_t faceSize = thisWidth * thisHeight * CHANNELS;
+
 			for (size_t side = 0; side < SIDES; side++)
 			{
+				// Blur it !
+				unsigned char buff1[16384]; // 64 * 64 * 4, should be enough?
+				unsigned char buff2[16384]; // 64 * 64 * 4, should be enough?
+
+				memcpy_s(buff1, faceSize, &image->texture.loadDef->data[dataIndex], faceSize);
+
+				for (size_t passes = 0; passes < 1; passes++)
+				{
+					Utils::Image::GaussianBlur4(buff1, buff2, thisWidth, thisHeight, CHANNELS, 2);
+				}
+
+				auto dataStart = dataIndex;
 				for (size_t x = 0; x < thisWidth; x++)
 				{
 					for (size_t y = 0; y < thisHeight; y++)
 					{
-						union {
-							char byteValue[4];
-							long longValue;
-						} baseMapPixels;
-
-						// Note: Rotation here is incorrect. It should be the following:
-						// 
-						//  side 0 is rotated ccw 90°
-						//  side 1 is rotated cw 90°
-						//	side 2 is rotated 180°
-						//	side 3 is not rotated
-						//	side 4 is not rotated
-						//	side 5 is not rotated
-						// 
-						// I just don't have the time to do that at the moment, but feel
-						//	free to implement it in the future! switch(side){...}
-
-						size_t newPixelIndex = static_cast<size_t>(std::floor(xStep * x) * baseMapImg->width + std::floor(yStep * y));
-						baseMapPixels.longValue = replacementImageBuffer[newPixelIndex];
-
 						for (size_t channel = 0; channel < CHANNELS; channel++)
 						{
-							unsigned char newByte;
+							auto localIndex = dataIndex - dataStart;
+
+							// Tone it down
+							unsigned char newByte = buff2[localIndex];
 
 							if (channel < CHANNELS - 1) {
-								newByte = baseMapPixels.byteValue[channel + 1];
-								newByte = std::clamp(newByte, static_cast<unsigned char>(60), static_cast<unsigned char>(170));
-								newByte = static_cast<unsigned char>(std::lerp(newByte, 127, 0.3f));
+
+								auto otherChannel = (channel + 1) % (CHANNELS-1);
+								auto otherOtherChannel = (channel + 2) % (CHANNELS - 1);
+
+								auto otherColor = buff2[localIndex - channel + otherChannel];
+								auto otherOtherColor = buff2[localIndex - channel + otherOtherChannel];
+
+								unsigned char average = (newByte + otherColor + otherOtherColor) / 3;
+
+								newByte = static_cast<unsigned char>(std::lerp(newByte, average, 0.55f));
+								newByte = std::clamp(newByte, static_cast<unsigned char>(75), static_cast<unsigned char>(170));
 							}
 							else {
 								// Alpha channel - we lower it a little bit
-								newByte = baseMapPixels.byteValue[channel - CHANNELS + 1];
-								newByte = static_cast<unsigned char>(newByte * 0.75); // pretty sure this does nothing! Alpha channel seems unused once ingame
+								newByte = static_cast<unsigned char>(image->texture.loadDef->data[dataIndex] * 0.75); // pretty sure this does nothing! Alpha channel seems unused once ingame
 							}
 
 							image->texture.loadDef->data[dataIndex] = newByte;
