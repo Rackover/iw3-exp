@@ -68,7 +68,7 @@ namespace Components
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_MODEL_LIGHTING , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_MODEL_LIGHTING },
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHTMAP_PRIMARY,Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHTMAP_PRIMARY },
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHTMAP_SECONDARY,Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHTMAP_SECONDARY },
-          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWCOOKIE, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_BLACK }, // incorrect!
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWCOOKIE, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SUN },       // incorrect!
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SUN, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SUN },
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SPOT , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SPOT },
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_FEEDBACK , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_FEEDBACK },
@@ -76,7 +76,7 @@ namespace Components
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_RESOLVED_SCENE , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_RESOLVED_SCENE}, 
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_POST_EFFECT_0 , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_POST_EFFECT_0},
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_POST_EFFECT_1 , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_POST_EFFECT_1},
-          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SKY , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_WHITE }, // Incorrect!
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SKY , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SUN },                // incorrect!
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHT_ATTENUATION , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHT_ATTENUATION},
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_DYNAMIC_SHADOWS , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_BLACK }, // Incorrect!
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_OUTDOOR , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_OUTDOOR },
