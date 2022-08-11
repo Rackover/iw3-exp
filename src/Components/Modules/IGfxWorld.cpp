@@ -703,12 +703,22 @@ namespace Components
 		map.dpvsDyn = world->dpvsDyn;
 
 		// iw4_credits has 0x3
-		map.fogTypesAllowed = Game::IW4::FogTypes::FOG_DFOG | Game::IW4::FogTypes::FOG_NORMAL;
+		// Probably do not add Game::IW4::FogTypes::FOG_DFOG here, cod4 doesn't support it !
+		map.fogTypesAllowed = Game::IW4::FogTypes::FOG_NORMAL;
 
+
+#if USE_IW3_SORTKEYS
+		// IW3 values
+		map.sortKeyLitDecal = 9;
+		map.sortKeyEffectDecal = 29;
+		map.sortKeyEffectAuto = 48;
+		map.sortKeyDistortion = 0;
+#else
 		map.sortKeyLitDecal = 0x6;
 		map.sortKeyEffectDecal = 0x27;
 		map.sortKeyEffectAuto = 0x30;
 		map.sortKeyDistortion = 0x2b;
+#endif
 
 		int baseIndex = 0;
 		map.draw.indices = allocator.allocateArray<unsigned short>(map.draw.indexCount);
