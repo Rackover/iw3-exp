@@ -65,6 +65,7 @@ template <size_t S> class Sizer { };
 #include "Utils/Hooking.hpp"
 #include "Utils/Entities.hpp"
 #include "Utils/Base64.hpp"
+#include "Utils/Image.hpp"
 
 #include "Game/Structs.hpp"
 #include "Game/Functions.hpp"
