@@ -91,6 +91,7 @@ namespace Components
 		GSC::RemoveTeamDeclarations(data);
 		GSC::DumpSounds(data);
 		GSC::UpgradeCreateFog(data); // It's sometimes in main.gsc! mp_carentan for instance
+		GSC::PatchSpecularScale(data);
 	}
 
 	void GSC::ConvertMainFXGSC(std::string& data)
@@ -106,6 +107,7 @@ namespace Components
 	{
 		Utils::Replace(data, "\r\n", "\n");
 		GSC::UpgradeCreateFog(data);
+		GSC::PatchSpecularScale(data); // Everyone has it in main.gsc, except co_hunted, so i guess it could happen to anyone
 	}
 
 	void GSC::ConvertFXGSC(std::string& data)
@@ -115,6 +117,38 @@ namespace Components
 		GSC::PatchReference(data, "maps\\mp\\_utility", "common_scripts\\utility");
 		GSC::DumpSounds(data);
 		data = Utils::VA("//_createfx generated. Do not touch!!\n%s", data.data());
+	}
+
+	void GSC::PatchSpecularScale(std::string& data)
+	{
+		std::regex regex("setdvar\\( *\"r_specularcolorscale\", *\"([0-9]+\.*[0-9]*)*\" *\\);"s, std::regex_constants::icase);
+		
+		std::smatch match;
+
+		if (std::regex_search(data, match, regex))
+		{
+			auto value = match.str(1);
+
+			auto parsedFloat = std::stof(value);
+
+			// CoD4 speculars, even regenerated, are extremely aggressive for CoD6
+			// Everything gets awfully shiny and white!
+			// Maps that specify custom specular power explicitely need to have
+			//	that value toned down
+
+			parsedFloat = std::log10(parsedFloat) * 0.4 + 1;
+
+			/*
+			iw3	iw4
+			0.5	0.879588002
+			1	1
+			2	1.120411998
+			3	1.190848502
+			5	1.279588002
+			*/
+
+			data = std::regex_replace(data, regex, std::format("setdvar(\"r_specularcolorscale\", {}); // Set by iw3xport", parsedFloat));
+		}
 	}
 
 	void GSC::UpgradeCreateFog(std::string& data)
