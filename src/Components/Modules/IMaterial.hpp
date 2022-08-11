@@ -20,5 +20,7 @@ namespace Components
 		static void SaveConvertedMaterial(Game::IW4::Material* asset);
 
 		static char GetConvertedSortKey(Game::IW3::Material* material);
+	
+		static rapidjson::Value StateBitsToJsonArray(Game::IW3::GfxStateBits* stateBits, unsigned char count, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator);
 	};
 }

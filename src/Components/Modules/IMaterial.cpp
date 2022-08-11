@@ -198,15 +198,16 @@ namespace Components
 
 				rapidjson::Value constantDefJson(rapidjson::kObjectType);
 
-				// This is like the ugliest fix i could come up with.
-				// I'm way to sick to even understand what MaterialConstantDef actually contain
-				// And for now, this shit seems to work
 				if (constantDef.name == "envMapParms"s)
 				{
-					constantDef.literal[0] *= 0.0875f;
-					constantDef.literal[1] *= 0.165f;
-					constantDef.literal[2] *= 1.4f;
-					constantDef.literal[3] *= 3.2f;
+					// These use the speculars to add some rimlight effects to models
+					// But since speculars are regenerated we end up with cod6 speculars with cod4 materials
+					// and cod6 speculars are a bit too bright for 
+
+					constantDef.literal[0] *= 1.2f; // envMapMin
+					constantDef.literal[1] *= 0.2f;  // envMapMax
+					constantDef.literal[2] *= 1.4f;    // engMapExponent
+					constantDef.literal[3] *= 1.2f;    // envMapIntensity
 				}
 
 				// "detailScale" might need some work too 🤔
@@ -360,13 +361,19 @@ namespace Components
 		ZeroMemory(&mat, sizeof mat);
 
 		mat.name                    = material->info.name;
+
 		mat.gameFlags.packed               = material->info.gameFlags.packed;
 
 
 		mat.gameFlags.fields.unk8 = material->info.gameFlags.fields.unk7;
 		mat.gameFlags.fields.unk7 = material->info.gameFlags.fields.unk8;
 			
-		mat.sortKey                 = GetConvertedSortKey(material);
+#if USE_IW3_SORTKEYS
+		mat.sortKey = material->info.sortKey; // Using iw3 value directly
+#else
+		mat.sortKey = GetConvertedSortKey(material);
+#endif
+
 		mat.textureAtlasRowCount    = material->info.textureAtlasRowCount;
 		mat.textureAtlasColumnCount = material->info.textureAtlasColumnCount;
 
@@ -410,7 +417,7 @@ namespace Components
 		if (mat.cameraRegion == 0x3) {
 			// 0x3 is NONE in iw3, but DEPTH_HACK in iw4
 			// In iw4 NONE is 0x4
-			Logger::Print(Utils::VA("Swapped material %s camera region from 0x3 to 0x4 (NONE)\n", mat.name));
+			Logger::Print("Swapped material % s camera region from 0x3 to 0x4 (NONE)\n", mat.name);
 			mat.cameraRegion = 0x4;
 		}
 
@@ -427,30 +434,151 @@ namespace Components
 		char iw3Key = material->info.sortKey;
 
 		const std::string& name = material->info.name;
-
-		if (material->techniqueSet->name == "2d"s)
-		{
-			//"blend / additive" => SORTKEY_BLEND_ADDITIVE
-			return 47;
-		}
+		const std::string& techsetName = material->techniqueSet->name;
 
 		if (iw3Key == 4) 
 		{
-			if (std::string(material->techniqueSet->name).contains("ambient"s))
+			// This takes care of two building facades
+			if (techsetName.contains("ambient"s))
 			{
 				// Opaque => Opaque_Ambient
+				Logger::Print("Material %s was given sortkey %i from %i (techset name contains 'ambient')\n", name.data(), 0, iw3Key);
 				return 0;
+			}
+
+			// This takes care of multiple gfx, like dust_mote, aswell as other special materials
+			if (!name.starts_with("mc") && !name.starts_with("wc"))
+			{
+				Logger::Print("Material %s was given sortkey %i from %i (not mc nor wc)\n", name.data(), 34, iw3Key);
+				return 34;
+			}
+
+			if (name.contains("shadow"))
+			{
+				Logger::Print("Material %s was given sortkey %i from %i (contains 'shadow' in the name, likely shadowcaster)\n", name.data(), 34, iw3Key);
+				return 34;
+			}
+
+			if (name.contains("mtl_fx") && !(material->stateFlags & Game::IW3::StateFlags::STATE_FLAG_WRITES_DEPTH))
+			{
+				// Not good
+				Logger::Print("Material %s was given sortkey %i from %i (does not write to depth)\n", name.data(), 29, iw3Key);
+				return 29; // mtl_fx_rock01
+			}
+		}
+
+		if (iw3Key == 9)
+		{
+			// Ahh I hate this
+			// But there is no difference between sign 02 01 and 03, and they're all
+			// on sortkey 6 except 02! which is on sortkey 10
+			// Who can tell why?
+			if (name == "me_signs_02"s) 
+			{
+				Logger::Print("Material %s was given sortkey %i from %i (exceptional)\n", name.data(), 10, iw3Key);
+				return 10;
 			}
 		}
 
 		// decal - static decal got broken down in multiple categorries
-		if (iw3Key == 12) 
+		if (iw3Key == 12)
 		{
-			if (std::string(material->techniqueSet->name).contains("shadow"s))
+			if (techsetName.contains("shadow"s))
 			{
+				/*
+				 - 34 (4 matches)
+					 - mp_crash:mc\mtl_tree_shadow_caster.json
+					 - mp_overgrown:mc\mtl_tree_shadow_caster.json
+					 - mp_strike:mc\mtl_tree_shadow_caster.json
+					 - mp_vacant:mc\mtl_tree_shadow_caster.json
+				 */
+
+				Logger::Print("Material %s was given sortkey %i from %i (techset name contains 'shadow')\n", name.data(), 34, iw3Key);
 				return 34;
 			}
 
+			/*
+			 - 16 (3 matches)
+				 - mp_crash:mc\ch_bulletinboardpaperdecals_2.json
+				 - mp_strike:mc\ch_bulletinboardpaperdecals_2.json
+				 - mp_vacant:mc\ch_bulletinboardpaperdecals_2.json
+			 - 6 (3 matches)
+				 - mp_crash:wc\ch_dec_darkstain_01.json
+				 - mp_overgrown:wc\ch_dec_darkstain_01.json
+				 - mp_strike:wc\ch_dec_darkstain_01.json
+			 - 7 (2 matches)
+				 - mp_crash:wc\ch_rubble_conc01_decal.json
+				 - mp_vacant:wc\ch_rubble_conc01_decal.json
+			 - 0 (1 matches)
+				 - mp_overgrown:mc\mtl_red_pine_canopy.json
+			
+			*/
+		}
+
+		if (iw3Key == 24)
+		{
+			if (name.contains("glass"))
+			{
+				/*
+			 - 26 (8 matches)
+				 - common:mc\gfx_impact_glass01.json
+				 - common:mc\gfx_impact_glass02.json
+				 - common:wc\gfx_impact_glass01.json
+				 - common:wc\gfx_impact_glass02.json
+				 - common_mp:mc\gfx_impact_glass01.json
+				 - common_mp:mc\gfx_impact_glass02.json
+				 - common_mp:wc\gfx_impact_glass01.json
+				 - common_mp:wc\gfx_impact_glass02.json
+				*/
+				Logger::Print("Material %s was given sortkey %i from %i ('glass' in the material name)\n", name.data(), 26, iw3Key);
+				return 26;
+			}
+			/*
+			 - 48 (4 matches)
+				 - common:gfx_mud_splash01.json
+				 - common:gfx_mud_splash02.json
+				 - common_mp:gfx_mud_splash01.json
+				 - common_mp:gfx_mud_splash02.json
+			*/
+		}
+
+		// Blend / additive
+		if (iw3Key == 43)
+		{
+			// Default 29
+
+			if (techsetName.contains("2d"))
+			{
+				//"blend / additive" => SORTKEY_BLEND_ADDITIVE
+				Logger::Print("Material %s was given sortkey %i from %i (2d)\n", name.data(), 47, iw3Key);
+				return 47;
+			}
+
+#define IW3_CAMERA_REGION_DECAL 0x1
+			if (material->cameraRegion = IW3_CAMERA_REGION_DECAL)
+			{
+				/*
+			 - 25 (2 matches)
+				 - common_mp:mc\mtl_weapon_reflex_lens.json
+				 - mp_overgrown:mc\mtl_vehicle_tractor_glass.json
+				*/
+				Logger::Print("Material %s was given sortkey %i from %i (0x1 camera region (decal))\n", name.data(), 25, iw3Key);
+				return 25;
+			}
+
+			/*
+			 - 34 (4 matches)
+				 - mp_crash_load:$victorybackdrop.json
+				 - mp_overgrown_load:$victorybackdrop.json
+				 - mp_strike_load:$victorybackdrop.json
+				 - mp_vacant_load:$victorybackdrop.json
+			 - 48 (3 matches)
+				 - common_mp:gfx_sun_flare_toujane.json
+				 - mp_overgrown:sun_flare_rainbow.json
+				 - mp_vacant:sun_flare_rainbow.json
+			 - 9 (1 matches)
+				 - mp_vacant:mc\mtl_cardboardbox_decal.json
+			*/
 		}
 
 
