@@ -114,7 +114,7 @@ namespace Components
 						// Save_water_t
 						if (water->H0)
 						{
-							auto ptr = reinterpret_cast<uint8_t*>(&water->H0);
+							auto ptr = reinterpret_cast<uint8_t*>(water->H0);
 							auto buffer = std::vector<uint8_t>(ptr, ptr + water->M * water->N * sizeof(Game::IW3::complex_s));
 
 							waterJson.AddMember("H0", RAPIDJSON_STR(strDuplicator.duplicateString(Utils::Base64::Encode(buffer))), allocator);
@@ -122,7 +122,7 @@ namespace Components
 
 						if (water->wTerm)
 						{
-							auto ptr = reinterpret_cast<uint8_t*>(&water->wTerm);
+							auto ptr = reinterpret_cast<uint8_t*>(water->wTerm);
 							auto buffer = std::vector<uint8_t>(ptr, ptr + water->M * water->N * sizeof(float));
 
 							waterJson.AddMember("wTerm", RAPIDJSON_STR(strDuplicator.duplicateString(Utils::Base64::Encode(buffer))), allocator);
@@ -364,10 +364,11 @@ namespace Components
 
 		mat.gameFlags.packed               = material->info.gameFlags.packed;
 
-
+		// ???
 		mat.gameFlags.fields.unk8 = material->info.gameFlags.fields.unk7;
 		mat.gameFlags.fields.unk7 = material->info.gameFlags.fields.unk8;
-			
+
+		// Sort key
 #if USE_IW3_SORTKEYS
 		mat.sortKey = material->info.sortKey; // Using iw3 value directly
 #else
@@ -412,6 +413,21 @@ namespace Components
 		mat.constantCount  = material->constantCount;
 		mat.stateBitsCount = material->stateBitsCount;
 		mat.stateFlags = static_cast<Game::IW4::StateFlags>(material->stateFlags); // Correspondance is identical
+
+		// If you want something a bit more sane, uncomment this:
+#if 0		 
+		if (mat.sortKey == 0)
+		{
+			mat.stateFlags = static_cast<Game::IW4::StateFlags>(mat.stateFlags | Game::IW4::STATE_FLAG_AMBIENT);
+			Logger::Print("Added STATE_FLAG_AMBIENT on %s (sortkey is opaque-ambient)\n", mat.name);
+		}
+#else
+		// Give ambient to everyone. Why not?
+		// While this sounds evil, it actually fixes lighting issues on grass, rocks, everything
+		// And does not seem to have any drawback!
+		mat.stateFlags = static_cast<Game::IW4::StateFlags>(mat.stateFlags | Game::IW4::STATE_FLAG_AMBIENT);
+#endif
+
 		mat.cameraRegion   = material->cameraRegion;
 
 		if (mat.cameraRegion == 0x3) {
@@ -465,6 +481,16 @@ namespace Components
 				Logger::Print("Material %s was given sortkey %i from %i (does not write to depth)\n", name.data(), 29, iw3Key);
 				return 29; // mtl_fx_rock01
 			}
+
+			// Why ? How!
+			// mtl_bm21_undercarriage what's wrong with you!
+			if (techsetName.contains("2d"))
+			{
+				//"opaque" => SORTKEY_BLEND_ADDITIVE
+				Logger::Print("Material %s was given sortkey %i from %i (2d)\n", name.data(), 47, iw3Key);
+				return 47;
+			}
+
 		}
 
 		if (iw3Key == 9)
@@ -546,7 +572,6 @@ namespace Components
 		if (iw3Key == 43)
 		{
 			// Default 29
-
 			if (techsetName.contains("2d"))
 			{
 				//"blend / additive" => SORTKEY_BLEND_ADDITIVE
@@ -554,8 +579,17 @@ namespace Components
 				return 47;
 			}
 
+			if (techsetName.contains("effect") && name.contains("gfx"))
+			{
+				//"blend / additive" => SORTKEY_BLEND_ADDITIVE
+				// gfx_flare_wtr is an example of this
+				Logger::Print("Material %s was given sortkey %i from %i (is a gfx/effect material)\n", name.data(), 47, iw3Key);
+				return 47;
+			}
+
+
 #define IW3_CAMERA_REGION_DECAL 0x1
-			if (material->cameraRegion = IW3_CAMERA_REGION_DECAL)
+			if (material->cameraRegion == IW3_CAMERA_REGION_DECAL)
 			{
 				/*
 			 - 25 (2 matches)

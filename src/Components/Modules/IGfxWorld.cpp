@@ -429,7 +429,7 @@ namespace Components
 		map.skies = &sky;
 
 		sky.skyImage = world->skyImage;
-		sky.skySamplerState = world->skySamplerState & 0xFF;
+		sky.skySamplerState = world->skySamplerState/* & 0xFF*/;
 		sky.skyStartSurfs = world->skyStartSurfs;
 		sky.skySurfCount = world->skySurfCount;
 
@@ -647,10 +647,6 @@ namespace Components
 				map.dpvs.surfaces[i].lightmapIndex = world->dpvs.surfaces[i].lightmapIndex;
 				map.dpvs.surfaces[i].reflectionProbeIndex = world->dpvs.surfaces[i].reflectionProbeIndex;
 				map.dpvs.surfaces[i].primaryLightIndex = world->dpvs.surfaces[i].primaryLightIndex;
-
-				// Static model flags in iw3 do not correspond to static model flags in iw4
-				// I think they're intentionally misaligned because iw3:STATIC_MODEL_FLAG_NO_SHADOW does NOT correspond to iw4:STATIC_MODEL_FLAG_NO_CAST_SHADOW
-				// If you make them match you'll get fucked up shadows. So let's put everything to zero instead!
 				map.dpvs.surfaces[i].flags = world->dpvs.surfaces[i].flags;
 
 				map.dpvs.surfacesBounds[i].bounds.compute(world->dpvs.surfaces[i].bounds[0], world->dpvs.surfaces[i].bounds[1]); // Verified
@@ -670,14 +666,78 @@ namespace Components
 
 				map.dpvs.smodelDrawInsts[i].placement.scale = world->dpvs.smodelDrawInsts[i].placement.scale;
 				map.dpvs.smodelDrawInsts[i].model = world->dpvs.smodelDrawInsts[i].model;
+
+				// Double cull distance so it looks nicer in iw4
 				map.dpvs.smodelDrawInsts[i].cullDist = static_cast<unsigned short>(world->dpvs.smodelDrawInsts[i].cullDist * 2);
+
 				map.dpvs.smodelDrawInsts[i].reflectionProbeIndex = world->dpvs.smodelDrawInsts[i].reflectionProbeIndex;
 				map.dpvs.smodelDrawInsts[i].primaryLightIndex = world->dpvs.smodelDrawInsts[i].primaryLightIndex;
 				map.dpvs.smodelDrawInsts[i].lightingHandle = world->dpvs.smodelDrawInsts[i].lightingHandle;
 				map.dpvs.smodelDrawInsts[i].flags = world->dpvs.smodelDrawInsts[i].flags;
 
 				// This has been moved
-				if (world->dpvs.smodelInsts) map.dpvs.smodelDrawInsts[i].groundLighting = world->dpvs.smodelInsts[i].groundLighting;
+				if (world->dpvs.smodelInsts)
+				{
+					map.dpvs.smodelDrawInsts[i].groundLighting = world->dpvs.smodelInsts[i].groundLighting;
+					Game::IW3::GfxColor* color = &map.dpvs.smodelDrawInsts[i].groundLighting;
+
+					//// Grass needs 0x20 otherwise it doesn't read data from the lightmap and it's full bright !
+					//// Gameflags to 0x3 and model flags & 0x1 are both good indicators that this is foliage
+					////	and that it requires ground lighting. Leaves out the tree and most other bigger stuff.
+					auto surfBits = map.dpvs.smodelDrawInsts[i].model->materialHandles[0]->info.surfaceTypeBits;
+					if (
+						map.dpvs.smodelDrawInsts[i].model->flags & 0b00000001 &&
+						(surfBits == 512 || surfBits == 128)
+					)
+					{ 
+						// Color correction to take in account the stronger sun in iw4
+						/*
+						IW3	IW4
+						0	0
+						5	4
+						15	13
+						50	42
+						80	66
+						120	95
+						160	122
+						200	147
+						255	179
+						*/
+						unsigned char alpha = color->array[3];
+						color->array[3] = static_cast<unsigned char>(
+							std::ceil(
+								std::log2(alpha / ( 255 + 150 ) + 1)
+								* 255
+							)
+						);
+
+						map.dpvs.smodelDrawInsts[i].flags |= 0x20;
+						Logger::Print("Added STATIC_MODEL_FLAG_GROUND_LIGHTING on draw instance of %s\n", map.dpvs.smodelDrawInsts[i].model->name);
+					}
+
+					// Note: The following is not useful, but it might be one day
+					// It is not useful in preventing some objects from turning black. They turn blakc because
+					//	they are placed under the ground, which makes the game forbide them from accessing
+					//	ground_lighting which they need. Not sure how to detect & fix that !
+#if 0
+					// Remap everybody above 15 because very dark smodels are actually completely black in iw4
+					// Except the alpha! don't touch the alpha!
+					for (size_t j = 0; j < 3; j++)
+					{
+						constexpr auto remapMin = 15;
+						auto b = color->array[j];
+						color->array[j] = static_cast<unsigned char>(
+							std::floor(
+								remapMin + (color->array[j] / (255.f + remapMin)) * 255.f
+							)
+						);
+
+						auto a = color->array[j];
+						assert(b <= a); // this cannot darken anyone!
+					}
+#endif
+
+				}
 			}
 		}
 
@@ -735,7 +795,7 @@ namespace Components
 		}
 
 		// Specify that it's a custom map
-		map.checksum = 0x0000C0D4;
+		map.checksum = 0xC0D40000;
 
 		IGfxWorld::SaveConvertedWorld(&map);
 	}

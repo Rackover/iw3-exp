@@ -6,6 +6,112 @@ namespace Components
 {
     const std::string IMaterialTechniqueSet::techsetSuffix = ".3x";
 
+
+    std::unordered_map <std::int32_t, std::int32_t> IMaterialTechniqueSet::iw3CodeConstMap =
+    {
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_DIFFUSE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_DIFFUSE },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPECULAR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPECULAR },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPOTDIR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPOTDIR },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPOTFACTORS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPOTFACTORS },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_ORG, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_ORG },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_DX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_DX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_DY, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_DY },
+
+        // missing
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOW_PARMS, Game::IW4::ShaderCodeConstants::CONST_SRC_NONE },
+
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_POLYGON_OFFSET, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_POLYGON_OFFSET },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_RENDER_TARGET_SIZE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_RENDER_TARGET_SIZE },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_FALLOFF_PLACEMENT, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_FALLOFF_PLACEMENT },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DOF_EQUATION_VIEWMODEL_AND_FAR_BLUR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DOF_EQUATION_VIEWMODEL_AND_FAR_BLUR },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DOF_EQUATION_SCENE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DOF_EQUATION_SCENE },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DOF_LERP_SCALE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DOF_LERP_SCALE },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DOF_LERP_BIAS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DOF_LERP_BIAS },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DOF_ROW_DELTA, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DOF_ROW_DELTA },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_PARTICLE_CLOUD_COLOR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_PARTICLE_CLOUD_COLOR },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_GAMETIME, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_GAMETIME },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_PIXEL_COST_FRACS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_PIXEL_COST_FRACS },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_PIXEL_COST_DECODE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_PIXEL_COST_DECODE },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_3, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_3 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_4, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_4 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_7, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_7 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_R, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_R },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_G, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_G },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_B, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_B },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_SWITCH_PARTITION, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_SWITCH_PARTITION },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_SCALE , Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_SCALE  },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_ZNEAR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_ZNEAR },
+
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_POSITION, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_DIFFUSE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_DIFFUSE },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_SPECULAR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPECULAR },
+
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHTING_LOOKUP_SCALE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHTING_LOOKUP_SCALE },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DEBUG_BUMPMAP, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DEBUG_BUMPMAP },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_MATERIAL_COLOR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_MATERIAL_COLOR },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FOG, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_GAMMA }, // this is CORRECT! Do not map me to LINEAR_COLOR ! GAMMA is in fact gamma COLOR which is what IW3 has !
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_GLOW_SETUP, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_GLOW_SETUP },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_GLOW_APPLY, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_GLOW_APPLY },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COLOR_BIAS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COLOR_BIAS },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COLOR_TINT_BASE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COLOR_TINT_BASE },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COLOR_TINT_DELTA, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COLOR_TINT_DELTA },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_OUTDOOR_FEATHER_PARMS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_OUTDOOR_FEATHER_PARMS },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_ENVMAP_PARMS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_ENVMAP_PARMS },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SPOT_SHADOWMAP_PIXEL_ADJUST, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_SPOT_SHADOWMAP_PIXEL_ADJUST },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_CLIP_SPACE_LOOKUP_SCALE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_CLIP_SPACE_LOOKUP_SCALE },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_CLIP_SPACE_LOOKUP_OFFSET, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_CLIP_SPACE_LOOKUP_OFFSET },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_PARTICLE_CLOUD_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_PARTICLE_CLOUD_MATRIX0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DEPTH_FROM_CLIP, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DEPTH_FROM_CLIP },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_CODE_MESH_ARG_0, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_CODE_MESH_ARG_0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_CODE_MESH_ARG_1, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_CODE_MESH_ARG_1 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_CODE_MESH_ARG_LAST, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_CODE_MESH_ARG_LAST },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_BASE_LIGHTING_COORDS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_BASE_LIGHTING_COORDS },
+
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_VIEW_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_VIEW_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_VIEW_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_VIEW_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_PROJECTION_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_PROJECTION_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_PROJECTION_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_PROJECTION_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_VIEW_PROJECTION_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_VIEW_PROJECTION_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_VIEW_PROJECTION_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_VIEW_PROJECTION_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOW_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_SHADOW_LOOKUP_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_SHADOW_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_SHADOW_LOOKUP_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_SHADOW_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_SHADOW_LOOKUP_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_SHADOW_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_SHADOW_LOOKUP_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_WORLD_OUTDOOR_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_WORLD_OUTDOOR_LOOKUP_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_OUTDOOR_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_OUTDOOR_LOOKUP_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_OUTDOOR_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_OUTDOOR_LOOKUP_MATRIX },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_OUTDOOR_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_OUTDOOR_LOOKUP_MATRIX },
+
+        // Matrix => Matrix0
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_WORLD_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_WORLD_MATRIX0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_MATRIX0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_MATRIX0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_MATRIX0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_WORLD_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_WORLD_VIEW_MATRIX0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_VIEW_MATRIX0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_VIEW_MATRIX0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_VIEW_MATRIX0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_WORLD_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_WORLD_VIEW_PROJECTION_MATRIX0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_VIEW_PROJECTION_MATRIX0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_VIEW_PROJECTION_MATRIX0 },
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_VIEW_PROJECTION_MATRIX0 },
+
+        { Game::IW3::ShaderCodeConstants::CONST_SRC_NONE, Game::IW4::ShaderCodeConstants::CONST_SRC_NONE },
+    };
+
     const std::unordered_map<Game::IW4::MaterialTechniqueType, Game::IW3::MaterialTechniqueType> IMaterialTechniqueSet::techniqueTypeTableFromIW4 = {
         { Game::IW4::TECHNIQUE_DEPTH_PREPASS, Game::IW3::TECHNIQUE_DEPTH_PREPASS},
         { Game::IW4::TECHNIQUE_BUILD_FLOAT_Z, Game::IW3::TECHNIQUE_BUILD_FLOAT_Z},
@@ -68,7 +174,7 @@ namespace Components
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_MODEL_LIGHTING , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_MODEL_LIGHTING },
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHTMAP_PRIMARY,Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHTMAP_PRIMARY },
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHTMAP_SECONDARY,Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHTMAP_SECONDARY },
-          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWCOOKIE, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SUN },       // incorrect!
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWCOOKIE, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_WHITE },       // incorrect!
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SUN, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SUN },
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SPOT , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SPOT },
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_FEEDBACK , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_FEEDBACK },
@@ -76,9 +182,9 @@ namespace Components
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_RESOLVED_SCENE , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_RESOLVED_SCENE}, 
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_POST_EFFECT_0 , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_POST_EFFECT_0},
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_POST_EFFECT_1 , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_POST_EFFECT_1},
-          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SKY , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SUN },                // incorrect!
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_SKY , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_BLACK },                // incorrect!
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHT_ATTENUATION , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_LIGHT_ATTENUATION},
-          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_DYNAMIC_SHADOWS , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_BLACK }, // Incorrect!
+          { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_DYNAMIC_SHADOWS , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_SHADOWMAP_SPOT },   // Incorrect!
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_OUTDOOR , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_OUTDOOR },
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_FLOATZ , Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_FLOATZ },
           { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_PROCESSED_FLOATZ, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_PROCESSED_FLOATZ },
@@ -107,6 +213,7 @@ namespace Components
         output.AddMember("version", IW4X_TECHSET_VERSION, allocator);
         output.AddMember("name", rapidjson::Value(techniqueName.data(), allocator), allocator);
 
+        // What do I know
         auto shiftedFlags = tech->flags << 2;
 
         const auto flags = std::format("{:016b}", shiftedFlags);
@@ -119,6 +226,23 @@ namespace Components
             Game::IW3::MaterialPass* pass = &tech->passArray[i];
 
             rapidjson::Value jsonPass(rapidjson::kObjectType);
+           
+            bool isWaterPass = false;
+            constexpr auto hashToLookFor = Utils::HashString("waterColor");
+
+            // Detect if this is about water!
+            for (int k = 0; k < pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount; ++k)
+            {
+                Game::IW3::MaterialShaderArgument* arg = &pass->args[k];
+                if (arg->type == Game::MaterialShaderArgumentType::MTL_ARG_MATERIAL_PIXEL_CONST)
+                {
+                    if (arg->u.nameHash == hashToLookFor)
+                    {
+                        isWaterPass = true;
+                        break;
+                    }
+                }
+            }
 
             if (pass->vertexDecl)
             {
@@ -177,6 +301,14 @@ namespace Components
                     }
                     unsigned short val = (unsigned short)newIndex->second;
 
+                    if (isWaterPass && val == Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION)
+                    {
+                        // If IsWaterTechnique => fuck up the sun position
+                        // Because it's not correct for iw3 anyway and so unexpected
+                        Logger::Print("Routed the pass argument %i to the wrong constant %i instead of %i on purpose because it is a water material!\n", k, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR, val);
+                        val = Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR; // Anything normalized & stable will do
+                    }
+
                     rapidjson::Value codeConst(rapidjson::kObjectType);
 
                     codeConst.AddMember("index", val, allocator);
@@ -226,7 +358,6 @@ namespace Components
 
         Game::IW4::MaterialVertexDeclaration* iw4Decl = allocator.allocate<Game::IW4::MaterialVertexDeclaration>();
 
-        // TODO: figure out how to actually name these things
         iw4Decl->name = allocator.duplicateString(Utils::VA("iw4xDecl%d", numDecls++));
         iw4Decl->hasOptionalSource = decl->hasOptionalSource;
         iw4Decl->streamCount = decl->streamCount;
@@ -370,7 +501,6 @@ namespace Components
         {
             rapidjson::Value value = rapidjson::Value(rapidjson::kNullType);
             
-            
             if (techset->techniques[i])
             {
                 std::string techniqueName = IMaterialTechniqueSet::DumpTechnique(techset->techniques[i]);
@@ -458,107 +588,4 @@ namespace Components
     {
 
     }
-
-    std::unordered_map <std::int32_t, std::int32_t> IMaterialTechniqueSet::iw3CodeConstMap =
-    {
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_DIFFUSE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_DIFFUSE },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPECULAR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPECULAR },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPOTDIR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPOTDIR },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPOTFACTORS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPOTFACTORS },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_ORG, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_ORG },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_DX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_DX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_DY, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_NEARPLANE_DY },
-        
-        // missing
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOW_PARMS, Game::IW4::ShaderCodeConstants::CONST_SRC_NONE },
-
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_POLYGON_OFFSET, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_POLYGON_OFFSET },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_RENDER_TARGET_SIZE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_RENDER_TARGET_SIZE },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_FALLOFF_PLACEMENT, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_FALLOFF_PLACEMENT },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DOF_EQUATION_VIEWMODEL_AND_FAR_BLUR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DOF_EQUATION_VIEWMODEL_AND_FAR_BLUR },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DOF_EQUATION_SCENE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DOF_EQUATION_SCENE },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DOF_LERP_SCALE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DOF_LERP_SCALE },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DOF_LERP_BIAS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DOF_LERP_BIAS },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DOF_ROW_DELTA, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DOF_ROW_DELTA },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_PARTICLE_CLOUD_COLOR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_PARTICLE_CLOUD_COLOR },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_GAMETIME, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_GAMETIME },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_PIXEL_COST_FRACS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_PIXEL_COST_FRACS },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_PIXEL_COST_DECODE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_PIXEL_COST_DECODE },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_1 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_2 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_3, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_3 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_4, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_4 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_5 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_6 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_7, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FILTER_TAP_7 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_R, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_R },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_G, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_G },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_B, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COLOR_MATRIX_B },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_SWITCH_PARTITION, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_SWITCH_PARTITION },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_SCALE , Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_SCALE  },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_ZNEAR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_ZNEAR },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_POSITION, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_DIFFUSE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_DIFFUSE },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_SPECULAR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPECULAR },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHTING_LOOKUP_SCALE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHTING_LOOKUP_SCALE },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DEBUG_BUMPMAP, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DEBUG_BUMPMAP },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_MATERIAL_COLOR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_MATERIAL_COLOR },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FOG, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR }, // ~not necessarily a great match. 
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_GLOW_SETUP, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_GLOW_SETUP },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_GLOW_APPLY, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_GLOW_APPLY },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COLOR_BIAS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COLOR_BIAS },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COLOR_TINT_BASE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COLOR_TINT_BASE },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COLOR_TINT_DELTA, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COLOR_TINT_DELTA },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_OUTDOOR_FEATHER_PARMS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_OUTDOOR_FEATHER_PARMS },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_ENVMAP_PARMS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_ENVMAP_PARMS },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SPOT_SHADOWMAP_PIXEL_ADJUST, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_SPOT_SHADOWMAP_PIXEL_ADJUST },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_CLIP_SPACE_LOOKUP_SCALE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_CLIP_SPACE_LOOKUP_SCALE },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_CLIP_SPACE_LOOKUP_OFFSET, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_CLIP_SPACE_LOOKUP_OFFSET },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_PARTICLE_CLOUD_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_PARTICLE_CLOUD_MATRIX0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DEPTH_FROM_CLIP, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DEPTH_FROM_CLIP },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_CODE_MESH_ARG_0, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_CODE_MESH_ARG_0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_CODE_MESH_ARG_1, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_CODE_MESH_ARG_1 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_CODE_MESH_ARG_LAST, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_CODE_MESH_ARG_LAST },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_BASE_LIGHTING_COORDS, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_BASE_LIGHTING_COORDS },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_COUNT_FLOAT4, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_COUNT_FLOAT4 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_FIRST_CODE_MATRIX , Game::IW4::ShaderCodeConstants::CONST_SRC_FIRST_CODE_MATRIX  },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_WORLD_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_WORLD_MATRIX0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_MATRIX0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_MATRIX0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_MATRIX0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_VIEW_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_VIEW_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_VIEW_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_VIEW_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_PROJECTION_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_PROJECTION_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_PROJECTION_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_PROJECTION_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_WORLD_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_WORLD_VIEW_MATRIX0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_VIEW_MATRIX0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_VIEW_MATRIX0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_VIEW_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_VIEW_MATRIX0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_VIEW_PROJECTION_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_VIEW_PROJECTION_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_VIEW_PROJECTION_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_VIEW_PROJECTION_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_WORLD_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_WORLD_VIEW_PROJECTION_MATRIX0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_VIEW_PROJECTION_MATRIX0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_VIEW_PROJECTION_MATRIX0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_VIEW_PROJECTION_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_VIEW_PROJECTION_MATRIX0 },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOW_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_SHADOW_LOOKUP_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_SHADOW_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_SHADOW_LOOKUP_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_SHADOW_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_SHADOW_LOOKUP_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_SHADOW_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_SHADOW_LOOKUP_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_WORLD_OUTDOOR_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_WORLD_OUTDOOR_LOOKUP_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_OUTDOOR_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_WORLD_OUTDOOR_LOOKUP_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_OUTDOOR_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_TRANSPOSE_WORLD_OUTDOOR_LOOKUP_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_OUTDOOR_LOOKUP_MATRIX, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_INVERSE_TRANSPOSE_WORLD_OUTDOOR_LOOKUP_MATRIX },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_TOTAL_COUNT, Game::IW4::ShaderCodeConstants::CONST_SRC_TOTAL_COUNT },
-        { Game::IW3::ShaderCodeConstants::CONST_SRC_NONE, Game::IW4::ShaderCodeConstants::CONST_SRC_NONE },
-    };
-
 }

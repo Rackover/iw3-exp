@@ -72,6 +72,20 @@ namespace Game
 		TS_WATER_MAP = 0xB,
 	};
 
+	enum GfxImageCategory : char
+	{
+		IMG_CATEGORY_UNKNOWN = 0x0,
+		IMG_CATEGORY_AUTO_GENERATED = 0x1,
+		IMG_CATEGORY_LIGHTMAP = 0x2,
+		IMG_CATEGORY_LOAD_FROM_FILE = 0x3,
+		IMG_CATEGORY_RAW = 0x4,
+		IMG_CATEGORY_FIRST_UNMANAGED = 0x5,
+		IMG_CATEGORY_WATER = 0x5,
+		IMG_CATEGORY_RENDERTARGET = 0x6,
+		IMG_CATEGORY_TEMP = 0x7,
+	};
+
+
 	enum MaterialShaderArgumentType : unsigned __int16
 	{
 		MTL_ARG_MATERIAL_VERTEX_CONST = 0x0,
@@ -119,7 +133,7 @@ namespace Game
 	{
 		unsigned char unk1 : 1;
 		unsigned char addShadowToPrimaryLight : 1;
-		unsigned char unk3 : 1;
+		unsigned char isFoliageRequiresGroundLighting : 1;
 		unsigned char unk4 : 1;
 		unsigned char unk5 : 1;
 		unsigned char unk6 : 1;
@@ -315,7 +329,7 @@ namespace Game
 			unsigned __int16 width;
 			unsigned __int16 height;
 			unsigned __int16 depth;
-			char category;
+			GfxImageCategory category;
 			bool delayLoadPixels;
 			const char *name;
 		};
@@ -1011,7 +1025,7 @@ namespace Game
 		union GfxColor
 		{
 			unsigned int packed;
-			char array[4];
+			unsigned char array[4];
 		};
 
 		union PackedTexCoords
