@@ -22,6 +22,20 @@ namespace Utils
 	void WriteFile(std::string file, std::string data);
 	std::string ReadFile(std::string file);
 
+	constexpr unsigned int HashString(const char* string)
+	{
+		const char* v2 = string;
+		char v3 = *string;
+		unsigned int result = 0;
+
+		for (; *v2; v3 = *v2)
+		{
+			++v2;
+			result = 33 * result ^ (v3 | 0x20);
+		}
+		return result;
+	}
+
 	template<class T>
 	rapidjson::Value MakeJsonArray(T* arr, size_t length, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator);
 

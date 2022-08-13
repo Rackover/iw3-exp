@@ -4,6 +4,7 @@ namespace Utils
 {
 	namespace Image
 	{
+#pragma warning(push, 0) 
 		std::vector<int> BoxesForGauss(int sigma, int n)  // standard deviation, number of boxes
 		{
 			float wIdeal = sqrt((12 * sigma * sigma / n) + 2);  // Ideal averaging filter w 
@@ -157,4 +158,5 @@ namespace Utils
 			BoxBlur_4(data, newData, width, height, channelCount, (bxs[2] - 1) / 2);
 		}
 	}
+#pragma warning(pop)
 }

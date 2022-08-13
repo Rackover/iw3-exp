@@ -13,7 +13,7 @@ namespace Components
 		if (!image) return;
 		std::string name = image->name;
 
-		if (image->texture.loadDef)
+		if (image->category != Game::GfxImageCategory::IMG_CATEGORY_LOAD_FROM_FILE && image->texture.loadDef)
 		{
 			if (name[0] == '*') name.erase(name.begin());
 

@@ -21,7 +21,7 @@ namespace Components
     private:
         static Game::IW4::MaterialTechniqueSet* Dump(Game::IW3::MaterialTechniqueSet* techset);
 
-        static std::string  DumpTechnique(Game::IW3::MaterialTechnique* tech);
+        static std::string DumpTechnique(Game::IW3::MaterialTechnique* tech);
         static std::string DumpDecl(Game::IW3::MaterialVertexDeclaration* decl);
         static std::string DumpVS(Game::IW3::MaterialVertexShader* vs);
         static std::string DumpPS(Game::IW3::MaterialPixelShader* ps);
