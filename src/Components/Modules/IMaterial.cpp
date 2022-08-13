@@ -442,6 +442,18 @@ namespace Components
 		mat.constantTable  = material->constantTable;
 		mat.stateBitTable  = material->stateBitsTable;
 
+		// Glass
+		if (mat.surfaceTypeBits & 0b00000000000000000000000100000000)
+		{
+			auto index = mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT];
+			auto entry = mat.stateBitTable[index];
+
+			entry.loadbits[0] &= ~(Game::IW3::GFXS0_CULL_MASK | Game::IW3::GFXS0_CULL_BACK | Game::IW3::GFXS0_CULL_FRONT);
+			entry.loadbits[0] |= Game::IW3::GFXS0_CULL_NONE;
+
+			Logger::Print("Set statebit %i loadbit 0 to GFXS0_CULL_NONE on material %s (it is glass)\n", index, mat.name);
+		}
+
 		IMaterial::SaveConvertedMaterial(&mat);
 	}
 
