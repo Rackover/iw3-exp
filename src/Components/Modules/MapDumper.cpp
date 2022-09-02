@@ -10,6 +10,8 @@ namespace Components
 
 	void MapDumper::DumpMap(std::string mapToDump)
 	{
+#define EXTEND_CULLING 1
+
 		MapDumper::mapName = mapToDump;
 		std::string bspName = Utils::VA("maps/mp/%s.d3dbsp", mapToDump.data());
 

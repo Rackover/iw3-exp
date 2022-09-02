@@ -443,6 +443,9 @@ namespace Components
 		mat.stateBitTable  = material->stateBitsTable;
 
 		// Glass
+		// this part is like, totally unnecessary. I thought it fixed an issue on broadcast
+		// but then it clearly didn't. So not sure we should keep it.
+		// Also check via surfacetypebits is big bad
 		if (mat.surfaceTypeBits & 0b00000000000000000000000100000000)
 		{
 			auto index = mat.stateBitsEntry[Game::IW4::TECHNIQUE_LIT];

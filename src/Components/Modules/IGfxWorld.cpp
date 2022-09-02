@@ -629,9 +629,9 @@ namespace Components
 				map.dpvs.smodelInsts[i].bounds.compute(world->dpvs.smodelInsts[i].mins, world->dpvs.smodelInsts[i].maxs); // Verified
 
 				// I guess the sun is always a good lighting source ;)
-				map.dpvs.smodelInsts[i].lightingOrigin[0] = world->sun.sunFxPosition[0];
-				map.dpvs.smodelInsts[i].lightingOrigin[1] = world->sun.sunFxPosition[1];
-				map.dpvs.smodelInsts[i].lightingOrigin[2] = world->sun.sunFxPosition[2];
+				map.dpvs.smodelInsts[i].lightingOrigin[0] = world->sunLight->origin[0];
+				map.dpvs.smodelInsts[i].lightingOrigin[1] = world->sunLight->origin[1];
+				map.dpvs.smodelInsts[i].lightingOrigin[2] = world->sunLight->origin[2];
 			}
 		}
 
@@ -667,8 +667,12 @@ namespace Components
 				map.dpvs.smodelDrawInsts[i].placement.scale = world->dpvs.smodelDrawInsts[i].placement.scale;
 				map.dpvs.smodelDrawInsts[i].model = world->dpvs.smodelDrawInsts[i].model;
 
+#if EXTEND_CULLING
 				// Double cull distance so it looks nicer in iw4
 				map.dpvs.smodelDrawInsts[i].cullDist = static_cast<unsigned short>(world->dpvs.smodelDrawInsts[i].cullDist * 2);
+#else
+				map.dpvs.smodelDrawInsts[i].cullDist = world->dpvs.smodelDrawInsts[i].cullDist;
+#endif
 
 				map.dpvs.smodelDrawInsts[i].reflectionProbeIndex = world->dpvs.smodelDrawInsts[i].reflectionProbeIndex;
 				map.dpvs.smodelDrawInsts[i].primaryLightIndex = world->dpvs.smodelDrawInsts[i].primaryLightIndex;

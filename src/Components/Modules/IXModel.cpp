@@ -283,7 +283,11 @@ namespace Components
 
 		for (int i = 0; i < 4; ++i)
 		{
+#if EXTEND_CULLING
 			xmodel.lodInfo[i].dist = model->lodInfo[i].dist * 1.5f; // LOD distance is increased so that the maps look nicer in iw4
+#else
+			xmodel.lodInfo[i].dist = model->lodInfo[i].dist;
+#endif
 			xmodel.lodInfo[i].numsurfs = model->lodInfo[i].numsurfs;
 			xmodel.lodInfo[i].surfIndex = model->lodInfo[i].surfIndex;
 

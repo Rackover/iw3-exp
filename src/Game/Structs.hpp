@@ -746,7 +746,7 @@ namespace Game
 		};
 
 
-		enum MaterialStreamRoutingSource : char
+		enum MaterialStreamRoutingSource : unsigned char
 		{
 			STREAM_SRC_POSITION = 0x0,
 			STREAM_SRC_COLOR = 0x1,
@@ -762,7 +762,7 @@ namespace Game
 			STREAM_SRC_COUNT = 0x9,
 		};
 
-		enum MaterialStreamRoutingDestination
+		enum MaterialStreamRoutingDestination : unsigned char
 		{
 			STREAM_DST_POSITION = 0x0,
 			STREAM_DST_NORMAL = 0x1,
@@ -3476,7 +3476,7 @@ namespace Game
 #pragma pack(pop)
 
 
-		enum MaterialStreamRoutingSource : char
+		enum MaterialStreamRoutingSource : unsigned char
 		{
 			STREAM_SRC_POSITION = 0x0,
 			STREAM_SRC_COLOR = 0x1,
@@ -3493,7 +3493,7 @@ namespace Game
 		};
 
 		/* 227 */
-		enum MaterialStreamRoutingDestination : char
+		enum MaterialStreamRoutingDestination : unsigned char
 		{
 			STREAM_DST_POSITION = 0x0,
 			STREAM_DST_NORMAL = 0x1,
