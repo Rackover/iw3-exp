@@ -26,7 +26,10 @@ namespace Components
         static std::string DumpVS(Game::IW3::MaterialVertexShader* vs);
         static std::string DumpPS(Game::IW3::MaterialPixelShader* ps);
         static void SaveConvertedTechset(Game::IW4::MaterialTechniqueSet* techset);
+        static std::string GetDeclarationName(const Game::IW3::MaterialVertexDeclaration* decl);
 
+        static const char* declStreamDestinations[];
+        static const char* declStreamSources[];
         static std::unordered_map <std::int32_t, std::int32_t> iw3CodeConstMap;
         static Utils::Memory::Allocator localAllocator;
     };

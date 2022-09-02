@@ -63,6 +63,9 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x57AB09, 0xEB);
 		Utils::Hook::Nop(0x4ED366, 5);
 
+		// Do not void the vertex declaration on loading
+		Utils::Hook::Nop(0x47B466, 5);
+
 		// Intercept SND_SetData
 		Utils::Hook(0x4794C2, QuickPatch::SND_SetDataHook, HOOK_CALL).install()->quick();
 
