@@ -628,10 +628,14 @@ namespace Components
 			{
 				map.dpvs.smodelInsts[i].bounds.compute(world->dpvs.smodelInsts[i].mins, world->dpvs.smodelInsts[i].maxs); // Verified
 
-				// I guess the sun is always a good lighting source ;)
-				map.dpvs.smodelInsts[i].lightingOrigin[0] = world->sunLight->origin[0];
-				map.dpvs.smodelInsts[i].lightingOrigin[1] = world->sunLight->origin[1];
-				map.dpvs.smodelInsts[i].lightingOrigin[2] = world->sunLight->origin[2];
+				// this is CORRECT! Lighting origin is the place where the light grid gets sampled, and it must be the object's position!
+				// This is how iw3 does it!
+				// Check out 0x62EFF0 (iw3) 
+				// and 0x524C80 (iw4)
+				// (R_SetStaticModelLighting)
+				map.dpvs.smodelInsts[i].lightingOrigin[0] = map.dpvs.smodelInsts[i].bounds.midPoint[0];
+				map.dpvs.smodelInsts[i].lightingOrigin[1] = map.dpvs.smodelInsts[i].bounds.midPoint[1];
+				map.dpvs.smodelInsts[i].lightingOrigin[2] = map.dpvs.smodelInsts[i].bounds.midPoint[2];
 			}
 		}
 
@@ -686,14 +690,9 @@ namespace Components
 					Game::IW3::GfxColor* color = &map.dpvs.smodelDrawInsts[i].groundLighting;
 
 					//// Grass needs 0x20 otherwise it doesn't read data from the lightmap and it's full bright !
-					//// Gameflags to 0x3 and model flags & 0x1 are both good indicators that this is foliage
-					////	and that it requires ground lighting. Leaves out the tree and most other bigger stuff.
-					auto surfBits = map.dpvs.smodelDrawInsts[i].model->materialHandles[0]->info.surfaceTypeBits;
-					if (
-						map.dpvs.smodelDrawInsts[i].model->flags & 0b00000001 &&
-						(surfBits == 512 || surfBits == 128)
-					)
-					{ 
+					//// Whenever a model needs ground lighting in iw4, it has to specify it
+					if (map.dpvs.smodelDrawInsts[i].groundLighting.packed > 0)
+					{
 						// Color correction to take in account the stronger sun in iw4
 						/*
 						IW3	IW4
@@ -710,10 +709,10 @@ namespace Components
 						unsigned char alpha = color->array[3];
 						color->array[3] = static_cast<unsigned char>(
 							std::ceil(
-								std::log2(alpha / ( 255 + 150 ) + 1)
+								std::log2(alpha / (255 + 150) + 1)
 								* 255
 							)
-						);
+							);
 
 						map.dpvs.smodelDrawInsts[i].flags |= 0x20;
 						Logger::Print("Added STATIC_MODEL_FLAG_GROUND_LIGHTING on draw instance of %s\n", map.dpvs.smodelDrawInsts[i].model->name);
@@ -734,15 +733,15 @@ namespace Components
 							std::floor(
 								remapMin + (color->array[j] / (255.f + remapMin)) * 255.f
 							)
-						);
+							);
 
 						auto a = color->array[j];
 						assert(b <= a); // this cannot darken anyone!
 					}
 #endif
 
+					}
 				}
-			}
 		}
 
 
@@ -802,7 +801,7 @@ namespace Components
 		map.checksum = 0xC0D40000;
 
 		IGfxWorld::SaveConvertedWorld(&map);
-	}
+		}
 
 	IGfxWorld::IGfxWorld()
 	{
@@ -817,4 +816,4 @@ namespace Components
 	{
 
 	}
-}
+	}

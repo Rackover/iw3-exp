@@ -37,6 +37,8 @@
 #define PC
 #define COD4
 
+#define EXTEND_CULLING 1
+
 // Usefull for debugging
 template <size_t S> class Sizer { };
 #define BindNum(x, y) Sizer<x> y;
