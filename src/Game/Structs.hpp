@@ -2218,6 +2218,24 @@ namespace Game
 			unsigned __int16 *inds;
 		};
 
+		enum FxElemType : char
+		{
+			FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
+			FX_ELEM_TYPE_SPRITE_ORIENTED = 0x1,
+			FX_ELEM_TYPE_TAIL = 0x2,
+			FX_ELEM_TYPE_TRAIL = 0x3,
+			FX_ELEM_TYPE_CLOUD = 0x4,
+			FX_ELEM_TYPE_MODEL = 0x5,
+			FX_ELEM_TYPE_OMNI_LIGHT = 0x6,
+			FX_ELEM_TYPE_SPOT_LIGHT = 0x7,
+			FX_ELEM_TYPE_SOUND = 0x8,
+			FX_ELEM_TYPE_DECAL = 0x9,
+			FX_ELEM_TYPE_RUNNER = 0xA,
+			FX_ELEM_TYPE_COUNT = 0xB,
+			FX_ELEM_TYPE_LAST_SPRITE = 0x3,
+			FX_ELEM_TYPE_LAST_DRAWN = 0x7,
+		};
+
 		const struct FxElemDef
 		{
 			int flags;
@@ -2237,7 +2255,7 @@ namespace Game
 			FxFloatRange gravity;
 			FxFloatRange reflectionFactor;
 			FxElemAtlas atlas;
-			char elemType;
+			FxElemType elemType;
 			char visualCount;
 			char velIntervalCount;
 			char visStateIntervalCount;
@@ -2268,24 +2286,6 @@ namespace Game
 			int elemDefCountOneShot;
 			int elemDefCountEmission;
 			FxElemDef *elemDefs;
-		};
-
-		enum FxElemType : char
-		{
-			FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
-			FX_ELEM_TYPE_SPRITE_ORIENTED = 0x1,
-			FX_ELEM_TYPE_TAIL = 0x2,
-			FX_ELEM_TYPE_TRAIL = 0x3,
-			FX_ELEM_TYPE_CLOUD = 0x4,
-			FX_ELEM_TYPE_MODEL = 0x5,
-			FX_ELEM_TYPE_OMNI_LIGHT = 0x6,
-			FX_ELEM_TYPE_SPOT_LIGHT = 0x7,
-			FX_ELEM_TYPE_SOUND = 0x8,
-			FX_ELEM_TYPE_DECAL = 0x9,
-			FX_ELEM_TYPE_RUNNER = 0xA,
-			FX_ELEM_TYPE_COUNT = 0xB,
-			FX_ELEM_TYPE_LAST_SPRITE = 0x3,
-			FX_ELEM_TYPE_LAST_DRAWN = 0x7,
 		};
 
 		struct _AILSOUNDINFO
@@ -3706,6 +3706,26 @@ namespace Game
             CONST_SRC_NONE = 0x85,
         };
 
+		enum FxElemType : char
+		{
+			FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
+			FX_ELEM_TYPE_SPRITE_ORIENTED = 0x1,
+			FX_ELEM_TYPE_TAIL = 0x2,
+			FX_ELEM_TYPE_TRAIL = 0x3,
+			FX_ELEM_TYPE_CLOUD = 0x4,
+			FX_ELEM_TYPE_SPARKCLOUD = 0x5,
+			FX_ELEM_TYPE_SPARKFOUNTAIN = 0x6,
+			FX_ELEM_TYPE_MODEL = 0x7,
+			FX_ELEM_TYPE_OMNI_LIGHT = 0x8,
+			FX_ELEM_TYPE_SPOT_LIGHT = 0x9,
+			FX_ELEM_TYPE_SOUND = 0xA,
+			FX_ELEM_TYPE_DECAL = 0xB,
+			FX_ELEM_TYPE_RUNNER = 0xC,
+			FX_ELEM_TYPE_COUNT = 0xD,
+			FX_ELEM_TYPE_LAST_SPRITE = 0x3,
+			FX_ELEM_TYPE_LAST_DRAWN = 0x9,
+		};
+
 		struct FxElemDef
 		{
 			int flags;
@@ -3725,7 +3745,7 @@ namespace Game
 			IW3::FxFloatRange gravity;
 			IW3::FxFloatRange reflectionFactor;
 			IW3::FxElemAtlas atlas;
-			char elemType;
+			FxElemType elemType;
 			char visualCount;
 			char velIntervalCount;
 			char visStateIntervalCount;
@@ -3757,25 +3777,6 @@ namespace Game
 			FxElemDef *elemDefs;
 		};
 
-		enum FxElemType : char
-		{
-			FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
-			FX_ELEM_TYPE_SPRITE_ORIENTED = 0x1,
-			FX_ELEM_TYPE_TAIL = 0x2,
-			FX_ELEM_TYPE_TRAIL = 0x3,
-			FX_ELEM_TYPE_CLOUD = 0x4,
-			FX_ELEM_TYPE_SPARKCLOUD = 0x5,
-			FX_ELEM_TYPE_SPARKFOUNTAIN = 0x6,
-			FX_ELEM_TYPE_MODEL = 0x7,
-			FX_ELEM_TYPE_OMNI_LIGHT = 0x8,
-			FX_ELEM_TYPE_SPOT_LIGHT = 0x9,
-			FX_ELEM_TYPE_SOUND = 0xA,
-			FX_ELEM_TYPE_DECAL = 0xB,
-			FX_ELEM_TYPE_RUNNER = 0xC,
-			FX_ELEM_TYPE_COUNT = 0xD,
-			FX_ELEM_TYPE_LAST_SPRITE = 0x3,
-			FX_ELEM_TYPE_LAST_DRAWN = 0x9,
-		};
 	}
 #endif
 
