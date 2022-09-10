@@ -113,10 +113,31 @@ namespace Components
 	void GSC::ConvertFXGSC(std::string& data)
 	{
 		Utils::Replace(data, "\r\n", "\n");
+
+		GSC::ConvertToStrictCreateFX(data);
+
 		GSC::PatchReference(data, "maps\\mp\\_createfx", "common_scripts\\_createfx");
 		GSC::PatchReference(data, "maps\\mp\\_utility", "common_scripts\\utility");
 		GSC::DumpSounds(data);
+
 		data = Utils::VA("//_createfx generated. Do not touch!!\n%s", data.data());
+	}
+	
+	void GSC::ConvertToStrictCreateFX(std::string& data)
+	{
+		std::regex regex("(?:ent.*|\\{|main\\(\\)|#.*|\\})", std::regex_constants::icase);
+
+		std::string newData;
+
+		std::smatch match;
+
+		while (std::regex_search(data, match, regex))
+		{
+			newData += match[0].str() + "\n";
+			data = match.suffix();
+		}
+
+		data = newData;
 	}
 
 	void GSC::PatchSpecularScale(std::string& data)
