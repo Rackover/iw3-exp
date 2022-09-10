@@ -602,6 +602,21 @@ namespace Components
 				return 47;
 			}
 
+			if (techsetName.contains("particle"))
+			{
+				// cloud_snowflake01
+				if (techsetName.contains("outdoor"))
+				{
+					Logger::Print("Material %s was given sortkey %i from %i (is an outdoor particle)\n", name.data(), 51, iw3Key);
+					return 51;
+				}
+				else
+				{
+					Logger::Print("Material %s was given sortkey %i from %i (is a particle)\n", name.data(), 47, iw3Key);
+					return 47;
+				}
+			}
+
 
 #define IW3_CAMERA_REGION_DECAL 0x1
 			if (material->cameraRegion == IW3_CAMERA_REGION_DECAL)
