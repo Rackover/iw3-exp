@@ -251,11 +251,8 @@ namespace Components
         output.AddMember("version", IW4X_TECHSET_VERSION, allocator);
         output.AddMember("name", rapidjson::Value(techniqueName.data(), allocator), allocator);
 
-        // What do I know
-        auto shiftedFlags = tech->flags << 2;
-
-        const auto flags = std::format("{:016b}", shiftedFlags);
-        output.AddMember("flags", RAPIDJSON_STR(flags.c_str()), allocator);
+        // We complete these later
+        auto iw4Flags = tech->flags << 2;
 
         rapidjson::Value passArray(rapidjson::kArrayType);
 
@@ -272,7 +269,7 @@ namespace Components
             for (int k = 0; k < pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount; ++k)
             {
                 Game::IW3::MaterialShaderArgument* arg = &pass->args[k];
-                if (arg->type == Game::MaterialShaderArgumentType::MTL_ARG_MATERIAL_PIXEL_CONST)
+                if (arg->type == Game::MTL_ARG_MATERIAL_PIXEL_CONST)
                 {
                     if (arg->u.nameHash == hashToLookFor)
                     {
@@ -374,6 +371,19 @@ namespace Components
                     else 
                     {
                         codeSampler = samplerTableToIW4.at(static_cast<Game::IW3::MaterialTextureSource>(arg->u.codeSampler));
+
+#define MTL_TECHFLAG_NEEDS_RESOLVED_POST_SUN 1
+#define MTL_TECHFLAG_NEEDS_RESOLVED_SCENE 2
+
+                        if (codeSampler == Game::IW4::TEXTURE_SRC_CODE_RESOLVED_POST_SUN)
+                        {
+                            iw4Flags |= MTL_TECHFLAG_NEEDS_RESOLVED_POST_SUN;
+                        }
+
+                        if (codeSampler == Game::IW4::TEXTURE_SRC_CODE_RESOLVED_SCENE)
+                        {
+                            iw4Flags |= MTL_TECHFLAG_NEEDS_RESOLVED_SCENE;
+                        }
                     }
 
                     argJson.AddMember("codeSampler", codeSampler, allocator);
@@ -387,6 +397,9 @@ namespace Components
 
             passArray.PushBack(jsonPass, allocator);
         }
+
+        const auto flags = std::format("{:016b}", iw4Flags);
+        output.AddMember("flags", RAPIDJSON_STR(flags.c_str()), allocator);
 
         output.AddMember("passArray", passArray, allocator);
 

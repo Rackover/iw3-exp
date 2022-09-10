@@ -10,6 +10,7 @@ namespace Components
 		static void UpgradeGSC(std::string filePath, std::function<void(std::string&)> f);
 		static void ConvertMainGSC(std::string& contents);
 		static void ConvertFXGSC(std::string& contents);
+		static void ConvertToStrictCreateFX(std::string& data);
 		static void PatchSpecularScale(std::string& data);
 		static void ConvertMainFXGSC(std::string& contents);
 		static void ConvertMainArtGSC(std::string& contents);
