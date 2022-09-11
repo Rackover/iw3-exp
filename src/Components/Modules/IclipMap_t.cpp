@@ -12,22 +12,22 @@ namespace Components
 		float mins[3];
 
 		maxs[0] = clipMap->staticModelList[0].absmax[0];
-		maxs[1] = clipMap->staticModelList[1].absmax[1];
-		maxs[2] = clipMap->staticModelList[2].absmax[2];
+		maxs[1] = clipMap->staticModelList[0].absmax[1];
+		maxs[2] = clipMap->staticModelList[0].absmax[2];
 
 		mins[0] = clipMap->staticModelList[0].absmin[0];
-		mins[1] = clipMap->staticModelList[1].absmin[1];
-		mins[2] = clipMap->staticModelList[2].absmin[2];
+		mins[1] = clipMap->staticModelList[0].absmin[1];
+		mins[2] = clipMap->staticModelList[0].absmin[2];
 
 		for (unsigned int i = 1; i < clipMap->numStaticModels; i++)
 		{
-			maxs[0] = max(maxs[0], clipMap->staticModelList[i].absmax[0]);
-			maxs[1] = max(maxs[1], clipMap->staticModelList[i].absmax[1]);
-			maxs[2] = max(maxs[2], clipMap->staticModelList[i].absmax[2]);
+			maxs[0] = std::max(maxs[0], clipMap->staticModelList[i].absmax[0]);
+			maxs[1] = std::max(maxs[1], clipMap->staticModelList[i].absmax[1]);
+			maxs[2] = std::max(maxs[2], clipMap->staticModelList[i].absmax[2]);
 
-			mins[0] = min(mins[0], clipMap->staticModelList[i].absmin[0]);
-			mins[1] = min(mins[1], clipMap->staticModelList[i].absmin[1]);
-			mins[2] = min(mins[2], clipMap->staticModelList[i].absmin[2]);
+			mins[0] = std::min(mins[0], clipMap->staticModelList[i].absmin[0]);
+			mins[1] = std::min(mins[1], clipMap->staticModelList[i].absmin[1]);
+			mins[2] = std::min(mins[2], clipMap->staticModelList[i].absmin[2]);
 		}
 
 		Game::IW4::SModelAabbNode* node = allocator->allocate<Game::IW4::SModelAabbNode>();

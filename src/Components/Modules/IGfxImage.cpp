@@ -140,15 +140,15 @@ namespace Components
 		unsigned int totalSize = 0;
 		if (image->noPicmip == false) // => Has mipmaps
 		{
-			unsigned short maxDimension = max(image->height, image->width);
+			unsigned short maxDimension = std::max(image->height, image->width);
 			int mipmapFactor = 1;
 			int minBlockSize = 1;
 
 			while (maxDimension != 0)
 			{
 				maxDimension >>= 1;
-				auto x = max(image->width / mipmapFactor, minBlockSize);
-				auto y = max(image->height / mipmapFactor, minBlockSize);
+				auto x = std::max(image->width / mipmapFactor, minBlockSize);
+				auto y = std::max(image->height / mipmapFactor, minBlockSize);
 				totalSize += (x) * (y)*CHANNELS;
 				mips.emplace_back(std::tuple<int, int>(x, y));
 				mipmapFactor *= 2;

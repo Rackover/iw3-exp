@@ -574,13 +574,19 @@ namespace Components
 				Logger::Print("Material %s was given sortkey %i from %i ('glass' in the material name)\n", name.data(), 26, iw3Key);
 				return 26;
 			}
-			/*
-			 - 48 (4 matches)
-				 - common:gfx_mud_splash01.json
-				 - common:gfx_mud_splash02.json
-				 - common_mp:gfx_mud_splash01.json
-				 - common_mp:gfx_mud_splash02.json
-			*/
+
+			if (techsetName.contains("effect"))
+			{
+				/*
+				 - 48 (4 matches)
+					 - common:gfx_mud_splash01.json
+					 - common:gfx_mud_splash02.json
+					 - common_mp:gfx_mud_splash01.json
+					 - common_mp:gfx_mud_splash02.json
+				*/
+				Logger::Print("Material %s was given sortkey %i from %i ('effect' in the techset name)\n", name.data(), 48, iw3Key);
+				return 48;
+			}
 		}
 
 		// Blend / additive
