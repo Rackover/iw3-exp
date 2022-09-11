@@ -671,12 +671,26 @@ namespace Components
 				map.dpvs.smodelDrawInsts[i].placement.scale = world->dpvs.smodelDrawInsts[i].placement.scale;
 				map.dpvs.smodelDrawInsts[i].model = world->dpvs.smodelDrawInsts[i].model;
 
+
+				float iw3CullDist = world->dpvs.smodelDrawInsts[i].cullDist;
+
 #if EXTEND_CULLING
 				// Double cull distance so it looks nicer in iw4
-				map.dpvs.smodelDrawInsts[i].cullDist = static_cast<unsigned short>(world->dpvs.smodelDrawInsts[i].cullDist * 2);
-#else
-				map.dpvs.smodelDrawInsts[i].cullDist = world->dpvs.smodelDrawInsts[i].cullDist;
+				iw3CullDist *= 2;
 #endif
+
+				unsigned short iw4CullDist = 0;
+
+				if (iw3CullDist > std::numeric_limits<unsigned short>().max())
+				{
+					iw4CullDist = std::numeric_limits<unsigned short>().max();
+				}
+				else
+				{
+					iw4CullDist = static_cast<unsigned short>(iw3CullDist);
+				}
+
+				map.dpvs.smodelDrawInsts[i].cullDist = iw4CullDist;
 
 				map.dpvs.smodelDrawInsts[i].reflectionProbeIndex = world->dpvs.smodelDrawInsts[i].reflectionProbeIndex;
 				map.dpvs.smodelDrawInsts[i].primaryLightIndex = world->dpvs.smodelDrawInsts[i].primaryLightIndex;
