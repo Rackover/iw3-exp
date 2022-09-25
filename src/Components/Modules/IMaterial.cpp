@@ -415,7 +415,7 @@ namespace Components
 		mat.stateFlags = static_cast<Game::IW4::StateFlags>(material->stateFlags); // Correspondance is identical
 
 		// If you want something a bit more sane, uncomment this:
-#if 0		 
+#if 1		 
 		if (mat.sortKey == 0)
 		{
 			mat.stateFlags = static_cast<Game::IW4::StateFlags>(mat.stateFlags | Game::IW4::STATE_FLAG_AMBIENT);
