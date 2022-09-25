@@ -104,12 +104,10 @@ workspace "iw3-exp"
 			"./src/**.hpp",
 			"./src/**.cpp",
 		}
-		links { "s3tc-dxt-decompression" }
 		includedirs {
 			"%{prj.location}/src",
 			"./src",
 			
-			"./deps/s3tc-dxt-decompression", 
 			"./deps/rapidjson/include"
 		}
 		resincludedirs {
@@ -155,20 +153,3 @@ workspace "iw3-exp"
 		configuration "Release"
 			flags { "FatalCompileWarnings" }
 		configuration {}
-
-	group "External dependencies"
-
-		-- s3tc-dxt-decompression
-		project "s3tc-dxt-decompression"
-			language "C++"
-
-			files
-			{
-				"./deps/s3tc-dxt-decompression/*.cpp",
-				"./deps/s3tc-dxt-decompression/*.h"
-			}
-				
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			kind "StaticLib"

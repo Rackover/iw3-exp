@@ -56,8 +56,6 @@ template <size_t S> class Sizer { };
 // Version number
 #include <version.hpp>
 
-#include <s3tc.h>
-
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
