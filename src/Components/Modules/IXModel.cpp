@@ -260,6 +260,14 @@ namespace Components
 
 		IXModel::savedModels.push_back(model->name);
 
+		if (model->name == "ch_apartment_9story_noentry_02"s || model->name == "ch_apartment_5story_noentry_01"s)
+		{
+			// The map features broken xmodels, which we will require externally later
+			Components::Logger::Print("This model will not be dumped because it is known to cause problems in iw4x. It will be loaded externally instead when the map is built.\n");
+			Utils::WriteFile(Utils::VA("%s/HAS_BROKEN_XMODELS", AssetHandler::GetExportPath().data()), "\0");
+			return;
+		}
+
 		Utils::Memory::Allocator allocator;
 
 		Game::IW4::XModel xmodel;
