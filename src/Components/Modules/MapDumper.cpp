@@ -36,24 +36,43 @@ namespace Components
 		// - Appears in a map ent (is that even possible?)
 		// and dump only these! 
 		Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_SOUND, [zoneIndex](Game::IW3::XAssetEntry* entry) {
-			if (entry->zoneIndex == zoneIndex && entry->asset.header.sound && entry->asset.header.sound->aliasName)
+			if (entry->zoneIndex == zoneIndex && entry->inuse == 0 && entry->asset.header.sound && entry->asset.header.sound->aliasName)
 			{
 				try
 				{
 					if (Utils::StartsWith(entry->asset.header.sound->aliasName, "weap"))
 					{
+						return;
 					}
 					else if (Utils::StartsWith(entry->asset.header.sound->aliasName, "melee"))
 					{
+						return;
 					}
 					else if (Utils::StartsWith(entry->asset.header.sound->aliasName, "c4"))
 					{
+						return;
 					}
-					else
-					{
-						//Components::Logger::Print("%d => %s\n", entry->zoneIndex, entry->asset.header.sound->aliasName);
-						AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_SOUND, entry->asset.header);
+					else if (entry->asset.header.sound->head) {
+						if (entry->asset.header.sound->head->soundFile)
+						{
+							auto soundFileName = entry->asset.header.sound->head->soundFile->type == Game::snd_alias_type_t::SAT_LOADED ?
+								entry->asset.header.sound->head->soundFile->u.loadSnd->name :
+								entry->asset.header.sound->head->soundFile->u.streamSnd.filename.info.raw.dir;
+
+							if (Utils::StartsWith(soundFileName, "vehicles"))
+							{
+								return;
+							}
+
+							if (Utils::StartsWith(soundFileName, "voiceovers"))
+							{
+								return;
+							}
+						}
 					}
+
+					//Components::Logger::Print("%d => %s\n", entry->zoneIndex, entry->asset.header.sound->aliasName);
+					AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_SOUND, entry->asset.header);
 				}
 				catch (const std::exception&)
 				{

@@ -1935,7 +1935,6 @@ namespace Game
 			unsigned __int16 firstHull;
 		};
 
-		/* 2376 */
 		struct TriggerHull
 		{
 			Bounds bounds;
@@ -1944,7 +1943,6 @@ namespace Game
 			unsigned __int16 firstSlab;
 		};
 
-		/* 2377 */
 		struct TriggerSlab
 		{
 			float dir[3];
@@ -1952,7 +1950,6 @@ namespace Game
 			float halfSize;
 		};
 
-		/* 2378 */
 		struct MapTriggers
 		{
 			unsigned int count;
@@ -1996,6 +1993,197 @@ namespace Game
 			XModelPiece* pieces;
 		};
 
+
+		struct FxSpawnDefLooping
+		{
+			int intervalMsec;
+			int count;
+		};
+
+		struct FxIntRange
+		{
+			int base;
+			int amplitude;
+		};
+
+		struct FxSpawnDefOneShot
+		{
+			FxIntRange count;
+		};
+
+		union FxSpawnDef
+		{
+			FxSpawnDefLooping looping;
+			FxSpawnDefOneShot oneShot;
+		};
+
+		struct FxFloatRange
+		{
+			float base;
+			float amplitude;
+		};
+
+		struct FxElemAtlas
+		{
+			char behavior;
+			char index;
+			char fps;
+			char loopCount;
+			char colIndexBits;
+			char rowIndexBits;
+			__int16 entryCount;
+		};
+
+		struct FxElemVec3Range
+		{
+			float base[3];
+			float amplitude[3];
+		};
+
+		struct FxElemVelStateInFrame
+		{
+			FxElemVec3Range velocity;
+			FxElemVec3Range totalDelta;
+		};
+
+		const struct FxElemVelStateSample
+		{
+			FxElemVelStateInFrame local;
+			FxElemVelStateInFrame world;
+		};
+
+		struct FxElemVisualState
+		{
+			char color[4];
+			float rotationDelta;
+			float rotationTotal;
+			float size[2];
+			float scale;
+		};
+
+		const struct FxElemVisStateSample
+		{
+			FxElemVisualState base;
+			FxElemVisualState amplitude;
+		};
+
+
+		struct FxEffectDef;
+		union FxEffectDefRef
+		{
+			FxEffectDef* handle;
+			const char* name;
+		};
+
+		union FxElemVisuals
+		{
+			const void* anonymous;
+			Material* material;
+			XModel* model;
+			FxEffectDefRef effectDef;
+			const char* soundName;
+		};
+
+		struct FxElemMarkVisuals
+		{
+			Material* materials[2];
+		};
+
+		union FxElemDefVisuals
+		{
+			FxElemMarkVisuals* markArray;
+			FxElemVisuals* array;
+			FxElemVisuals instance;
+		};
+
+		struct FxTrailVertex
+		{
+			float pos[2];
+			float normal[2];
+			float texCoord;
+		};
+
+		struct FxTrailDef
+		{
+			int scrollTimeMsec;
+			int repeatDist;
+			int splitDist;
+			int vertCount;
+			FxTrailVertex* verts;
+			int indCount;
+			unsigned __int16* inds;
+		};
+
+		enum FxElemType : char
+		{
+			FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
+			FX_ELEM_TYPE_SPRITE_ORIENTED = 0x1,
+			FX_ELEM_TYPE_TAIL = 0x2,
+			FX_ELEM_TYPE_TRAIL = 0x3,
+			FX_ELEM_TYPE_CLOUD = 0x4,
+			FX_ELEM_TYPE_MODEL = 0x5,
+			FX_ELEM_TYPE_OMNI_LIGHT = 0x6,
+			FX_ELEM_TYPE_SPOT_LIGHT = 0x7,
+			FX_ELEM_TYPE_SOUND = 0x8,
+			FX_ELEM_TYPE_DECAL = 0x9,
+			FX_ELEM_TYPE_RUNNER = 0xA,
+			FX_ELEM_TYPE_COUNT = 0xB,
+			FX_ELEM_TYPE_LAST_SPRITE = 0x3,
+			FX_ELEM_TYPE_LAST_DRAWN = 0x7,
+		};
+
+		const struct FxElemDef
+		{
+			int flags;
+			FxSpawnDef spawn;
+			FxFloatRange spawnRange;
+			FxFloatRange fadeInRange;
+			FxFloatRange fadeOutRange;
+			float spawnFrustumCullRadius;
+			FxIntRange spawnDelayMsec;
+			FxIntRange lifeSpanMsec;
+			FxFloatRange spawnOrigin[3];
+			FxFloatRange spawnOffsetRadius;
+			FxFloatRange spawnOffsetHeight;
+			FxFloatRange spawnAngles[3];
+			FxFloatRange angularVelocity[3];
+			FxFloatRange initialRotation;
+			FxFloatRange gravity;
+			FxFloatRange reflectionFactor;
+			FxElemAtlas atlas;
+			FxElemType elemType;
+			char visualCount;
+			char velIntervalCount;
+			char visStateIntervalCount;
+			FxElemVelStateSample* velSamples;
+			FxElemVisStateSample* visSamples;
+			FxElemDefVisuals visuals;
+			float collMins[3];
+			float collMaxs[3];
+			FxEffectDefRef effectOnImpact;
+			FxEffectDefRef effectOnDeath;
+			FxEffectDefRef effectEmitted;
+			FxFloatRange emitDist;
+			FxFloatRange emitDistVariance;
+			FxTrailDef* trailDef;
+			char sortOrder;
+			char lightingFrac;
+			char useItemClip;
+			char unused[1];
+		};
+
+		struct FxEffectDef
+		{
+			const char* name;
+			int flags;
+			int totalSize;
+			int msecLoopingLife;
+			int elemDefCountLooping;
+			int elemDefCountOneShot;
+			int elemDefCountEmission;
+			FxElemDef* elemDefs;
+		};
+
 		struct DynEntityDef
 		{
 		  int type;
@@ -2003,7 +2191,7 @@ namespace Game
 		  XModel *xModel;
 		  unsigned __int16 brushModel;
 		  unsigned __int16 physicsBrushModel;
-		  FxEffectDef_Placeholder *destroyFx;
+		  FxEffectDef* destroyFx;
 		  XModelPieces *destroyPieces;
 		  PhysPreset *physPreset;
 		  int health;
@@ -2096,196 +2284,6 @@ namespace Game
 			int isInUse;
 			unsigned int primaryLightCount;
 			ComPrimaryLight *primaryLights;
-		};
-
-		struct FxSpawnDefLooping
-		{
-			int intervalMsec;
-			int count;
-		};
-
-		struct FxIntRange
-		{
-			int base;
-			int amplitude;
-		};
-
-		struct FxSpawnDefOneShot
-		{
-			FxIntRange count;
-		};
-
-		union FxSpawnDef
-		{
-			FxSpawnDefLooping looping;
-			FxSpawnDefOneShot oneShot;
-		};
-
-		struct FxFloatRange
-		{
-			float base;
-			float amplitude;
-		};
-
-		struct FxElemAtlas
-		{
-			char behavior;
-			char index;
-			char fps;
-			char loopCount;
-			char colIndexBits;
-			char rowIndexBits;
-			__int16 entryCount;
-		};
-
-		struct FxElemVec3Range
-		{
-			float base[3];
-			float amplitude[3];
-		};
-
-		struct FxElemVelStateInFrame
-		{
-			FxElemVec3Range velocity;
-			FxElemVec3Range totalDelta;
-		};
-
-		const struct FxElemVelStateSample
-		{
-			FxElemVelStateInFrame local;
-			FxElemVelStateInFrame world;
-		};
-
-		struct FxElemVisualState
-		{
-			char color[4];
-			float rotationDelta;
-			float rotationTotal;
-			float size[2];
-			float scale;
-		};
-
-		const struct FxElemVisStateSample
-		{
-			FxElemVisualState base;
-			FxElemVisualState amplitude;
-		};
-
-		struct FxEffectDef;
-
-		union FxEffectDefRef
-		{
-			FxEffectDef *handle;
-			const char *name;
-		};
-
-		union FxElemVisuals
-		{
-			const void *anonymous;
-			Material *material;
-			XModel *model;
-			FxEffectDefRef effectDef;
-			const char *soundName;
-		};
-
-		struct FxElemMarkVisuals
-		{
-			Material *materials[2];
-		};
-
-		union FxElemDefVisuals
-		{
-			FxElemMarkVisuals *markArray;
-			FxElemVisuals *array;
-			FxElemVisuals instance;
-		};
-
-		struct FxTrailVertex
-		{
-			float pos[2];
-			float normal[2];
-			float texCoord;
-		};
-
-		struct FxTrailDef
-		{
-			int scrollTimeMsec;
-			int repeatDist;
-			int splitDist;
-			int vertCount;
-			FxTrailVertex *verts;
-			int indCount;
-			unsigned __int16 *inds;
-		};
-
-		enum FxElemType : char
-		{
-			FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
-			FX_ELEM_TYPE_SPRITE_ORIENTED = 0x1,
-			FX_ELEM_TYPE_TAIL = 0x2,
-			FX_ELEM_TYPE_TRAIL = 0x3,
-			FX_ELEM_TYPE_CLOUD = 0x4,
-			FX_ELEM_TYPE_MODEL = 0x5,
-			FX_ELEM_TYPE_OMNI_LIGHT = 0x6,
-			FX_ELEM_TYPE_SPOT_LIGHT = 0x7,
-			FX_ELEM_TYPE_SOUND = 0x8,
-			FX_ELEM_TYPE_DECAL = 0x9,
-			FX_ELEM_TYPE_RUNNER = 0xA,
-			FX_ELEM_TYPE_COUNT = 0xB,
-			FX_ELEM_TYPE_LAST_SPRITE = 0x3,
-			FX_ELEM_TYPE_LAST_DRAWN = 0x7,
-		};
-
-		const struct FxElemDef
-		{
-			int flags;
-			FxSpawnDef spawn;
-			FxFloatRange spawnRange;
-			FxFloatRange fadeInRange;
-			FxFloatRange fadeOutRange;
-			float spawnFrustumCullRadius;
-			FxIntRange spawnDelayMsec;
-			FxIntRange lifeSpanMsec;
-			FxFloatRange spawnOrigin[3];
-			FxFloatRange spawnOffsetRadius;
-			FxFloatRange spawnOffsetHeight;
-			FxFloatRange spawnAngles[3];
-			FxFloatRange angularVelocity[3];
-			FxFloatRange initialRotation;
-			FxFloatRange gravity;
-			FxFloatRange reflectionFactor;
-			FxElemAtlas atlas;
-			FxElemType elemType;
-			char visualCount;
-			char velIntervalCount;
-			char visStateIntervalCount;
-			FxElemVelStateSample *velSamples;
-			FxElemVisStateSample *visSamples;
-			FxElemDefVisuals visuals;
-			float collMins[3];
-			float collMaxs[3];
-			FxEffectDefRef effectOnImpact;
-			FxEffectDefRef effectOnDeath;
-			FxEffectDefRef effectEmitted;
-			FxFloatRange emitDist;
-			FxFloatRange emitDistVariance;
-			FxTrailDef *trailDef;
-			char sortOrder;
-			char lightingFrac;
-			char useItemClip;
-			char unused[1];
-		};
-
-		struct FxEffectDef
-		{
-			const char *name;
-			int flags;
-			int totalSize;
-			int msecLoopingLife;
-			int elemDefCountLooping;
-			int elemDefCountOneShot;
-			int elemDefCountEmission;
-			FxElemDef *elemDefs;
 		};
 
 		struct _AILSOUNDINFO
