@@ -279,5 +279,21 @@ namespace Game
 		{
 			ConvertBounds(this, mins, maxs);
 		}
+
+		void Bounds::min(vec3_t &out)
+		{
+			for (int i = 0; i < 3; ++i)
+			{
+				out[i] = midPoint[i] - halfSize[i] * 2;
+			}
+		}
+
+		void Bounds::max(vec3_t& out)
+		{
+			for (int i = 0; i < 3; ++i)
+			{
+				out[i] = midPoint[i] + halfSize[i] * 2;
+			}
+		}
 	}
 }
