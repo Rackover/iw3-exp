@@ -2572,6 +2572,8 @@ namespace Game
 			vec3_t halfSize; // maxs
 
 			void compute(vec3_t mins, vec3_t maxs);
+			void max(vec3_t& out);
+			void min(vec3_t& out);
 		};
 
 		struct TriggerModel

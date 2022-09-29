@@ -16,6 +16,7 @@ namespace Components
 
 	private:
 		static void Dump(Game::IW3::clipMap_t* clipmap);
+		static void addCarePackagesToMap(Game::IW3::clipMap_t* clipMap, Utils::Memory::Allocator& allocator);
 		static Game::IW4::SModelAabbNode* BuildSModelNodes(Utils::Memory::Allocator* allocator, Game::IW3::clipMap_t* clipMap, unsigned short* size);
 
 	};
