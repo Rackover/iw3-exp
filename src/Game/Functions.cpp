@@ -284,7 +284,7 @@ namespace Game
 		{
 			for (int i = 0; i < 3; ++i)
 			{
-				out[i] = midPoint[i] - halfSize[i] * 2;
+				out[i] = midPoint[i] - halfSize[i];
 			}
 		}
 
@@ -292,7 +292,7 @@ namespace Game
 		{
 			for (int i = 0; i < 3; ++i)
 			{
-				out[i] = midPoint[i] + halfSize[i] * 2;
+				out[i] = midPoint[i] + halfSize[i];
 			}
 		}
 	}

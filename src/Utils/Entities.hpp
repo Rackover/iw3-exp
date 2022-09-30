@@ -17,6 +17,7 @@ namespace Utils
 		void deleteOldSchoolPickups();
 		bool convertTurrets();
 		bool convertVehicles();
+		void addCarePackages();
 
 	private:
 		enum

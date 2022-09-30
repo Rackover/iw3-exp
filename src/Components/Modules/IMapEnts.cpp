@@ -14,6 +14,8 @@ namespace Components
 		std::string entString(ents->entityString, ents->numEntityChars - 1);
 
 		Utils::Entities mapEnts(entString);
+
+		mapEnts.addCarePackages();
 		mapEnts.deleteOldSchoolPickups();
 
 		if (mapEnts.convertTurrets())
