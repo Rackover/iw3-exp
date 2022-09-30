@@ -732,27 +732,6 @@ namespace Components
 					//// Whenever a model needs ground lighting in iw4, it has to specify it
 					if (map.dpvs.smodelDrawInsts[i].groundLighting.packed > 0)
 					{
-						// Color correction to take in account the stronger sun in iw4
-						/*
-						IW3	IW4
-						0	0
-						5	4
-						15	13
-						50	42
-						80	66
-						120	95
-						160	122
-						200	147
-						255	179
-						*/
-						unsigned char alpha = color->array[3];
-						color->array[3] = static_cast<unsigned char>(
-							std::ceil(
-								std::log2(alpha / (255 + 150) + 1)
-								* 255
-							)
-							);
-
 						map.dpvs.smodelDrawInsts[i].flags |= 0x20;
 						Logger::Print("Added STATIC_MODEL_FLAG_GROUND_LIGHTING on draw instance of %s\n", map.dpvs.smodelDrawInsts[i].model->name);
 					}
