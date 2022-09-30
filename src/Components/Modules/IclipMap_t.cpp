@@ -502,6 +502,7 @@ namespace Components
 		const auto brushNodeIndex = clipMap->leafbrushNodesCount;
 		const auto brushEdgeIndex = clipMap->numBrushEdges;
 		const auto materialIndex = clipMap->numMaterials;
+		const auto cModelIndex = clipMap->numSubModels;
 
 		// Materials
 		constexpr auto matSize = sizeof(Game::IW3::dmaterial_t);
@@ -579,11 +580,11 @@ namespace Components
 			bounds.max(model.leaf.maxs);
 
 			model.leaf.leafBrushNode = brushNodeIndex;
+			reallocatedCModels[cModelIndex + i] = model;
 		}
 
-		clipMap->numSubModels++;
+		clipMap->numSubModels += 2;
 		clipMap->cmodels = reallocatedCModels;
-
 
 		// Brushes
 		constexpr auto brushSize = sizeof(Game::IW3::cbrush_t);
@@ -636,7 +637,6 @@ namespace Components
 				if (clipMap->brushEdges[i] == *reallocatedBrushes[j].baseAdjacentSide) 
 				{
 					reallocatedBrushes[j].baseAdjacentSide = &clipMap->brushEdges[i];
-					validated = true;
 					break;
 				}
 			}
