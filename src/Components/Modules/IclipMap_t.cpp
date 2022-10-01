@@ -530,7 +530,25 @@ namespace Components
 		auto offset = reinterpret_cast<int>(reallocatedBrushEdges) - reinterpret_cast<int>(clipMap->brushEdges);
 		for (size_t i = 0; i < clipMap->numBrushes; i++)
 		{
+			auto oldValue = *clipMap->brushes[i].baseAdjacentSide;
+
 			clipMap->brushes[i].baseAdjacentSide = reinterpret_cast<char*>(reinterpret_cast<int>(clipMap->brushes[i].baseAdjacentSide) + offset);
+
+			if (*clipMap->brushes[i].baseAdjacentSide != oldValue)
+			{
+				// Something wrong happened and i have no idea if this is normal behaviour or not
+				if (*clipMap->brushes[i].edgeCount[0] == 0 && *clipMap->brushes[i].edgeCount[1] == 0)
+				{
+					clipMap->brushes[i].baseAdjacentSide = reallocatedBrushEdges;
+				}
+				else 
+				{
+					// Okay this is definitely wrong
+					assert(false);
+				}
+
+			}
+
 			printf("");
 		}
 
