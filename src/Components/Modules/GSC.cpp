@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	void GSC::DumpSounds(std::string data)
+	void GSC::DumpSounds(const std::string& data)
 	{
 		auto lines = Utils::Explode(data, '\n');
 		for (auto& line : lines)
@@ -28,9 +28,8 @@ namespace Components
 		}
 	}
 
-	void GSC::DumpSubScripts(std::string data)
+	void GSC::DumpSubScripts(const std::string& data)
 	{
-
 		std::vector<std::string> systemGSCs{
 			"_load",
 			"_compass",
@@ -52,7 +51,7 @@ namespace Components
 				continue;
 			}
 
-			std::regex regex("maps\\\\mp\\\\(.*)::"s);
+			static std::regex regex("maps\\\\mp\\\\(.*)::"s);
 			std::smatch m;
 
 			if (std::regex_search(line, m, regex))
@@ -72,9 +71,44 @@ namespace Components
 				//}
 			}
 		}
+
+		DumpModels(data);
 	}
 
-	void GSC::UpgradeGSC(std::string filePath, std::function<void(std::string&)> f)
+	void GSC::DumpModels(const std::string& data) 
+	{
+		static std::regex regex("precacheModel\\(\"([^\"]*)\"\\)"s, std::regex_constants::icase);
+		std::smatch m;
+
+		auto stringPtr = data;
+		while (std::regex_search(stringPtr, m, regex))
+		{
+			if (m.size() > 1)
+			{
+				const auto& modelName = m[1].str();
+				auto header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, modelName.data());
+
+				if (header.model)
+				{
+					Components::Logger::Print("Dumping additional model %s (mentioned in a precache GSC call)\n", modelName.data());
+					AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_XMODEL, header);
+
+					static auto additionalModelsPath = GetAdditionalModelsListPath();
+ 					std::ofstream stream(additionalModelsPath, std::ios::binary | std::ios::app);
+
+					if (stream.is_open())
+					{
+						stream.write((modelName + "\n").data(), modelName.size()+1);
+						stream.close();
+					}
+				}
+
+				stringPtr = m.suffix();
+			}
+		}
+	}
+
+	void GSC::UpgradeGSC(const std::string& filePath, std::function<void(std::string&)> f)
 	{
 		if (Utils::FileExists(filePath))
 		{
@@ -125,7 +159,7 @@ namespace Components
 	
 	void GSC::ConvertToStrictCreateFX(std::string& data)
 	{
-		std::regex regex("(?:ent.*|\\{|main\\(\\)|#.*|\\})", std::regex_constants::icase);
+		static std::regex regex("(?:ent(?:\\.| ).*|\\{|main\\(\\)|#.*|\\})", std::regex_constants::icase);
 
 		std::string newData;
 
@@ -142,7 +176,7 @@ namespace Components
 
 	void GSC::PatchSpecularScale(std::string& data)
 	{
-		std::regex regex("setdvar\\( *\"r_specularcolorscale\", *\"([0-9]+\.*[0-9]*)*\" *\\);"s, std::regex_constants::icase);
+		static std::regex regex("setdvar\\( *\"r_specularcolorscale\", *\"([0-9]+\.*[0-9]*)*\" *\\);"s, std::regex_constants::icase);
 		
 		std::smatch match;
 
