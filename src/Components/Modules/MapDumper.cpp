@@ -129,6 +129,13 @@ namespace Components
 
 	void MapDumper::DumpLoadedGSCs(std::string mapToDump)
 	{
+		static auto additionalModelsFile = GSC::GetAdditionalModelsListPath();
+		if (Utils::FileExists(additionalModelsFile))
+		{
+			// We void it, it might get rewritten anyway
+			Utils::WriteFile(additionalModelsFile, "\0");
+		}
+
 		Logger::Print("Exporting environment GSCs...\n");
 		Command::Execute(Utils::VA("dumpRawFile maps/mp/%s.gsc", mapToDump.data()), true);
 		Command::Execute(Utils::VA("dumpRawFile maps/mp/%s_fx.gsc", mapToDump.data()), true);

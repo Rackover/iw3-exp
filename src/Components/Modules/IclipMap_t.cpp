@@ -524,8 +524,15 @@ namespace Components
 		// Brush edges
 		auto reallocatedBrushEdges = allocator.allocateArray<char>(clipMap->numBrushEdges + 1);
 		memcpy_s(reallocatedBrushEdges, clipMap->numBrushEdges, clipMap->brushEdges, clipMap->numBrushEdges);
+		reallocatedBrushEdges[brushEdgeIndex] = 2;
 
-		reallocatedBrushEdges[clipMap->numBrushEdges] = 2;
+		//Redirect pointers
+		auto offset = reinterpret_cast<int>(reallocatedBrushEdges) - reinterpret_cast<int>(clipMap->brushEdges);
+		for (size_t i = 0; i < clipMap->numBrushes; i++)
+		{
+			clipMap->brushes[i].baseAdjacentSide = reinterpret_cast<char*>(reinterpret_cast<int>(clipMap->brushes[i].baseAdjacentSide) + offset);
+			printf("");
+		}
 
 		clipMap->brushEdges = reallocatedBrushEdges;
 		clipMap->numBrushEdges++;
@@ -595,7 +602,7 @@ namespace Components
 		auto bounds = makeCarePackageBounds();
 		Game::IW3::cbrush_t carePackageBrush;
 		carePackageBrush.numsides = 0;
-		carePackageBrush.baseAdjacentSide = &reallocatedBrushEdges[brushEdgeIndex];
+		carePackageBrush.baseAdjacentSide = &clipMap->brushEdges[brushEdgeIndex];
 		carePackageBrush.contents = 134420032;
 		carePackageBrush.sides = nullptr;
 		bounds.min(carePackageBrush.mins);
@@ -627,20 +634,6 @@ namespace Components
 				// edgeCount
 				carePackageBrush.edgeCount[x][y] = edgeCounts[y];
 			}
-		}
-
-		 //Redirect pointers
-		for (size_t j = 0; j < clipMap->numBrushes; j++)
-		{
-			for (size_t i = 0; i < clipMap->numBrushEdges; i++)
-			{
-				if (clipMap->brushEdges[i] == *reallocatedBrushes[j].baseAdjacentSide) 
-				{
-					reallocatedBrushes[j].baseAdjacentSide = &clipMap->brushEdges[i];
-					break;
-				}
-			}
-
 		}
 
 		reallocatedBrushes[brushIndex] = carePackageBrush;
