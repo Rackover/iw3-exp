@@ -25,7 +25,7 @@ namespace Components
 		{29, 14},	// Decal top 1
 		{30, 15},	// Decal top 2
 		{31, 16},	// Decal top 3
-		{32, 41},	// Multiplicative
+		{32, 17},	// Multiplicative, verified on mp_countdown
 		{33, 17},	// Banner/ Curtain (wild guess!)
 		{34, 4 },	// Hair. I matched it with german shepherd material sortkey, i hope its ok.
 		{35, 19},	// Underwater
@@ -505,7 +505,6 @@ namespace Components
 				Logger::Print("Material %s was given sortkey %i from %i (2d)\n", name.data(), 47, iw3Key);
 				return 47;
 			}
-
 		}
 
 		if (iw3Key == 9)
@@ -634,6 +633,13 @@ namespace Components
 				*/
 				Logger::Print("Material %s was given sortkey %i from %i (0x1 camera region (decal))\n", name.data(), 25, iw3Key);
 				return 25;
+			}
+
+			if (techsetName.contains("tools"))
+			{
+				//"opaque" => SORTKEY_BLEND_ADDITIVE
+				Logger::Print("Material %s was given sortkey %i from %i (tools)\n", name.data(), 47, iw3Key);
+				return 47;
 			}
 
 			/*
