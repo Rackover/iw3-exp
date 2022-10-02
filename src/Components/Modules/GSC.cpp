@@ -176,7 +176,7 @@ namespace Components
 
 	void GSC::PatchSpecularScale(std::string& data)
 	{
-		static std::regex regex("setdvar\\( *\"r_specularcolorscale\", *\"([0-9]+\.*[0-9]*)*\" *\\);"s, std::regex_constants::icase);
+		static std::regex regex("setdvar\\( *\"r_specularcolorscale\", *\"([0-9]+\\.*[0-9]*)*\" *\\);"s, std::regex_constants::icase);
 		
 		std::smatch match;
 
@@ -191,7 +191,7 @@ namespace Components
 			// Maps that specify custom specular power explicitely need to have
 			//	that value toned down
 
-			parsedFloat = std::log10(parsedFloat) * 0.4 + 1;
+			parsedFloat = std::log10(parsedFloat) * 0.4f + 1;
 
 			/*
 			iw3	iw4
