@@ -726,7 +726,6 @@ namespace Components
 				if (world->dpvs.smodelInsts)
 				{
 					map.dpvs.smodelDrawInsts[i].groundLighting = world->dpvs.smodelInsts[i].groundLighting;
-					Game::IW3::GfxColor* color = &map.dpvs.smodelDrawInsts[i].groundLighting;
 
 					//// Grass needs 0x20 otherwise it doesn't read data from the lightmap and it's full bright !
 					//// Whenever a model needs ground lighting in iw4, it has to specify it
@@ -735,31 +734,8 @@ namespace Components
 						map.dpvs.smodelDrawInsts[i].flags |= 0x20;
 						Logger::Print("Added STATIC_MODEL_FLAG_GROUND_LIGHTING on draw instance of %s\n", map.dpvs.smodelDrawInsts[i].model->name);
 					}
-
-					// Note: The following is not useful, but it might be one day
-					// It is not useful in preventing some objects from turning black. They turn blakc because
-					//	they are placed under the ground, which makes the game forbide them from accessing
-					//	ground_lighting which they need. Not sure how to detect & fix that !
-#if 0
-					// Remap everybody above 15 because very dark smodels are actually completely black in iw4
-					// Except the alpha! don't touch the alpha!
-					for (size_t j = 0; j < 3; j++)
-					{
-						constexpr auto remapMin = 15;
-						auto b = color->array[j];
-						color->array[j] = static_cast<unsigned char>(
-							std::floor(
-								remapMin + (color->array[j] / (255.f + remapMin)) * 255.f
-							)
-							);
-
-						auto a = color->array[j];
-						assert(b <= a); // this cannot darken anyone!
-					}
-#endif
-
-					}
 				}
+			}
 		}
 
 
