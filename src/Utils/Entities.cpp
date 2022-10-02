@@ -42,7 +42,7 @@ namespace Utils
 
 				if (!model.empty() 
 					&& model[0] != '*' && model[0] != '?'  // Skip brushmodels
-					&& !model.starts_with("com_plasticcase_") // Skip care package (part of team zones)
+					&& model != "com_plasticcase_green_big_us_dirt"s // Skip care package (part of team zones)
 				)
 				{
 					if (std::find(models->begin(), models->end(), model) == models->end())
