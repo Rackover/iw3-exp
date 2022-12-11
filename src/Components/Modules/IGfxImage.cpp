@@ -17,8 +17,11 @@ namespace Components
 		{
 			if (name[0] == '*') name.erase(name.begin());
 
-			if (Utils::StartsWith(name, "reflection_probe")) {
-				CorrectSpecularImage(image);
+			static auto correctSpeculars = Game::Dvar_FindVar("iw3x_correct_speculars");
+			if (correctSpeculars->current.enabled) {
+				if (Utils::StartsWith(name, "reflection_probe")) {
+					CorrectSpecularImage(image);
+				}
 			}
 
 			Utils::Stream buffer;
@@ -205,8 +208,8 @@ namespace Components
 
 								unsigned char average = (newByte + otherColor + otherOtherColor) / 3;
 
-								newByte = static_cast<unsigned char>(std::lerp(newByte, average, 0.55f));
-								newByte = std::clamp(newByte, static_cast<unsigned char>(75), static_cast<unsigned char>(170));
+								newByte = static_cast<unsigned char>(std::lerp(newByte, average, 0.15f));
+								newByte = std::clamp(newByte, static_cast<unsigned char>(25), static_cast<unsigned char>(170));
 							}
 							else {
 								// Alpha channel - we lower it a little bit

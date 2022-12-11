@@ -17,6 +17,7 @@ namespace Components
 
 		mapEnts.addCarePackages();
 		mapEnts.deleteOldSchoolPickups();
+		mapEnts.addRemovedSModels();
 
 		if (mapEnts.convertTurrets())
 		{

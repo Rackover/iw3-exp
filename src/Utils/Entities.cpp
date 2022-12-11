@@ -31,7 +31,8 @@ namespace Utils
 		std::ofstream destructiblesModelList;
 
 		if (includeDestructibles) {
-			destructiblesModelList.open(Utils::VA("%s/VEHICLES_XMODELS", Components::AssetHandler::GetExportPath().data()));
+			const auto path = Components::GSC::GetAdditionalModelsListPath();
+			destructiblesModelList.open(path);
 		}
 
 		for (auto& entity : this->entities)
@@ -40,10 +41,10 @@ namespace Utils
 			{
 				std::string model = entity["model"];
 
-				if (!model.empty() 
+				if (!model.empty()
 					&& model[0] != '*' && model[0] != '?'  // Skip brushmodels
 					&& model != "com_plasticcase_green_big_us_dirt"s // Skip care package (part of team zones)
-				)
+					)
 				{
 					if (std::find(models->begin(), models->end(), model) == models->end())
 					{
@@ -89,7 +90,9 @@ namespace Utils
 		{
 			if (entity.find("classname") != entity.end())
 			{
-				if (entity["targetname"] == "destructible"s && Utils::StartsWith(entity["destructible_type"], "vehicle"s))
+				if (entity.find("targetname") != entity.end() &&
+					entity["targetname"] == "destructible"s && 
+					Utils::StartsWith(entity["destructible_type"], "vehicle"s))
 				{
 					entity["targetname"] = "destructible_vehicle";
 					entity["sound_csv_include"] = "vehicle_car_exp";
@@ -115,10 +118,10 @@ namespace Utils
 
 				subModelCount = clipMap->numSubModels;
 			}
-		}, false);
+			}, false);
 
 
-		if (subModelCount > 0) 
+		if (subModelCount > 0)
 		{
 			// The last two static models will always be the care packages if we added them ourselves
 			auto countWithoutPackages = subModelCount - 2;
@@ -145,11 +148,11 @@ namespace Utils
 
 			std::unordered_map<std::string, std::string> carePackageBrushModel =
 			{
-				{"script_gameobjectname",		"airdrop_pallet"},
+				{	"script_gameobjectname",	"airdrop_pallet"},
 				{	"targetname",				"iw3x_entity_airdroppallet"},
 				{	"classname",				"script_brushmodel"},
 				{	"origin",					"250 325 -299"},
-				{	"model",					"*" + std::to_string(countWithoutPackages+1) }
+				{	"model",					"*" + std::to_string(countWithoutPackages + 1) }
 			};
 
 			std::unordered_map<std::string, std::string> carePackageScriptModel =
@@ -166,25 +169,6 @@ namespace Utils
 			entities.push_back(airdropPalletScriptModel);
 			entities.push_back(carePackageBrushModel);
 			entities.push_back(carePackageScriptModel);
-		}
-	}
-
-	void Entities::deleteTriggers()
-	{
-		for (auto i = this->entities.begin(); i != this->entities.end();)
-		{
-			if (i->find("classname") != i->end())
-			{
-				std::string classname = (*i)["classname"];
-				if (Utils::StartsWith(classname, "trigger_"))
-				{
-					i = this->entities.erase(i);
-					Components::Logger::Print("Erased trigger %s from map ents\n", (*i)["targetname"].c_str());
-					continue;
-				}
-			}
-
-			++i;
 		}
 	}
 
@@ -208,7 +192,36 @@ namespace Utils
 		return hasTurrets;
 	}
 
+	void Entities::addRemovedSModels()
+	{
+		const std::string mapName = Components::MapDumper::GetMapName();
+		const std::string bspName = Utils::VA("maps/mp/%s.d3dbsp", mapName.data());
+		const auto header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFXWORLD, bspName.data());
 
+		if (header.gfxWorld) {
+			for (auto index : Components::IGfxWorld::removedStaticModelIndices)
+			{
+				auto drawInst = &header.gfxWorld->dpvs.smodelDrawInsts[index];
+
+				Game::vec3_t angles{};
+				Game::AxisToAngles(&angles, drawInst->placement.axis);
+				const std::string origin = Utils::VA("%f %f %f", drawInst->placement.origin[0], drawInst->placement.origin[1], drawInst->placement.origin[2]);
+				const std::string anglesStr = Utils::VA("%f %f %f", angles[0], angles[1], angles[2]);
+
+				std::unordered_map<std::string, std::string> scriptModelEntity =
+				{
+					{	"_comment",					"added by iw3xport"},
+					{	"classname",				"script_model"},
+					{	"ltOrigin",					origin},
+					{	"origin",					origin},
+					{	"angles",					anglesStr},
+					{	"model",					drawInst->model->name }
+				};
+
+				entities.push_back(scriptModelEntity);
+			}
+		}
+	}
 
 	void Entities::deleteOldSchoolPickups()
 	{

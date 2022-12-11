@@ -64,6 +64,7 @@ namespace Game
 
 	Game::IW3::PackedUnitVec Vec3PackUnitVec(vec3_t *unitVec);
 	void Vec3UnpackUnitVec(Game::IW3::PackedUnitVec in, Game::vec3_t *out);
+	void AxisToAngles(Game::vec3_t* angles, Game::vec3_t* axis);
 
 	void ConvertBounds(Game::IW4::Bounds* bounds, vec3_t mins, vec3_t maxs);
 }

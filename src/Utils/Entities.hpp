@@ -13,11 +13,11 @@ namespace Utils
 		std::string build();
 
 		std::vector<std::string> getModels(bool includeDestructibles);
-		void deleteTriggers();
 		void deleteOldSchoolPickups();
 		bool convertTurrets();
 		bool convertVehicles();
 		void addCarePackages();
+		void addRemovedSModels();
 
 	private:
 		enum

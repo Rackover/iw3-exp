@@ -4,9 +4,12 @@
 
 namespace Components
 {
-	Game::IW4::SModelAabbNode* IclipMap_t::BuildSModelNodes(Utils::Memory::Allocator* allocator, Game::IW3::clipMap_t* clipMap, unsigned short* size)
+	Game::IW4::SModelAabbNode* IclipMap_t::BuildSModelNodes(
+		Utils::Memory::Allocator* allocator, 
+		Game::IW3::clipMap_t* clipMap,
+		unsigned short* size)
 	{
-		if (clipMap->numStaticModels == 0) return nullptr;
+		if (clipMap->numStaticModels - IGfxWorld::removedStaticModelIndices.size() <= 0) return nullptr;
 
 		float maxs[3];
 		float mins[3];
@@ -21,6 +24,11 @@ namespace Components
 
 		for (unsigned int i = 1; i < clipMap->numStaticModels; i++)
 		{
+			if (IGfxWorld::removedStaticModelIndices.contains(i))
+			{
+				continue;
+			}
+
 			maxs[0] = std::max(maxs[0], clipMap->staticModelList[i].absmax[0]);
 			maxs[1] = std::max(maxs[1], clipMap->staticModelList[i].absmax[1]);
 			maxs[2] = std::max(maxs[2], clipMap->staticModelList[i].absmax[2]);
@@ -32,7 +40,7 @@ namespace Components
 
 		Game::IW4::SModelAabbNode* node = allocator->allocate<Game::IW4::SModelAabbNode>();
 		node->bounds.compute(mins, maxs);
-		node->childCount = static_cast<short>(clipMap->numStaticModels);
+		node->childCount = static_cast<short>(clipMap->numStaticModels - IGfxWorld::removedStaticModelIndices.size() <= 0);
 		node->firstChild = 0;
 
 		*size = 1;
@@ -85,8 +93,10 @@ namespace Components
 		buffer.saveObject(IW4X_CLIPMAP_VERSION);
 		buffer.saveString(clipMap->name);
 
+		unsigned int numStaticModels = clipMap->numStaticModels - Components::IGfxWorld::removedStaticModelIndices.size();
+
 		buffer.saveObject(clipMap->planeCount);
-		buffer.saveObject(clipMap->numStaticModels);
+		buffer.saveObject(numStaticModels);
 		buffer.saveObject(clipMap->numMaterials);
 		buffer.saveObject(clipMap->numBrushSides);
 		buffer.saveObject(clipMap->numBrushEdges);
@@ -118,10 +128,15 @@ namespace Components
 
 		if (clipMap->staticModelList)
 		{
-			for (unsigned int i = 0; i < clipMap->numStaticModels; ++i)
+			for (unsigned short i = 0; i < clipMap->numStaticModels; ++i)
 			{
 				if (clipMap->staticModelList[i].xmodel)
 				{
+					if (Components::IGfxWorld::removedStaticModelIndices.contains(i))
+					{
+						continue;
+					}
+
 					buffer.saveString(clipMap->staticModelList[i].xmodel->name);
 				}
 				else
@@ -295,10 +310,12 @@ namespace Components
 				brushSideTotal += clipMap->brushes[i].numsides;
 				if (clipMap->brushes[i].numsides > 0)
 				{
-					buffer.saveObject(getFromMap(clipMap->brushes[i].sides));
+					auto side = getFromMap(clipMap->brushes[i].sides);
+					buffer.saveObject(side);
 				}
 
-				buffer.saveObject(getFromMap(clipMap->brushes[i].baseAdjacentSide));
+				auto adjacent = getFromMap(clipMap->brushes[i].baseAdjacentSide);
+				buffer.saveObject(adjacent);
 
 				for (int x = 0; x < 2; ++x)
 				{
@@ -527,7 +544,7 @@ namespace Components
 		reallocatedBrushEdges[brushEdgeIndex] = 2;
 
 		//Redirect pointers
-		auto offset = reinterpret_cast<int>(reallocatedBrushEdges) - reinterpret_cast<int>(clipMap->brushEdges);
+		unsigned int offset = reinterpret_cast<unsigned int>(reallocatedBrushEdges) - reinterpret_cast<unsigned int>(clipMap->brushEdges);
 		for (size_t i = 0; i < clipMap->numBrushes; i++)
 		{
 			auto oldValue = *clipMap->brushes[i].baseAdjacentSide;
