@@ -18,7 +18,7 @@ namespace Components
 			if (name[0] == '*') name.erase(name.begin());
 
 			static auto correctSpeculars = Game::Dvar_FindVar("iw3x_correct_speculars");
-			if (correctSpeculars->current.enabled) {
+			if (correctSpeculars && correctSpeculars->current.enabled) {
 				if (Utils::StartsWith(name, "reflection_probe")) {
 					CorrectSpecularImage(image);
 				}

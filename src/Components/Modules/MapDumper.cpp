@@ -147,7 +147,7 @@ namespace Components
 		Command::Execute(Utils::VA("dumpRawFile maps/createart/%s_art.gsc", mapToDump.data()), true);
 
 		auto convertGsc = Game::Dvar_FindVar("iw3x_convert_gsc");
-		if (convertGsc->current.enabled) {
+		if (convertGsc && convertGsc->current.enabled) {
 			Logger::Print("Patching GSCs...\n");
 			GSC::UpgradeGSC(Utils::VA("%s/maps/createfx/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertFXGSC);
 			GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainFXGSC);
