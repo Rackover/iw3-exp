@@ -246,6 +246,29 @@ namespace Game
 		}
 	}
 
+	__declspec(naked) void AxisToAngles(vec3_t*, vec3_t*)
+	{
+		__asm
+		{
+			pushad
+			mov ecx, [esp + 0x8 + 0x20]
+			push ecx
+			mov eax, [esp + 0x8 + 0x20]
+			push eax
+
+			mov ebx, 0x561B50
+			call ebx
+			
+			pop eax
+			pop ecx
+			popad
+
+			retn
+
+		}
+	}
+
+
 	// Bounds in IW3, as stored as two coordinates
 	// e.g. Bottom-Left and Top-Right
 	// (example is in R2, but works the same for R3):

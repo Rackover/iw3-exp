@@ -6,7 +6,7 @@ namespace Utils
 	{
 	private:
 		std::string buffer;
-		std::vector<void*> pointers;
+		std::unordered_map<void*, size_t> dataPointers;
 
 	public:
 		Stream();
@@ -41,6 +41,25 @@ namespace Utils
 		{
 			return save(array, sizeof(T), count);
 		}
+		template <typename T> inline void saveArrayIfNotExisting(T* data, size_t count)
+		{
+
+#define POINTER 255
+#define FOLLOWING 254
+
+			if (dataPointers.contains(data))
+			{
+				size_t filePosition = dataPointers.at(data);
+				saveByte(POINTER);
+				saveObject(filePosition);
+			}
+			else
+			{
+				saveByte(FOLLOWING);
+				dataPointers.insert_or_assign(reinterpret_cast<void*>(data), length());
+				saveArray(data, count);
+			}
+		}
 
 		char* saveString(std::string string);
 		char* saveString(const char* string);
@@ -62,12 +81,6 @@ namespace Utils
 		void toBuffer(std::string& outBuffer);
 		std::string toBuffer();
 
-		void storePointer(void* pointer);
-		bool hasPointer(void* pointer);
 
-		template <typename T> static inline void ClearPointer(T** object)
-		{
-			*object = reinterpret_cast<T*>(-1);
-		}
 	};
 }

@@ -1088,7 +1088,7 @@ namespace Game
 
 		struct XSurface
 		{
-			char tileMode;
+			unsigned char tileMode;
 			bool deformed;
 			unsigned __int16 vertCount;
 			unsigned __int16 triCount;
@@ -1214,10 +1214,10 @@ namespace Game
 			unsigned char numsurfs;
 			char lodRampType;
 			unsigned __int16 *boneNames;
-			char *parentList;
+			unsigned char *parentList;
 			__int16 *quats;
 			float *trans;
-			char *partClassification;
+			unsigned char *partClassification;
 			DObjAnimMat *baseMat;
 			XSurface *surfs;
 			Material **materialHandles;
@@ -1229,8 +1229,8 @@ namespace Game
 			float radius;
 			float mins[3];
 			float maxs[3];
-			__int16 numLods;
-			__int16 collLod;
+			unsigned __int16 numLods;
+			unsigned __int16 collLod;
 			XModelStreamInfo streamInfo;
 			int memUsage;
 			char flags;
@@ -1513,8 +1513,8 @@ namespace Game
 			GfxPortal *portals;
 			int cullGroupCount;
 			int *cullGroups;
-			char reflectionProbeCount;
-			char *reflectionProbes;
+			unsigned char reflectionProbeCount;
+			unsigned char *reflectionProbes;
 		};
 
 		struct GfxLightmapArray
@@ -1671,10 +1671,10 @@ namespace Game
 		{
 			srfTriangles_t tris;
 			Material *material;
-			char lightmapIndex;
-			char reflectionProbeIndex;
-			char primaryLightIndex;
-			char flags;
+			unsigned char lightmapIndex;
+			unsigned char reflectionProbeIndex;
+			unsigned char primaryLightIndex;
+			unsigned char flags;
 			float bounds[2][3];
 		};
 
@@ -1699,10 +1699,10 @@ namespace Game
 			GfxPackedPlacement placement;
 			XModel *model;
 			unsigned __int16 smodelCacheIndex[4];
-			char reflectionProbeIndex;
-			char primaryLightIndex;
+			unsigned char reflectionProbeIndex;
+			unsigned char primaryLightIndex;
 			unsigned __int16 lightingHandle;
-			char flags;
+			unsigned char flags;
 		};
 
 		struct GfxWorldDpvsStatic
@@ -1718,8 +1718,8 @@ namespace Game
 			unsigned int emissiveSurfsEnd;
 			unsigned int smodelVisDataCount;
 			unsigned int surfaceVisDataCount;
-			char *smodelVisData[3];
-			char *surfaceVisData[3];
+			unsigned char *smodelVisData[3];
+			unsigned char *surfaceVisData[3];
 			unsigned int *lodData;
 			unsigned __int16 *sortedSurfIndex;
 			GfxStaticModelInst *smodelInsts;
@@ -2761,10 +2761,10 @@ namespace Game
 		{
 			IW3::srfTriangles_t tris;
 			IW3::Material *material;
-			char lightmapIndex;
-			char reflectionProbeIndex;
-			char primaryLightIndex;
-			char flags;
+			unsigned char lightmapIndex;
+			unsigned char reflectionProbeIndex;
+			unsigned char primaryLightIndex;
+			unsigned char flags;
 		};
 
 		struct GfxPortal;
@@ -2799,8 +2799,8 @@ namespace Game
 			Bounds bounds;
 			int portalCount;
 			GfxPortal *portals;
-			char reflectionProbeCount;
-			char *reflectionProbes;
+			unsigned char reflectionProbeCount;
+			unsigned char *reflectionProbes;
 		};
 
 #pragma pack(push, 4)
@@ -3152,7 +3152,7 @@ namespace Game
 
 		struct XSurface
 		{
-			char tileMode;
+			unsigned char tileMode;
 			bool deformed;
 			unsigned __int16 vertCount;
 			unsigned __int16 triCount;
@@ -3202,24 +3202,24 @@ namespace Game
 		struct XModel
 		{
 			const char *name;
-			char numBones;
-			char numRootBones;
+			unsigned char numBones;
+			unsigned char numRootBones;
 			unsigned char numsurfs;
 			char lodRampType;
 			float scale;
 			unsigned int noScalePartBits[6];
 			unsigned __int16 *boneNames;
-			char *parentList;
+			unsigned char *parentList;
 			__int16 *quats;
 			float *trans;
-			char *partClassification;
+			unsigned char *partClassification;
 			IW3::DObjAnimMat *baseMat;
 			IW3::Material **materialHandles;
 			XModelLodInfo lodInfo[4];
 			char maxLoadedLod;
 			char numLods;
 			char collLod;
-			char flags;
+			unsigned char flags;
 			XModelCollSurf_s *collSurfs;
 			int numCollSurfs;
 			int contents;

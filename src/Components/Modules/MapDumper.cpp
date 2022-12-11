@@ -2,6 +2,7 @@
 
 namespace Components
 {
+
 	std::string MapDumper::mapName;
 
 	std::string MapDumper::GetMapName() {
@@ -13,6 +14,13 @@ namespace Components
 
 		MapDumper::mapName = mapToDump;
 		std::string bspName = Utils::VA("maps/mp/%s.d3dbsp", mapToDump.data());
+
+		static auto additionalModelsFile = GSC::GetAdditionalModelsListPath();
+		if (Utils::FileExists(additionalModelsFile))
+		{
+			// We void it, it might get rewritten anyway
+			Utils::WriteFile(additionalModelsFile, "\0");
+		}
 
 		Logger::Print("Loading map '%s'...\n", mapToDump.data());
 		Command::Execute(Utils::VA("map %s", mapToDump.data()), true);
@@ -130,11 +138,6 @@ namespace Components
 	void MapDumper::DumpLoadedGSCs(std::string mapToDump)
 	{
 		static auto additionalModelsFile = GSC::GetAdditionalModelsListPath();
-		if (Utils::FileExists(additionalModelsFile))
-		{
-			// We void it, it might get rewritten anyway
-			Utils::WriteFile(additionalModelsFile, "\0");
-		}
 
 		Logger::Print("Exporting environment GSCs...\n");
 		Command::Execute(Utils::VA("dumpRawFile maps/mp/%s.gsc", mapToDump.data()), true);
@@ -143,11 +146,14 @@ namespace Components
 
 		Command::Execute(Utils::VA("dumpRawFile maps/createart/%s_art.gsc", mapToDump.data()), true);
 
-		Logger::Print("Patching GSCs...\n");
-		GSC::UpgradeGSC(Utils::VA("%s/maps/createfx/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertFXGSC);
-		GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainFXGSC);
-		GSC::UpgradeGSC(Utils::VA("%s/maps/createart/%s_art.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainArtGSC);
-		GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainGSC);
+		auto convertGsc = Game::Dvar_FindVar("iw3x_convert_gsc");
+		if (convertGsc->current.enabled) {
+			Logger::Print("Patching GSCs...\n");
+			GSC::UpgradeGSC(Utils::VA("%s/maps/createfx/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertFXGSC);
+			GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainFXGSC);
+			GSC::UpgradeGSC(Utils::VA("%s/maps/createart/%s_art.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainArtGSC);
+			GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainGSC);
+		}
 	}
 
 	MapDumper::MapDumper()

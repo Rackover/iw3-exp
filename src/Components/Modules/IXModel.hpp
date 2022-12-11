@@ -4,6 +4,7 @@ namespace Components
 {
 	class IXModel : public AssetHandler::AssetInterface
 	{
+
 	public:
 		IXModel();
 		~IXModel();
@@ -13,7 +14,7 @@ namespace Components
 		void dump(Game::IW3::XAssetHeader header) override { Dump(header.model); };
 
 	private:
-		static std::vector<std::string> savedModels;
+		static std::unordered_set<std::string> alreadySavedModels;
 
 		static void Dump(Game::IW3::XModel* model);
 
@@ -21,5 +22,6 @@ namespace Components
 		static void SaveXModelSurfs(Game::IW4::XModelSurfs* asset, Utils::Stream* buffer);
 		static void SaveXSurface(Game::IW4::XSurface* surf, Utils::Stream* buffer);
 		static void SaveXSurfaceCollisionTree(Game::IW3::XSurfaceCollisionTree* entry, Utils::Stream* buffer);
+
 	};
 }
