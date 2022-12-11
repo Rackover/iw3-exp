@@ -322,7 +322,7 @@ namespace Components
 						continue;
 					}
 
-					auto oldModelIndex = asset->shadowGeom->smodelIndex[i - skips];
+					auto oldModelIndex = asset->shadowGeom->smodelIndex[i];
 					auto newModelIndex = indexesTranslation.at(oldModelIndex);
 
 					asset->shadowGeom->smodelIndex[i-skips] = newModelIndex;
