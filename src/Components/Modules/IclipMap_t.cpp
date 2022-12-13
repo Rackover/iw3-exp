@@ -22,7 +22,7 @@ namespace Components
 		mins[1] = clipMap->staticModelList[0].absmin[1];
 		mins[2] = clipMap->staticModelList[0].absmin[2];
 
-		for (unsigned int i = 1; i < clipMap->numStaticModels; i++)
+		for (unsigned short i = 1; i < clipMap->numStaticModels; i++)
 		{
 			if (IGfxWorld::removedStaticModelIndices.contains(i))
 			{

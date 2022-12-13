@@ -58,8 +58,9 @@ namespace Utils
 
 					// Then we need to fetch the destructible models
 					// This is TERRIBLE but it works. Ideally we should be able to grab the destructible models from the modelpieces DynEnts list (see iGFXWorld.cpp) but it doesn't work :(
-					Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_XMODEL, [destructible, models, &destructiblesModelList](Game::IW3::XAssetEntry* entry)
+					Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_XMODEL, [destructible, models, &destructiblesModelList](Game::IW3::XAssetEntryPoolEntry* poolEntry)
 						{
+							auto entry = &poolEntry->entry;
 							if (entry->inuse == 1 && entry->asset.header.model) {
 								if (std::string(entry->asset.header.model->name).find(destructible) != std::string::npos) {
 									std::string model = entry->asset.header.model->name;
@@ -110,7 +111,8 @@ namespace Utils
 		auto subModelCount = 0;
 
 		// We don't have a clipmap reference, so 
-		Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, [&subModelCount](Game::IW3::XAssetEntry* entry) {
+		Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, [&subModelCount](Game::IW3::XAssetEntryPoolEntry* poolEntry) {
+			auto entry = &poolEntry->entry;
 			if (entry && entry->asset.header.clipMap && subModelCount == 0)
 			{
 				// A clipmap is loaded, we may add the care packages

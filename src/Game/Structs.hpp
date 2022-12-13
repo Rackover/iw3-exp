@@ -2456,6 +2456,12 @@ namespace Game
 			unsigned __int16 usageFrame;
 		};
 
+		union XAssetEntryPoolEntry
+		{
+			XAssetEntry entry;
+			XAssetEntryPoolEntry* next;
+		};
+
 		struct XBlock
 		{
 			char *data;

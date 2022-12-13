@@ -372,11 +372,6 @@ namespace Components
 									auto oldModelIndex = aabbTree->smodelIndexes[smodelIndexIndex];
 									auto newModelIndex = indexesTranslation.at(oldModelIndex);
 
-									if (skips == 0 && oldModelIndex != newModelIndex)
-									{
-										printf("");
-									}
-
 									aabbTree->smodelIndexes[smodelIndexIndex - skips] = newModelIndex;
 								}
 

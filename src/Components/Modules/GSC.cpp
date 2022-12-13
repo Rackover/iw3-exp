@@ -2,6 +2,8 @@
 
 namespace Components
 {
+	std::unordered_set<std::string> GSC::dumpedSubscripts{};
+
 	void GSC::DumpSounds(const std::string& data)
 	{
 		auto lines = Utils::Explode(data, '\n');
@@ -30,15 +32,8 @@ namespace Components
 
 	void GSC::DumpSubScripts(const std::string& data)
 	{
-		std::vector<std::string> systemGSCs{
-			"_load",
-			"_compass",
-			"_createfx",
-			"_art",
-			"_utility",
-			"_fx",
-			"gametypes/_callbacksetup",
-			Utils::VA("%s_fx", MapDumper::GetMapName().c_str())
+		std::vector<std::string> dumpBlacklist{
+			Utils::VA("%s_fx", MapDumper::GetMapName().c_str()) // This one is special
 		};
 
 		auto lines = Utils::Explode(data, '\n');
@@ -60,10 +55,18 @@ namespace Components
 				
 				Utils::Replace(scriptDeclaredName, "\\", "/");
 
+				if (dumpedSubscripts.contains(scriptDeclaredName))
+				{
+					Components::Logger::Print("Skipping dump of script %s because we dumped it already\n", scriptDeclaredName.data());
+					continue;
+				}
+
+				dumpedSubscripts.insert(scriptDeclaredName);
+
 				// This should be enabled but... some map modders have named their custom scripts with a starting _, so...
 				//if (!Utils::StartsWith(scriptDeclaredName, "_")) {
-				if (std::find(systemGSCs.begin(), systemGSCs.end(), scriptDeclaredName) == systemGSCs.end()) {
-					auto dumpCmd = Utils::VA("dumpRawFile maps/mp/%s.gsc", scriptDeclaredName.c_str());
+				if (std::find(dumpBlacklist.begin(), dumpBlacklist.end(), scriptDeclaredName) == dumpBlacklist.end()) {
+					auto dumpCmd = Utils::VA("dumpRawFile maps/mp/%s.gsc %i", scriptDeclaredName.c_str(), MapDumper::GetZoneIndex());
 					Command::Execute(dumpCmd, true);
 
 					GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s.gsc", AssetHandler::GetExportPath().data(), scriptDeclaredName.c_str()), DumpSubScripts);
