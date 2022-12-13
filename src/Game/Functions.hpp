@@ -39,6 +39,10 @@ namespace Game
 	typedef int (*FS_FOpenFileReadDatabase_t)(char* a1, int* file);
 	extern FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase;
 
+	int DB_HashForName(Game::XAssetType type, const char* name);
+
+	Game::IW3::XAssetEntryPoolEntry* DB_FindXAssetEntry(Game::XAssetType type, const char* name);
+
 	int FS_ReadFile(const char* path, char** buffer);
 	void FS_FreeFile(void* buffer);
 	void FS_FCloseFile(int handle);
@@ -49,12 +53,12 @@ namespace Game
 	extern cmd_function_s** cmd_ptr;
 
 	extern IW3::XZone* g_zones;
-	extern IW3::XAssetEntry* g_assetEntryPool;
+	extern IW3::XAssetEntryPoolEntry* g_assetEntryPool;
 	extern unsigned short* db_hashTable;
 
 	extern IW3::infoParm_t* infoParams;
 
-	void DB_EnumXAssetEntries(XAssetType type, std::function<void(IW3::XAssetEntry*)> callback, bool overrides);
+	void DB_EnumXAssetEntries(XAssetType type, std::function<void(IW3::XAssetEntryPoolEntry*)> callback, bool overrides);
 	void Cmd_AddCommand(const char* name, void(*callback)(), cmd_function_s* data, char);
 	unsigned int R_HashString(const char* string);
 	const char* FindHash(unsigned int hash);

@@ -26,5 +26,7 @@ namespace Components
 		static void DumpSubScripts(const std::string& data);
 		static void DumpModels(const std::string& data);
 		static void UpgradeCreateFog(std::string& contents);
+
+		static std::unordered_set<std::string> dumpedSubscripts;
 	};
 }
