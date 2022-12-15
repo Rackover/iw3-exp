@@ -113,7 +113,7 @@ namespace Game
 			if (entry->entry.asset.type == type)
 			{
 				auto assetName = DB_GetXAssetNameHandlers[entry->entry.asset.type](&entry->entry.asset.header);
-				if (!stricmp(name, assetName))
+				if (!_stricmp(name, assetName))
 					break;
 			}
 

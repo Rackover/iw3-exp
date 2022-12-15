@@ -4,6 +4,7 @@
 
 namespace Components
 {
+	std::unordered_map<char, Game::IW4::Material> IMaterial::exampleMaterialForKey{};
 	std::unordered_map<char, char> IMaterial::sortKeysTable = {
 		{0, 43},	// Distortion
 					// Opaque water (never used)
@@ -369,6 +370,9 @@ namespace Components
 		mat.gameFlags.fields.unk8 = material->info.gameFlags.fields.unk7;
 		mat.gameFlags.fields.unk7 = material->info.gameFlags.fields.unk8;
 
+		// Do not delay model surface ever! In iw4 this doesn't even exist
+		// If this flag is ever set to 1 it usually burns the delayed surface buffer of IW4
+		mat.gameFlags.fields.delayModelSurface = 0; 
 		// Sort key
 #if USE_IW3_SORTKEYS
 		mat.sortKey = material->info.sortKey; // Using iw3 value directly
@@ -458,6 +462,16 @@ namespace Components
 			Logger::Print("Set statebit %i loadbit 0 to GFXS0_CULL_NONE on material %s (it is glass)\n", index, mat.name);
 		}
 
+#if not USE_IW3_SORTKEYS
+		Game::IW4::Material conflict;
+		if (CheckSortKeyConflict(&mat, conflict))
+		{
+			Components::Logger::Print("There is a sort key conflict between %s and %s on the key %i. One of these two (most probably the first one) doesn't have the right sort key! You will need to fix the material JSON manually.\n",
+				mat.name, conflict.name, mat.sortKey);
+			assert(false);
+		}
+#endif
+
 		IMaterial::SaveConvertedMaterial(&mat);
 	}
 
@@ -536,6 +550,15 @@ namespace Components
 
 				Logger::Print("Material %s was given sortkey %i from %i (techset name contains 'shadow')\n", name.data(), 34, iw3Key);
 				return 34;
+			}
+
+
+			if (techsetName.contains("effect"))
+			{
+				// Really not sure about this! But some posters on some custom maps (mp_nuked_xmas) are on wc_effect tecshet
+				// and cause a sort crash when put on the decal layer (9)
+				Logger::Print("Material %s was given sortkey %i from %i (techset name contains 'effect')\n", name.data(), 34, iw3Key);
+				return 48;
 			}
 
 			/*
@@ -668,6 +691,51 @@ namespace Components
 
 		return iw3Key;
 	}
+
+	bool IMaterial::CheckSortKeyConflict(Game::IW4::Material* material, OUT Game::IW4::Material& conflictingMaterial)
+	{
+		if (exampleMaterialForKey.find(material->sortKey) == exampleMaterialForKey.end())
+		{
+			exampleMaterialForKey[material->sortKey] = *material;
+			return false;
+		}
+
+		auto* otherMaterial = &exampleMaterialForKey.at(material->sortKey);
+
+		assert(material->techniqueSet);
+
+		bool hasLit = material->techniqueSet->techniques[Game::IW4::TECHNIQUE_LIT] != nullptr;
+		bool otherHasLit = otherMaterial->techniqueSet->techniques[Game::IW4::TECHNIQUE_LIT] != nullptr;
+
+		if (otherHasLit != hasLit)
+		{
+			conflictingMaterial = *otherMaterial;
+			return true;
+		}
+
+		if (hasLit)
+		{
+			bool hasEmissive = material->techniqueSet->techniques[Game::IW4::TECHNIQUE_EMISSIVE];
+			bool otherHasEmissive = otherMaterial->techniqueSet->techniques[Game::IW4::TECHNIQUE_EMISSIVE];
+
+			if (hasEmissive)
+			{
+				conflictingMaterial = *otherMaterial;
+				return true;
+			}
+
+			if (otherHasEmissive)
+			{
+				conflictingMaterial = *otherMaterial;
+				return true;
+			}
+		}
+			
+
+		return false;
+	}
+
+
 
 
 	IMaterial::IMaterial()
