@@ -946,7 +946,14 @@ namespace Components
 				map.dpvs.smodelDrawInsts[i].reflectionProbeIndex = world->dpvs.smodelDrawInsts[i].reflectionProbeIndex;
 				map.dpvs.smodelDrawInsts[i].primaryLightIndex = world->dpvs.smodelDrawInsts[i].primaryLightIndex;
 				map.dpvs.smodelDrawInsts[i].lightingHandle = world->dpvs.smodelDrawInsts[i].lightingHandle;
-				map.dpvs.smodelDrawInsts[i].flags = world->dpvs.smodelDrawInsts[i].flags;
+				map.dpvs.smodelDrawInsts[i].flags = 0;
+
+				if (world->dpvs.smodelDrawInsts[i].flags & Game::IW3::STATIC_MODEL_FLAG_NO_SHADOW)
+				{
+					// Confirmed to be the same in the rendering functions
+					// Check R_AddAllStaticModelSurfacesSpotShadow in both iw3 and iw4
+					map.dpvs.smodelDrawInsts[i].flags |= Game::IW4::STATIC_MODEL_FLAG_NO_CAST_SHADOW;
+				}
 
 				// This has been moved
 				if (world->dpvs.smodelInsts)
@@ -957,7 +964,7 @@ namespace Components
 					//// Whenever a model needs ground lighting in iw4, it has to specify it
 					if (map.dpvs.smodelDrawInsts[i].groundLighting.packed > 0)
 					{
-						map.dpvs.smodelDrawInsts[i].flags |= 0x20;
+						map.dpvs.smodelDrawInsts[i].flags |= Game::IW4::STATIC_MODEL_FLAG_GROUND_LIGHTING;
 					}
 				}
 			}

@@ -14,12 +14,15 @@ namespace Components
 
 	private:
 		static std::unordered_map<char, char> sortKeysTable;
+		static std::unordered_map<char, Game::IW4::Material> exampleMaterialForKey;
 
 		static void Dump(Game::IW3::Material* material);
 
 		static void SaveConvertedMaterial(Game::IW4::Material* asset);
 
 		static char GetConvertedSortKey(Game::IW3::Material* material);
+
+		static bool CheckSortKeyConflict(Game::IW4::Material* material, OUT Game::IW4::Material& conflictingMaterial);
 	
 		static rapidjson::Value StateBitsToJsonArray(Game::IW3::GfxStateBits* stateBits, unsigned char count, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator);
 	};
