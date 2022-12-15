@@ -237,6 +237,11 @@ namespace Game
 	namespace IW3
 	{
 #endif
+		enum StaticModelFlag : char
+		{
+			STATIC_MODEL_FLAG_NO_SHADOW = 0x1,
+		};
+
 		enum SndChannel
 		{
 			SND_CHANNEL_PHYSICS,
@@ -2495,6 +2500,13 @@ namespace Game
 #ifdef __cplusplus
 	namespace IW4
 	{
+		enum StaticModelFlag : char
+		{
+			STATIC_MODEL_FLAG_SUB_INDEX_MASK = 0x7,
+			STATIC_MODEL_FLAG_NO_CAST_SHADOW = 0x10,
+			STATIC_MODEL_FLAG_GROUND_LIGHTING = 0x20,
+		};
+
 		enum SndChannel
 		{
 			SND_CHANNEL_PHYSICS,
@@ -2823,10 +2835,10 @@ namespace Game
 			IW3::XModel *model;
 			unsigned __int16 cullDist;
 			unsigned __int16 lightingHandle;
-			char reflectionProbeIndex;
-			char primaryLightIndex;
-			char flags;
-			char firstMtlSkinIndex;
+			unsigned char reflectionProbeIndex;
+			unsigned char primaryLightIndex;
+			unsigned char flags;
+			unsigned char firstMtlSkinIndex;
 			IW3::GfxColor groundLighting;
 			unsigned __int16 cacheId[4];
 		};
