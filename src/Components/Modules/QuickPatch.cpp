@@ -79,7 +79,7 @@ namespace Components
 			}, nullptr, false);
 		});
 
-        Command::Add("loadzone", [](Command::Params params)
+        Command::Add("loadzone", [](const Command::Params& params)
         {
             if (params.Length() < 2) return;
             std::string zone = params[1];

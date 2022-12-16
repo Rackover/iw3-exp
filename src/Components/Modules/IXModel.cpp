@@ -493,7 +493,7 @@ namespace Components
 	IXModel::IXModel()
 	{
 
-		Command::Add("dumpXModel", [](Command::Params params)
+		Command::Add("dumpXModel", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
 				IXModel::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, params[1]).model);

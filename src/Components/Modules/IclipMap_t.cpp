@@ -692,7 +692,7 @@ namespace Components
 
 	IclipMap_t::IclipMap_t()
 	{
-		Command::Add("dumpclipMap_t", [](Command::Params params)
+		Command::Add("dumpclipMap_t", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
 				IclipMap_t::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]).clipMap);

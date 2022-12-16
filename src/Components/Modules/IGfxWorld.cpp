@@ -1034,7 +1034,7 @@ namespace Components
 
 	IGfxWorld::IGfxWorld()
 	{
-		Command::Add("dumpGfxWorld", [](Command::Params params)
+		Command::Add("dumpGfxWorld", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
 				IGfxWorld::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFXWORLD, params[1]).gfxWorld);

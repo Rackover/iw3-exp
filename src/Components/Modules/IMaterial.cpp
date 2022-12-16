@@ -733,7 +733,7 @@ namespace Components
 
 	IMaterial::IMaterial()
 	{
-		Command::Add("dumpMaterial", [](Command::Params params)
+		Command::Add("dumpMaterial", [](const Command::Params& params)
 		{
 			if (params.Length() < 2) return;
 			IMaterial::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, params[1]).material);
