@@ -256,8 +256,6 @@ namespace Components
 			return;
 		};
 
-		Components::Logger::Print("Dumping model %s\n", model->name);
-
 		IXModel::alreadySavedModels.emplace(model->name);
 
 

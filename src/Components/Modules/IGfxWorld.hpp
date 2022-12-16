@@ -20,7 +20,7 @@ namespace Components
 		static void RemoveModels(Game::IW4::GfxWorld* asset, const std::unordered_set<unsigned short>& indexes);
 		static void SaveConvertedWorld(Game::IW4::GfxWorld* asset);
 		static void SaveGfxWorldDpvsPlanes(Game::IW4::GfxWorld* world, Game::IW3::GfxWorldDpvsPlanes* asset, Utils::Stream* buffer);
-		static void RemoveIncompatibleModelsForIW4(Game::IW4::GfxWorld* asset);
+		static void RemoveIncompatibleModelsForIW4(Game::IW4::GfxWorld* asset, unsigned int method);
 		static void SaveGfxWorldDraw(Game::IW4::GfxWorldDraw* asset, Utils::Stream* buffer);
 		static void SaveGfxLightGrid(Game::IW3::GfxLightGrid* asset, Utils::Stream* buffer);
 		static void SaveGfxWorldDpvsStatic(Game::IW4::GfxWorld* world, Game::IW4::GfxWorldDpvsStatic* asset, Utils::Stream* buffer);

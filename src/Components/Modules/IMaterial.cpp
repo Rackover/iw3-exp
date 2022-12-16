@@ -148,7 +148,6 @@ namespace Components
 				}
 				else if (textureDef->u.image)
 				{
-					Components::Logger::Print("Dumping image %s\n", textureDef->u.image->name);
 					textureJson.AddMember("image", RAPIDJSON_STR(textureDef->u.image->name), allocator);
 					AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_IMAGE, { textureDef->u.image });
 				}

@@ -192,8 +192,11 @@ namespace Components
 		}
 	}
 
-	void IGfxWorld::RemoveIncompatibleModelsForIW4(Game::IW4::GfxWorld* asset)
+	void IGfxWorld::RemoveIncompatibleModelsForIW4(Game::IW4::GfxWorld* asset, unsigned int fixMethod)
 	{
+		constexpr unsigned int REMOVE_MODELS = 1;
+		constexpr unsigned int SWAP_MODELS = 2;
+
 		// Alright everybody, we're in for a ride so let's go:
 		// - Static models in iw3 store all sorts of things. Vehicles, buildings, scenery
 		// - Static models in iw4 don't work like that. In fact, most of them are trees, grass... nothing complex
@@ -220,14 +223,36 @@ namespace Components
 					// Oh boy
 					if (xmodel->lodInfo[lodIndex].numsurfs > SURF_PER_LOD_HARD_LIMIT)
 					{
-#if false
-						// Poor man's fix
-						asset->dpvs.smodelDrawInsts[iw3Index].model = asset->dpvs.smodelDrawInsts[iw3Index-1].model;
-#else
-						// Good fix
-						removedStaticModelIndices.insert(iw3Index);
-						Components::Logger::Print("Moving %s to entities because its model is incompatible with iw4\n", xmodel->name);
-#endif
+						if (fixMethod == REMOVE_MODELS)
+						{
+							// Good fix, but my code to remove SModels is not perfect yet
+							// It works well on some maps (mp_bloc)
+							// But it breaks visdata on other maps (mp_zavod)
+							// I do not know why!
+							removedStaticModelIndices.insert(iw3Index);
+							Components::Logger::Print("Moving %s to entities because its model is incompatible with iw4\n", xmodel->name);
+						}
+						else if (fixMethod == SWAP_MODELS)
+						{
+							// Poor man's fix
+							if (iw3Index > 0)
+							{
+								auto* inst = &asset->dpvs.smodelDrawInsts[iw3Index];
+								inst->model = asset->dpvs.smodelDrawInsts[iw3Index - 1].model;
+								Components::Logger::Print("Swapping %s with %s model and putting its scale to zero because it is incompatible with iw4\n", xmodel->name, inst->model->name);
+								inst->placement.origin[0] = std::numeric_limits<float>().min();
+								inst->placement.origin[1] = std::numeric_limits<float>().min();
+								inst->placement.origin[2] = std::numeric_limits<float>().min();
+								inst->placement.scale = 0.f;
+
+								asset->dpvs.smodelInsts[iw3Index].bounds = Game::IW4::Bounds{};
+								asset->dpvs.smodelInsts[iw3Index].bounds.midPoint[0] = std::numeric_limits<float>().min();
+								asset->dpvs.smodelInsts[iw3Index].bounds.midPoint[1] = std::numeric_limits<float>().min();
+								asset->dpvs.smodelInsts[iw3Index].bounds.midPoint[2] = std::numeric_limits<float>().min();
+							}
+						}
+
+
 					}
 				}
 			}
@@ -955,7 +980,6 @@ namespace Components
 					map.dpvs.smodelDrawInsts[i].flags |= Game::IW4::STATIC_MODEL_FLAG_NO_CAST_SHADOW;
 				}
 
-				// This has been moved
 				if (world->dpvs.smodelInsts)
 				{
 					map.dpvs.smodelDrawInsts[i].groundLighting = world->dpvs.smodelInsts[i].groundLighting;
@@ -1000,7 +1024,12 @@ namespace Components
 		// Specify that it's a custom map
 		map.checksum = 0xC0D40000;
 
-		IGfxWorld::RemoveIncompatibleModelsForIW4(&map);
+		auto smodelsFixMethod = Game::Dvar_FindVar("iw3x_smodels_fix_method");
+		if (smodelsFixMethod) 
+		{
+			auto method = std::stoi(smodelsFixMethod->current.string);
+			IGfxWorld::RemoveIncompatibleModelsForIW4(&map, method);
+		}
 
 		IGfxWorld::SaveConvertedWorld(&map);
 	}
