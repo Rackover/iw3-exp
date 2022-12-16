@@ -4,35 +4,43 @@
 
 namespace Components
 {
-	Game::IW4::SModelAabbNode* IclipMap_t::BuildSModelNodes(Utils::Memory::Allocator* allocator, Game::IW3::clipMap_t* clipMap, unsigned short* size)
+	Game::IW4::SModelAabbNode* IclipMap_t::BuildSModelNodes(
+		Utils::Memory::Allocator* allocator, 
+		Game::IW3::clipMap_t* clipMap,
+		unsigned short* size)
 	{
-		if (clipMap->numStaticModels == 0) return nullptr;
+		if (clipMap->numStaticModels - IGfxWorld::removedStaticModelIndices.size() <= 0) return nullptr;
 
 		float maxs[3];
 		float mins[3];
 
 		maxs[0] = clipMap->staticModelList[0].absmax[0];
-		maxs[1] = clipMap->staticModelList[1].absmax[1];
-		maxs[2] = clipMap->staticModelList[2].absmax[2];
+		maxs[1] = clipMap->staticModelList[0].absmax[1];
+		maxs[2] = clipMap->staticModelList[0].absmax[2];
 
 		mins[0] = clipMap->staticModelList[0].absmin[0];
-		mins[1] = clipMap->staticModelList[1].absmin[1];
-		mins[2] = clipMap->staticModelList[2].absmin[2];
+		mins[1] = clipMap->staticModelList[0].absmin[1];
+		mins[2] = clipMap->staticModelList[0].absmin[2];
 
-		for (unsigned int i = 1; i < clipMap->numStaticModels; i++)
+		for (unsigned short i = 1; i < clipMap->numStaticModels; i++)
 		{
-			maxs[0] = max(maxs[0], clipMap->staticModelList[i].absmax[0]);
-			maxs[1] = max(maxs[1], clipMap->staticModelList[i].absmax[1]);
-			maxs[2] = max(maxs[2], clipMap->staticModelList[i].absmax[2]);
+			if (IGfxWorld::removedStaticModelIndices.contains(i))
+			{
+				continue;
+			}
 
-			mins[0] = min(mins[0], clipMap->staticModelList[i].absmin[0]);
-			mins[1] = min(mins[1], clipMap->staticModelList[i].absmin[1]);
-			mins[2] = min(mins[2], clipMap->staticModelList[i].absmin[2]);
+			maxs[0] = std::max(maxs[0], clipMap->staticModelList[i].absmax[0]);
+			maxs[1] = std::max(maxs[1], clipMap->staticModelList[i].absmax[1]);
+			maxs[2] = std::max(maxs[2], clipMap->staticModelList[i].absmax[2]);
+
+			mins[0] = std::min(mins[0], clipMap->staticModelList[i].absmin[0]);
+			mins[1] = std::min(mins[1], clipMap->staticModelList[i].absmin[1]);
+			mins[2] = std::min(mins[2], clipMap->staticModelList[i].absmin[2]);
 		}
 
 		Game::IW4::SModelAabbNode* node = allocator->allocate<Game::IW4::SModelAabbNode>();
 		node->bounds.compute(mins, maxs);
-		node->childCount = static_cast<short>(clipMap->numStaticModels);
+		node->childCount = static_cast<short>(clipMap->numStaticModels - IGfxWorld::removedStaticModelIndices.size() <= 0);
 		node->firstChild = 0;
 
 		*size = 1;
@@ -43,32 +51,6 @@ namespace Components
 	{
 		if (!clipMap) return;
 
-		Utils::Memory::Allocator allocator;
-
-		Utils::Stream buffer;
-		buffer.saveArray("IW4xClip", 8);
-		buffer.saveObject(IW4X_CLIPMAP_VERSION);
-		buffer.saveString(clipMap->name);
-
-		buffer.saveObject(clipMap->planeCount);
-		buffer.saveObject(clipMap->numStaticModels);
-		buffer.saveObject(clipMap->numMaterials);
-		buffer.saveObject(clipMap->numBrushSides);
-		buffer.saveObject(clipMap->numBrushEdges);
-		buffer.saveObject(clipMap->numNodes);
-		buffer.saveObject(clipMap->numLeafs);
-		buffer.saveObject(clipMap->leafbrushNodesCount);
-		buffer.saveObject(clipMap->numLeafBrushes);
-		buffer.saveObject(clipMap->numLeafSurfaces);
-		buffer.saveObject(clipMap->vertCount);
-		buffer.saveObject(clipMap->triCount);
-		buffer.saveObject(clipMap->borderCount);
-		buffer.saveObject(clipMap->partitionCount);
-		buffer.saveObject(clipMap->aabbTreeCount);
-		buffer.saveObject(clipMap->numSubModels);
-		buffer.saveObject(clipMap->numBrushes);
-		buffer.saveObject(clipMap->dynEntCount[0]);
-		buffer.saveObject(clipMap->dynEntCount[1]);
 
 		std::unordered_map<void*, int> indexMap;
 
@@ -101,6 +83,38 @@ namespace Components
 		};
 
 
+
+		Utils::Memory::Allocator allocator;
+
+		addCarePackagesToMap(clipMap, allocator);
+
+		Utils::Stream buffer;
+		buffer.saveArray("IW4xClip", 8);
+		buffer.saveObject(IW4X_CLIPMAP_VERSION);
+		buffer.saveString(clipMap->name);
+
+		unsigned int numStaticModels = clipMap->numStaticModels - Components::IGfxWorld::removedStaticModelIndices.size();
+
+		buffer.saveObject(clipMap->planeCount);
+		buffer.saveObject(numStaticModels);
+		buffer.saveObject(clipMap->numMaterials);
+		buffer.saveObject(clipMap->numBrushSides);
+		buffer.saveObject(clipMap->numBrushEdges);
+		buffer.saveObject(clipMap->numNodes);
+		buffer.saveObject(clipMap->numLeafs);
+		buffer.saveObject(clipMap->leafbrushNodesCount);
+		buffer.saveObject(clipMap->numLeafBrushes);
+		buffer.saveObject(clipMap->numLeafSurfaces);
+		buffer.saveObject(clipMap->vertCount);
+		buffer.saveObject(clipMap->triCount);
+		buffer.saveObject(clipMap->borderCount);
+		buffer.saveObject(clipMap->partitionCount);
+		buffer.saveObject(clipMap->aabbTreeCount);
+		buffer.saveObject(clipMap->numSubModels); 
+		buffer.saveObject(clipMap->numBrushes);
+		buffer.saveObject(clipMap->dynEntCount[0]);
+		buffer.saveObject(clipMap->dynEntCount[1]);
+
 		if (clipMap->planes)
 		{
 			buffer.saveObject<void*>(clipMap->planes);
@@ -114,10 +128,15 @@ namespace Components
 
 		if (clipMap->staticModelList)
 		{
-			for (unsigned int i = 0; i < clipMap->numStaticModels; ++i)
+			for (unsigned short i = 0; i < clipMap->numStaticModels; ++i)
 			{
 				if (clipMap->staticModelList[i].xmodel)
 				{
+					if (Components::IGfxWorld::removedStaticModelIndices.contains(i))
+					{
+						continue;
+					}
+
 					buffer.saveString(clipMap->staticModelList[i].xmodel->name);
 				}
 				else
@@ -291,10 +310,12 @@ namespace Components
 				brushSideTotal += clipMap->brushes[i].numsides;
 				if (clipMap->brushes[i].numsides > 0)
 				{
-					buffer.saveObject(getFromMap(clipMap->brushes[i].sides));
+					auto side = getFromMap(clipMap->brushes[i].sides);
+					buffer.saveObject(side);
 				}
 
-				buffer.saveObject(getFromMap(clipMap->brushes[i].baseAdjacentSide));
+				auto adjacent = getFromMap(clipMap->brushes[i].baseAdjacentSide);
+				buffer.saveObject(adjacent);
 
 				for (int x = 0; x < 2; ++x)
 				{
@@ -421,7 +442,7 @@ namespace Components
 			if (clipMap->cmodels)
 			{
 
-				std::vector<Game::IW4::TriggerSlab>* slabs = new std::vector<Game::IW4::TriggerSlab>();
+				std::vector<Game::IW4::TriggerSlab> slabs = std::vector<Game::IW4::TriggerSlab>();
 
 				for (unsigned short i = 0; i < clipMap->numSubModels; ++i)
 				{
@@ -430,12 +451,12 @@ namespace Components
 					cmodelBounds.compute(clipMap->cmodels[i].mins, clipMap->cmodels[i].maxs);
 
 					trigHull.bounds = cmodelBounds;
-					trigHull.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;;
+					trigHull.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;
 
 					Game::IW4::TriggerModel trigMod{};
 					trigMod.hullCount = 1;
 					trigMod.firstHull = i;
-					trigMod.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;;
+					trigMod.contents = clipMap->cmodels[i].leaf.brushContents | clipMap->cmodels[i].leaf.terrainContents;
 
 					auto* node = &clipMap->leafbrushNodes[clipMap->cmodels[i].leaf.leafBrushNode];
 
@@ -445,7 +466,7 @@ namespace Components
 						{
 							auto* brush = &clipMap->brushes[node->data.leaf.brushes[j]];
 
-							auto baseSlab = slabs->size();
+							auto baseSlab = slabs.size();
 							for (unsigned int k = 0; k < brush->numsides; ++k)
 							{
 								Game::IW4::TriggerSlab curSlab;
@@ -455,11 +476,11 @@ namespace Components
 								curSlab.halfSize = brush->sides[k].plane->dist;
 								curSlab.midPoint = 0.0f; // ??
 
-								slabs->push_back(curSlab);
+								slabs.push_back(curSlab);
 							}
 
-							trigHull.firstSlab = (unsigned short)baseSlab;
-							trigHull.slabCount = (unsigned short)(slabs->size() - baseSlab);
+							trigHull.firstSlab = static_cast<unsigned short>(baseSlab);
+							trigHull.slabCount = static_cast<unsigned short>(slabs.size() - baseSlab);
 						}
 					}
 
@@ -468,14 +489,12 @@ namespace Components
 				}
 
 				// Save slabs
-				buffer.save(slabs->size());
-				for (unsigned int i = 0; i < slabs->size(); i++)
+				buffer.save(slabs.size());
+				for (unsigned int i = 0; i < slabs.size(); i++)
 				{
-					Game::IW4::TriggerSlab slab = (*slabs)[i];
+					Game::IW4::TriggerSlab slab = slabs[i];
 					buffer.saveObject(slab);
 				}
-
-				delete slabs;
 			}
 		}
 
@@ -494,9 +513,186 @@ namespace Components
 		AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_MAP_ENTS, { clipMap->mapEnts });
 	}
 
+	void IclipMap_t::addCarePackagesToMap(Game::IW3::clipMap_t* clipMap, Utils::Memory::Allocator& allocator)
+	{
+		const auto brushIndex = clipMap->numBrushes;
+		const auto brushNodeIndex = clipMap->leafbrushNodesCount;
+		const auto brushEdgeIndex = clipMap->numBrushEdges;
+		const auto materialIndex = clipMap->numMaterials;
+		const auto cModelIndex = clipMap->numSubModels;
+
+		// Materials
+		constexpr auto matSize = sizeof(Game::IW3::dmaterial_t);
+		auto reallocatedDMaterials = allocator.allocateArray<Game::IW3::dmaterial_t>(clipMap->numMaterials + 1);
+
+		memcpy_s(reallocatedDMaterials, clipMap->numMaterials * matSize, clipMap->materials, clipMap->numMaterials * matSize);
+
+		// Add the care package material
+		auto dmat = &reallocatedDMaterials[clipMap->numMaterials];
+		dmat->contentFlags = 134420032;
+		dmat->surfaceFlags = 13910176;
+
+		constexpr auto matName = "clip_nosight_metal";
+		memcpy_s(dmat->material, 64, matName, strnlen(matName, 64));
+
+		clipMap->numMaterials++;
+		clipMap->materials = reallocatedDMaterials;
+
+		// Brush edges
+		auto reallocatedBrushEdges = allocator.allocateArray<char>(clipMap->numBrushEdges + 1);
+		memcpy_s(reallocatedBrushEdges, clipMap->numBrushEdges, clipMap->brushEdges, clipMap->numBrushEdges);
+		reallocatedBrushEdges[brushEdgeIndex] = 2;
+
+		//Redirect pointers
+		unsigned int offset = reinterpret_cast<unsigned int>(reallocatedBrushEdges) - reinterpret_cast<unsigned int>(clipMap->brushEdges);
+		for (size_t i = 0; i < clipMap->numBrushes; i++)
+		{
+			auto oldValue = *clipMap->brushes[i].baseAdjacentSide;
+
+			clipMap->brushes[i].baseAdjacentSide = reinterpret_cast<char*>(reinterpret_cast<int>(clipMap->brushes[i].baseAdjacentSide) + offset);
+
+			if (*clipMap->brushes[i].baseAdjacentSide != oldValue)
+			{
+				// Something wrong happened and i have no idea if this is normal behaviour or not
+				if (*clipMap->brushes[i].edgeCount[0] == 0 && *clipMap->brushes[i].edgeCount[1] == 0)
+				{
+					clipMap->brushes[i].baseAdjacentSide = reallocatedBrushEdges;
+				}
+				else 
+				{
+					// Okay this is definitely wrong
+					assert(false);
+				}
+
+			}
+		}
+
+		clipMap->brushEdges = reallocatedBrushEdges;
+		clipMap->numBrushEdges++;
+
+		// Leaf Brush node
+		constexpr auto lbnSize = sizeof(Game::IW3::cLeafBrushNode_s);
+
+		auto reallocatedBrushNodes = allocator.allocateArray<Game::IW3::cLeafBrushNode_s>(clipMap->leafbrushNodesCount + 1);
+		memcpy_s(reallocatedBrushNodes, clipMap->leafbrushNodesCount * lbnSize, clipMap->leafbrushNodes, clipMap->leafbrushNodesCount * lbnSize);
+
+		// We add the care package brush node !
+		Game::IW3::cLeafBrushNode_s carePackageBrushNode;
+		carePackageBrushNode.axis = 0;
+		carePackageBrushNode.leafBrushCount = 1;
+		carePackageBrushNode.contents = 134420032;
+		carePackageBrushNode.data.leaf.brushes = allocator.allocate<unsigned short>();
+		*carePackageBrushNode.data.leaf.brushes = brushIndex;
+
+		reallocatedBrushNodes[clipMap->leafbrushNodesCount] = carePackageBrushNode;
+
+		clipMap->leafbrushNodesCount++;
+		clipMap->leafbrushNodes = reallocatedBrushNodes;
+
+
+		// CModels
+		constexpr auto cmodelSize = sizeof(Game::IW3::cmodel_t);
+
+		auto reallocatedCModels = allocator.allocateArray<Game::IW3::cmodel_t>(clipMap->numSubModels + 2);
+		memcpy_s(reallocatedCModels, clipMap->numSubModels * cmodelSize, clipMap->cmodels, clipMap->numSubModels * cmodelSize);
+
+		// We add the two care packages we added in GfxWorld
+		for (size_t i = 0; i < 2; i++)
+		{
+			Game::IW3::cmodel_t model;
+			Game::IW4::Bounds bounds = makeCarePackageBounds();
+
+			model.radius = 47.f;
+			bounds.min(model.mins);
+			bounds.max(model.maxs);
+
+			model.leaf.firstCollAabbIndex = static_cast<unsigned short>(clipMap->aabbTreeCount); // This is invalid, but this is how rust does it!
+			model.leaf.collAabbCount = 0;
+			model.leaf.brushContents = 134420032;
+			model.leaf.terrainContents = 0;
+
+			// Had to be slightly smaller
+			bounds.halfSize[0] *= 0.95f;
+			bounds.halfSize[1] *= 0.95f;
+			bounds.halfSize[2] *= 0.95f;
+
+			bounds.min(model.leaf.mins);
+			bounds.max(model.leaf.maxs);
+
+			model.leaf.leafBrushNode = brushNodeIndex;
+			reallocatedCModels[cModelIndex + i] = model;
+		}
+
+		clipMap->numSubModels += 2;
+		clipMap->cmodels = reallocatedCModels;
+
+		// Brushes
+		constexpr auto brushSize = sizeof(Game::IW3::cbrush_t);
+
+		auto reallocatedBrushes = allocator.allocateArray<Game::IW3::cbrush_t>(clipMap->numBrushes + 1);
+		memcpy_s(reallocatedBrushes, clipMap->numBrushes * brushSize, clipMap->brushes, clipMap->numBrushes * brushSize);
+
+		auto bounds = makeCarePackageBounds();
+		Game::IW3::cbrush_t carePackageBrush;
+		carePackageBrush.numsides = 0;
+		carePackageBrush.baseAdjacentSide = &clipMap->brushEdges[brushEdgeIndex];
+		carePackageBrush.contents = 134420032;
+		carePackageBrush.sides = nullptr;
+		bounds.min(carePackageBrush.mins);
+		bounds.max(carePackageBrush.maxs);
+
+		for (int x = 0; x < 2; ++x)
+		{
+			for (int y = 0; y < 3; ++y)
+			{
+				carePackageBrush.axialMaterialNum[x][y] = static_cast<short>(materialIndex);
+			}
+		}
+
+		constexpr short adjacentSideOffset[][3] = { {0,0,0}, {4, 12, 20} };
+		for (int x = 0; x < 2; ++x)
+		{
+			for (int y = 0; y < 3; ++y)
+			{
+				// firstAdjacentSideOffsets
+				carePackageBrush.firstAdjacentSideOffsets[x][y] = adjacentSideOffset[x][y];
+			}
+		}
+
+		constexpr char edgeCounts[] = { 4, 4, 4 };
+		for (int x = 0; x < 2; ++x)
+		{
+			for (int y = 0; y < 3; ++y)
+			{
+				// edgeCount
+				carePackageBrush.edgeCount[x][y] = edgeCounts[y];
+			}
+		}
+
+		reallocatedBrushes[brushIndex] = carePackageBrush;
+
+		clipMap->brushes = reallocatedBrushes;
+		clipMap->numBrushes++;
+	}
+
+	Game::IW4::Bounds IclipMap_t::makeCarePackageBounds()
+	{
+		Game::IW4::Bounds bounds;
+
+		bounds.midPoint[0] = -1.0f;
+		bounds.midPoint[1] = -0.045f;
+		bounds.midPoint[2] = -0.5f;
+
+		bounds.halfSize[0] = 30.0f;
+		bounds.halfSize[1] = 17.75f;
+		bounds.halfSize[2] = 16.0f;
+
+		return bounds;
+	}
+
 	IclipMap_t::IclipMap_t()
 	{
-		Command::Add("dumpclipMap_t", [](Command::Params params)
+		Command::Add("dumpclipMap_t", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
 				IclipMap_t::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]).clipMap);

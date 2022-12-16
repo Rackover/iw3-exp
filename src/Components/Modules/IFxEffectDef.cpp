@@ -49,6 +49,15 @@ namespace Components
 		{
 			if (visuals->material)
 			{
+				// We have to rename it because it gets otherwise shadowed by iw4!
+				
+				std::string matName = visuals->material->info.name;
+				if (!matName.ends_with(IMaterialTechniqueSet::techsetSuffix))
+				{
+					matName += IMaterialTechniqueSet::techsetSuffix;
+					visuals->material->info.name = Utils::Memory::DuplicateString(matName);
+				}
+
 				buffer->saveString(visuals->material->info.name);
 				AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_MATERIAL, { visuals->material });
 			}
@@ -215,9 +224,9 @@ namespace Components
 			std::memcpy(elemDef, srcElemDef, sizeof(Game::IW4::FxElemDef));
 			elemDef->bounds.compute(srcElemDef->collMins, srcElemDef->collMaxs);
 			
-			if(elemDef->elemType >= Game::IW3::FX_ELEM_TYPE_MODEL)
+			if(srcElemDef->elemType >= Game::IW3::FX_ELEM_TYPE_MODEL)
 			{
-				elemDef->elemType += 2;
+				elemDef->elemType = static_cast<Game::IW4::FxElemType>(static_cast<int>(elemDef->elemType) + 2);
 			}
 
 			if (elemDef->trailDef)

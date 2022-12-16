@@ -124,16 +124,4 @@ namespace Utils
 		this->toBuffer(outBuffer);
 		return outBuffer;
 	}
-
-	void Stream::storePointer(void* pointer)
-	{
-		if (hasPointer(pointer)) throw new std::runtime_error("Pointer already stored!");
-		this->pointers.push_back(pointer);
-		this->saveObject(pointer);
-	}
-
-	bool Stream::hasPointer(void* pointer)
-	{
-		return std::find(this->pointers.begin(), this->pointers.end(), pointer) != this->pointers.end();
-	}
 }

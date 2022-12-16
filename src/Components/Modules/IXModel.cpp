@@ -1,6 +1,6 @@
 #include "STDInclude.hpp"
 
-#define IW4X_MODEL_VERSION 5
+#define IW4X_MODEL_VERSION 8
 
 using namespace std::literals;
 
@@ -8,7 +8,7 @@ static_assert(sizeof(Game::IW3::XModel) == 220, "Size of XModel is invalid!");
 
 namespace Components
 {
-	std::vector<std::string> IXModel::savedModels = std::vector<std::string>();
+	std::unordered_set<std::string> IXModel::alreadySavedModels = std::unordered_set<std::string>();
 
 	void IXModel::SaveXSurfaceCollisionTree(Game::IW3::XSurfaceCollisionTree* entry, Utils::Stream* buffer)
 	{
@@ -16,12 +16,12 @@ namespace Components
 
 		if (entry->nodes)
 		{
-			buffer->saveArray(entry->nodes, entry->nodeCount);
+			buffer->saveArrayIfNotExisting(entry->nodes, entry->nodeCount);
 		}
 
 		if (entry->leafs)
 		{
-			buffer->saveArray(entry->leafs, entry->leafCount);
+			buffer->saveArrayIfNotExisting(entry->leafs, entry->leafCount);
 		}
 	}
 
@@ -29,19 +29,19 @@ namespace Components
 	{
 		if (surf->vertInfo.vertsBlend)
 		{
-			buffer->saveArray(surf->vertInfo.vertsBlend, surf->vertInfo.vertCount[0] + (surf->vertInfo.vertCount[1] * 3) + (surf->vertInfo.vertCount[2] * 5) + (surf->vertInfo.vertCount[3] * 7));
+			buffer->saveArrayIfNotExisting(surf->vertInfo.vertsBlend, surf->vertInfo.vertCount[0] + (surf->vertInfo.vertCount[1] * 3) + (surf->vertInfo.vertCount[2] * 5) + (surf->vertInfo.vertCount[3] * 7));
 		}
 
 		// Access vertex block
 		if (surf->verts0)
 		{
-			buffer->saveArray(surf->verts0, surf->vertCount);
+			buffer->saveArrayIfNotExisting(surf->verts0, surf->vertCount);
 		}
 
 		// Save_XRigidVertListArray
 		if (surf->vertList)
 		{
-			buffer->saveArray(surf->vertList, surf->vertListCount);
+			buffer->saveArrayIfNotExisting(surf->vertList, surf->vertListCount);
 
 			for (unsigned int i = 0; i < surf->vertListCount; ++i)
 			{
@@ -57,7 +57,7 @@ namespace Components
 		// Access index block
 		if (surf->triIndices)
 		{
-			buffer->saveArray(surf->triIndices, surf->triCount * 3);
+			buffer->saveArrayIfNotExisting(surf->triIndices, surf->triCount * 3);
 		}
 	}
 
@@ -72,7 +72,7 @@ namespace Components
 
 		if (asset->surfaces)
 		{
-			buffer->saveArray(asset->surfaces, asset->numSurfaces);
+			buffer->saveArrayIfNotExisting(asset->surfaces, asset->numSurfaces);
 
 			for (int i = 0; i < asset->numSurfaces; ++i)
 			{
@@ -104,27 +104,27 @@ namespace Components
 
 		if (asset->parentList)
 		{
-			buffer.saveArray(asset->parentList, asset->numBones - asset->numRootBones);
+			buffer.saveArrayIfNotExisting(asset->parentList, asset->numBones - asset->numRootBones);
 		}
 
 		if (asset->quats)
 		{
-			buffer.saveArray(asset->quats, (asset->numBones - asset->numRootBones) * 4);
+			buffer.saveArrayIfNotExisting(asset->quats, (asset->numBones - asset->numRootBones) * 4);
 		}
 
 		if (asset->trans)
 		{
-			buffer.saveArray(asset->trans, (asset->numBones - asset->numRootBones) * 3);
+			buffer.saveArrayIfNotExisting(asset->trans, (asset->numBones - asset->numRootBones) * 3);
 		}
 
 		if (asset->partClassification)
 		{
-			buffer.saveArray(asset->partClassification, asset->numBones);
+			buffer.saveArrayIfNotExisting(asset->partClassification, asset->numBones);
 		}
 
 		if (asset->baseMat)
 		{
-			buffer.saveArray(asset->baseMat, asset->numBones);
+			buffer.saveArrayIfNotExisting(asset->baseMat, asset->numBones);
 		}
 
 		if (asset->materialHandles)
@@ -251,14 +251,13 @@ namespace Components
 	{
 		if (!model) return;
 
-		if (std::find(IXModel::savedModels.begin(), IXModel::savedModels.end(), model->name) != IXModel::savedModels.end()) {
+		if (IXModel::alreadySavedModels.contains(model->name)) {
 			// Already saved!
 			return;
 		};
 
-		Components::Logger::Print("Dumping model %s\n", model->name);
+		IXModel::alreadySavedModels.emplace(model->name);
 
-		IXModel::savedModels.push_back(model->name);
 
 		Utils::Memory::Allocator allocator;
 
@@ -283,7 +282,11 @@ namespace Components
 
 		for (int i = 0; i < 4; ++i)
 		{
+#if EXTEND_CULLING
 			xmodel.lodInfo[i].dist = model->lodInfo[i].dist * 1.5f; // LOD distance is increased so that the maps look nicer in iw4
+#else
+			xmodel.lodInfo[i].dist = model->lodInfo[i].dist;
+#endif
 			xmodel.lodInfo[i].numsurfs = model->lodInfo[i].numsurfs;
 			xmodel.lodInfo[i].surfIndex = model->lodInfo[i].surfIndex;
 
@@ -318,6 +321,14 @@ namespace Components
 					target->verts0 = source->verts0;
 					target->vertListCount = source->vertListCount;
 					target->vertList = source->vertList;
+
+					if (i != xmodel.collLod) 
+					{
+						for (size_t k = 0; k < target->vertListCount; k++)
+						{
+							target->vertList[k].collisionTree = nullptr; // Only collod is used
+						}
+					}
 
 					// 6 vs 4 part bit elements
 					std::memcpy(target->partBits, source->partBits, sizeof(source->partBits));
@@ -482,7 +493,7 @@ namespace Components
 	IXModel::IXModel()
 	{
 
-		Command::Add("dumpXModel", [](Command::Params params)
+		Command::Add("dumpXModel", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
 				IXModel::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, params[1]).model);

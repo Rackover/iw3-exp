@@ -31,7 +31,8 @@ namespace Utils
 		std::ofstream destructiblesModelList;
 
 		if (includeDestructibles) {
-			destructiblesModelList.open(Utils::VA("%s/VEHICLES_XMODELS", Components::AssetHandler::GetExportPath().data()));
+			const auto path = Components::GSC::GetAdditionalModelsListPath();
+			destructiblesModelList.open(path);
 		}
 
 		for (auto& entity : this->entities)
@@ -40,7 +41,10 @@ namespace Utils
 			{
 				std::string model = entity["model"];
 
-				if (!model.empty() && model[0] != '*' && model[0] != '?') // Skip brushmodels
+				if (!model.empty()
+					&& model[0] != '*' && model[0] != '?'  // Skip brushmodels
+					&& model != "com_plasticcase_green_big_us_dirt"s // Skip care package (part of team zones)
+					)
 				{
 					if (std::find(models->begin(), models->end(), model) == models->end())
 					{
@@ -54,8 +58,9 @@ namespace Utils
 
 					// Then we need to fetch the destructible models
 					// This is TERRIBLE but it works. Ideally we should be able to grab the destructible models from the modelpieces DynEnts list (see iGFXWorld.cpp) but it doesn't work :(
-					Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_XMODEL, [destructible, models, &destructiblesModelList](Game::IW3::XAssetEntry* entry)
+					Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_XMODEL, [destructible, models, &destructiblesModelList](Game::IW3::XAssetEntryPoolEntry* poolEntry)
 						{
+							auto entry = &poolEntry->entry;
 							if (entry->inuse == 1 && entry->asset.header.model) {
 								if (std::string(entry->asset.header.model->name).find(destructible) != std::string::npos) {
 									std::string model = entry->asset.header.model->name;
@@ -86,7 +91,9 @@ namespace Utils
 		{
 			if (entity.find("classname") != entity.end())
 			{
-				if (entity["targetname"] == "destructible"s && Utils::StartsWith(entity["destructible_type"], "vehicle"s))
+				if (entity.find("targetname") != entity.end() &&
+					entity["targetname"] == "destructible"s && 
+					Utils::StartsWith(entity["destructible_type"], "vehicle"s))
 				{
 					entity["targetname"] = "destructible_vehicle";
 					entity["sound_csv_include"] = "vehicle_car_exp";
@@ -99,24 +106,73 @@ namespace Utils
 		return hasVehicles;
 	}
 
-	void Entities::deleteTriggers()
+	void Entities::addCarePackages()
 	{
-		for (auto i = this->entities.begin(); i != this->entities.end();)
-		{
-			if (i->find("classname") != i->end())
-			{
-				std::string classname = (*i)["classname"];
-				if (Utils::StartsWith(classname, "trigger_"))
-				{
-					i = this->entities.erase(i);
-					Components::Logger::Print("Erased trigger %s from map ents\n", (*i)["targetname"].c_str());
-					continue;
-				}
-			}
+        auto subModelCount = 0;
 
-			++i;
-		}
-	}
+        // We don't have a clipmap reference, so 
+        Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, [&subModelCount](Game::IW3::XAssetEntryPoolEntry* poolEntry) {
+            auto entry = &poolEntry->entry;
+            if (entry && entry->asset.header.clipMap && subModelCount == 0)
+            {
+                // A clipmap is loaded, we may add the care packages
+                auto clipMap = entry->asset.header.clipMap;
+
+                subModelCount = clipMap->numSubModels;
+            }
+            }, false);
+
+
+        if (subModelCount > 0)
+        {
+            // The last two static models will always be the care packages if we added them ourselves
+            auto countWithoutPackages = subModelCount - 2;
+
+            // All values here taken from mp_rust
+            std::unordered_map<std::string, std::string> airdropPalletBrushModel =
+            {
+                {    "script_gameobjectname",    "airdrop_pallet"},
+                {    "targetname",               "iw3x_entity_carepackage"},
+                {    "classname",                "script_brushmodel"},
+                {    "origin",                   "-5072 6560 858"},
+                {    "model",                    "*" + std::to_string(countWithoutPackages) }
+            };
+
+            std::unordered_map<std::string, std::string> airdropPalletScriptModel =
+            {
+                {    "ltOrigin",                 "-5072 6560.19 872.889"},
+                {    "target",                   "iw3x_entity_carepackage"},
+                {    "targetname",               "airdrop_crate"},
+                {    "origin",                   "-5072 6560 858"},
+                {    "classname",                "script_model"},
+                {    "model",                    "com_plasticcase_green_big_us_dirt"}
+            };
+
+            std::unordered_map<std::string, std::string> carePackageBrushModel =
+            {
+                {    "script_gameobjectname",    "airdrop_pallet"},
+                {    "targetname",               "iw3x_entity_airdroppallet"},
+                {    "classname",                "script_brushmodel"},
+                {    "origin",                   "250 325 -299"},
+                {    "model",                    "*" + std::to_string(countWithoutPackages + 1) }
+            };
+
+            std::unordered_map<std::string, std::string> carePackageScriptModel =
+            {
+                {    "ltOrigin",                 "249.7 324.886 -299.611"},
+                {    "target",                   "iw3x_entity_carepackage"},
+                {    "targetname",               "care_package"},
+                {    "origin",                   "249.7 324.7 -314.5"},
+                {    "classname",                "script_model"},
+                {    "model",                    "com_plasticcase_green_big_us_dirt"}
+            };
+
+            entities.push_back(airdropPalletBrushModel);
+            entities.push_back(airdropPalletScriptModel);
+            entities.push_back(carePackageBrushModel);
+            entities.push_back(carePackageScriptModel);
+        }
+    }
 
 	bool Entities::convertTurrets()
 	{
@@ -138,7 +194,36 @@ namespace Utils
 		return hasTurrets;
 	}
 
+	void Entities::addRemovedSModels()
+	{
+		const std::string mapName = Components::MapDumper::GetMapName();
+		const std::string bspName = Utils::VA("maps/mp/%s.d3dbsp", mapName.data());
+		const auto header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFXWORLD, bspName.data());
 
+		if (header.gfxWorld) {
+			for (auto index : Components::IGfxWorld::removedStaticModelIndices)
+			{
+				auto drawInst = &header.gfxWorld->dpvs.smodelDrawInsts[index];
+
+				Game::vec3_t angles{};
+				Game::AxisToAngles(&angles, drawInst->placement.axis);
+				const std::string origin = Utils::VA("%f %f %f", drawInst->placement.origin[0], drawInst->placement.origin[1], drawInst->placement.origin[2]);
+				const std::string anglesStr = Utils::VA("%f %f %f", angles[0], angles[1], angles[2]);
+
+				std::unordered_map<std::string, std::string> scriptModelEntity =
+				{
+                    {    "_comment",                 "added by iw3xport"},
+                    {    "classname",                "script_model"},
+                    {    "ltOrigin",                 origin},
+                    {    "origin",                   origin},
+                    {    "angles",                   anglesStr},
+                    {    "model",                    drawInst->model->name }
+				};
+
+				entities.push_back(scriptModelEntity);
+			}
+		}
+	}
 
 	void Entities::deleteOldSchoolPickups()
 	{

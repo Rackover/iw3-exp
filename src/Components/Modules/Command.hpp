@@ -12,14 +12,14 @@ namespace Components
 			Params(const Params &obj) { this->CommandId = obj.CommandId; };
 			Params() : Params(*Game::cmd_id) {};
 
-			const char* operator[](size_t index);
-			size_t Length();
+			const char* operator[](size_t index) const;
+			size_t Length() const;
 
 		private:
 			DWORD CommandId;
 		};
 
-		typedef void(Callback)(Command::Params params);
+		typedef void(Callback)(const Command::Params& params);
 
 		Command();
 		~Command();

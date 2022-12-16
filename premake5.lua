@@ -97,25 +97,19 @@ workspace "iw3-exp"
 	project "iw3x"
 		kind "SharedLib"
 		language "C++"
+		cppdialect  "C++20"
+	
 		files {
 			"./src/**.rc",
 			"./src/**.hpp",
 			"./src/**.cpp",
 		}
-		links { "json11" }
 		includedirs {
 			"%{prj.location}/src",
 			"./src",
 			
-			"./deps/json11", 
+			"./deps/rapidjson/include"
 		}
-		links { "s3tc-dxt-decompression" }
-        includedirs {
-            "%{prj.location}/src",
-            "./src",
-            
-            "./deps/s3tc-dxt-decompression", 
-        }
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE
 		}
@@ -159,40 +153,3 @@ workspace "iw3-exp"
 		configuration "Release"
 			flags { "FatalCompileWarnings" }
 		configuration {}
-
-	group "External dependencies"
-
-		-- json11
-		project "json11"
-			language "C++"
-
-			files
-			{
-				"./deps/json11/*.cpp",
-				"./deps/json11/*.hpp"
-			}
-			
-			-- remove dropbox's testing code
-			removefiles { "./deps/json11/test.cpp" }
-
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			-- always build as static lib, as json11 doesn't export anything
-			kind "StaticLib"
-			
-		-- s3tc-dxt-decompression
-        project "s3tc-dxt-decompression"
-            language "C++"
-
-            files
-            {
-                "./deps/s3tc-dxt-decompression/*.cpp",
-                "./deps/s3tc-dxt-decompression/*.h"
-            }
-                
-			-- not our code, ignore POSIX usage warnings for now
-			warnings "Off"
-
-			-- always build as static lib, as json11 doesn't export anything
-			kind "StaticLib"

@@ -5,7 +5,7 @@ namespace Components
 	std::vector<Game::cmd_function_s*> Command::Functions;
 	std::map<std::string, Utils::Slot<Command::Callback>> Command::FunctionMap;
 
-	const char* Command::Params::operator[](size_t index)
+	const char* Command::Params::operator[](size_t index) const
 	{
 		if (index >= this->Length()) 
 		{
@@ -15,7 +15,7 @@ namespace Components
 		return Game::cmd_argv[this->CommandId][index];
 	}
 
-	size_t Command::Params::Length()
+	size_t Command::Params::Length() const
 	{
 		return Game::cmd_argc[this->CommandId];
 	}
