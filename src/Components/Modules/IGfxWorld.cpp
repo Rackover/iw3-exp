@@ -407,8 +407,6 @@ namespace Components
 				}
 			}
 		}
-
-		printf("");
 	}
 
 	void IGfxWorld::SaveConvertedWorld(Game::IW4::GfxWorld* asset)

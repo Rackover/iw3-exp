@@ -565,8 +565,6 @@ namespace Components
 				}
 
 			}
-
-			printf("");
 		}
 
 		clipMap->brushEdges = reallocatedBrushEdges;
