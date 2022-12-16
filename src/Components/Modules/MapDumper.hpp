@@ -8,6 +8,7 @@ namespace Components
 		const char* getName() override { return "MapDumper"; };
 
 		static std::string GetMapName();
+		static int GetZoneIndex();
 
 		MapDumper();
 		~MapDumper();
@@ -17,5 +18,6 @@ namespace Components
 		static void DumpLoadedGSCs(std::string mapName);
 
 		static std::string mapName;
+		static int zoneIndex;
 	};
 }

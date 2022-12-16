@@ -12,8 +12,12 @@ namespace Components
 		Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS; };
 		void dump(Game::IW3::XAssetHeader header) override { Dump(header.clipMap); };
 
+		static Game::IW4::Bounds makeCarePackageBounds();
+
 	private:
 		static void Dump(Game::IW3::clipMap_t* clipmap);
+		static void addCarePackagesToMap(Game::IW3::clipMap_t* clipMap, Utils::Memory::Allocator& allocator);
 		static Game::IW4::SModelAabbNode* BuildSModelNodes(Utils::Memory::Allocator* allocator, Game::IW3::clipMap_t* clipMap, unsigned short* size);
+
 	};
 }

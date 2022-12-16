@@ -56,6 +56,51 @@ namespace Game
 		ASSET_TYPE_ASSETLIST = 0x22,
 	};
 
+	enum TextureSemantic : char
+	{
+		TS_2D = 0x0,
+		TS_FUNCTION = 0x1,
+		TS_COLOR_MAP = 0x2,
+		TS_DETAIL_MAP = 0x3,
+		TS_UNUSED_2 = 0x4,
+		TS_NORMAL_MAP = 0x5,
+		TS_UNUSED_3 = 0x6,
+		TS_UNUSED_4 = 0x7,
+		TS_SPECULAR_MAP = 0x8,
+		TS_UNUSED_5 = 0x9,
+		TS_UNUSED_6 = 0xA,
+		TS_WATER_MAP = 0xB,
+	};
+
+	enum GfxImageCategory : char
+	{
+		IMG_CATEGORY_UNKNOWN = 0x0,
+		IMG_CATEGORY_AUTO_GENERATED = 0x1,
+		IMG_CATEGORY_LIGHTMAP = 0x2,
+		IMG_CATEGORY_LOAD_FROM_FILE = 0x3,
+		IMG_CATEGORY_RAW = 0x4,
+		IMG_CATEGORY_FIRST_UNMANAGED = 0x5,
+		IMG_CATEGORY_WATER = 0x5,
+		IMG_CATEGORY_RENDERTARGET = 0x6,
+		IMG_CATEGORY_TEMP = 0x7,
+	};
+
+
+	enum MaterialShaderArgumentType : unsigned __int16
+	{
+		MTL_ARG_MATERIAL_VERTEX_CONST = 0x0,
+		MTL_ARG_LITERAL_VERTEX_CONST = 0x1,
+		MTL_ARG_MATERIAL_PIXEL_SAMPLER = 0x2,
+		MTL_ARG_CODE_PRIM_BEGIN = 0x3,
+		MTL_ARG_CODE_VERTEX_CONST = 0x3,
+		MTL_ARG_CODE_PIXEL_SAMPLER = 0x4,
+		MTL_ARG_CODE_PIXEL_CONST = 0x5,
+		MTL_ARG_CODE_PRIM_END = 0x6,
+		MTL_ARG_MATERIAL_PIXEL_CONST = 0x6,
+		MTL_ARG_LITERAL_PIXEL_CONST = 0x7,
+		MTL_ARG_COUNT = 0x8,
+	};
+
 	enum GfxImageFileFormat
 	{
 		IMG_FORMAT_INVALID = 0x0,
@@ -87,11 +132,11 @@ namespace Game
 	struct MaterialGameFlagsFields
 	{
 		unsigned char unk1 : 1;
-		unsigned char unk2 : 1;
-		unsigned char unk3 : 1;
+		unsigned char addShadowToPrimaryLight : 1;
+		unsigned char isFoliageRequiresGroundLighting : 1;
 		unsigned char unk4 : 1;
 		unsigned char unk5 : 1;
-		unsigned char unk6 : 1;
+		unsigned char delayModelSurface : 1;
 		unsigned char unk7 : 1;
 		unsigned char unk8 : 1;
 	};
@@ -192,6 +237,11 @@ namespace Game
 	namespace IW3
 	{
 #endif
+		enum StaticModelFlag : char
+		{
+			STATIC_MODEL_FLAG_NO_SHADOW = 0x1,
+		};
+
 		enum SndChannel
 		{
 			SND_CHANNEL_PHYSICS,
@@ -278,13 +328,13 @@ namespace Game
 			GfxTexture texture;
 			Picmip picmip;
 			bool noPicmip;
-			char semantic;
+			TextureSemantic semantic;
 			char track;
 			CardMemory cardMemory;
 			unsigned __int16 width;
 			unsigned __int16 height;
 			unsigned __int16 depth;
-			char category;
+			GfxImageCategory category;
 			bool delayLoadPixels;
 			const char *name;
 		};
@@ -330,11 +380,19 @@ namespace Game
 			int fileSizeForPicmip[4];
 		};
 
+		enum GfxRenderer : unsigned __int16
+		{
+			GFX_RENDERER_SHADER_2 = 0x0,
+			GFX_RENDERER_SHADER_3 = 0x1,
+			GFX_RENDERER_COUNT = 0x2,
+			GFX_RENDERER_UNSPECIFIED = 0x2,
+		};
+
         struct GfxVertexShaderLoadDef
         {
             unsigned int *program;
             unsigned __int16 programSize;
-            unsigned __int16 loadForRenderer;
+			GfxRenderer loadForRenderer;
         };
 
         struct MaterialVertexShaderProgram
@@ -349,12 +407,11 @@ namespace Game
             MaterialVertexShaderProgram prog;
         };
 
-
         struct GfxPixelShaderLoadDef
         {
             unsigned int *program;
             unsigned __int16 programSize;
-            unsigned __int16 loadForRenderer;
+			GfxRenderer loadForRenderer;
         };
 
         struct MaterialPixelShaderProgram
@@ -376,9 +433,96 @@ namespace Game
 			vec4_t literal;
 		};
 
-		struct GfxStateBits
+
+		enum GfxSurfaceStatebitOp0 : unsigned int
 		{
-		  unsigned int loadBits[2];
+			GFXS0_SRCBLEND_RGB_SHIFT = 0x0,
+			GFXS0_SRCBLEND_RGB_MASK = 0xF,
+			GFXS0_DSTBLEND_RGB_SHIFT = 0x4,
+			GFXS0_DSTBLEND_RGB_MASK = 0xF0,
+			GFXS0_BLENDOP_RGB_SHIFT = 0x8,
+			GFXS0_BLENDOP_RGB_MASK = 0x700,
+			GFXS0_BLEND_RGB_MASK = 0x7FF,
+			GFXS0_ATEST_DISABLE = 0x800,
+			GFXS0_ATEST_GT_0 = 0x1000,
+			GFXS0_ATEST_LT_128 = 0x2000,
+			GFXS0_ATEST_GE_128 = 0x3000,
+			GFXS0_ATEST_MASK = 0x3000,
+			GFXS0_CULL_SHIFT = 0xE,
+			GFXS0_CULL_NONE = 0x4000,
+			GFXS0_CULL_BACK = 0x8000,
+			GFXS0_CULL_FRONT = 0xC000,
+			GFXS0_CULL_MASK = 0xC000,
+			GFXS0_SRCBLEND_ALPHA_SHIFT = 0x10,
+			GFXS0_SRCBLEND_ALPHA_MASK = 0xF0000,
+			GFXS0_DSTBLEND_ALPHA_SHIFT = 0x14,
+			GFXS0_DSTBLEND_ALPHA_MASK = 0xF00000,
+			GFXS0_BLENDOP_ALPHA_SHIFT = 0x18,
+			GFXS0_BLENDOP_ALPHA_MASK = 0x7000000,
+			GFXS0_BLEND_ALPHA_MASK = 0x7FF0000,
+			GFXS0_COLORWRITE_RGB = 0x8000000,
+			GFXS0_COLORWRITE_ALPHA = 0x10000000,
+			GFXS0_COLORWRITE_MASK = 0x18000000,
+			GFXS0_POLYMODE_LINE = 0x80000000
+		};
+
+		enum GfxSurfaceStatebitOp1 : unsigned int
+		{
+			GFXS1_DEPTHWRITE = 0x1,
+			GFXS1_DEPTHTEST_DISABLE = 0x2,
+			GFXS1_DEPTHTEST_SHIFT = 0x2,
+			GFXS1_DEPTHTEST_ALWAYS = 0x0,
+			GFXS1_DEPTHTEST_LESS = 0x4,
+			GFXS1_DEPTHTEST_EQUAL = 0x8,
+			GFXS1_DEPTHTEST_LESSEQUAL = 0xC,
+			GFXS1_DEPTHTEST_MASK = 0xC,
+			GFXS1_POLYGON_OFFSET_SHIFT = 0x4,
+			GFXS1_POLYGON_OFFSET_0 = 0x0,
+			GFXS1_POLYGON_OFFSET_1 = 0x10,
+			GFXS1_POLYGON_OFFSET_2 = 0x20,
+			GFXS1_POLYGON_OFFSET_SHADOWMAP = 0x30,
+			GFXS1_POLYGON_OFFSET_MASK = 0x30,
+			GFXS1_STENCIL_FRONT_ENABLE = 0x40,
+			GFXS1_STENCIL_BACK_ENABLE = 0x80,
+			GFXS1_STENCIL_MASK = 0xC0,
+			GFXS1_STENCIL_FRONT_PASS_SHIFT = 0x8,
+			GFXS1_STENCIL_FRONT_FAIL_SHIFT = 0xB,
+			GFXS1_STENCIL_FRONT_ZFAIL_SHIFT = 0xE,
+			GFXS1_STENCIL_FRONT_FUNC_SHIFT = 0x11,
+			GFXS1_STENCIL_FRONT_MASK = 0xFFF00,
+			GFXS1_STENCIL_BACK_PASS_SHIFT = 0x14,
+			GFXS1_STENCIL_BACK_FAIL_SHIFT = 0x17,
+			GFXS1_STENCIL_BACK_ZFAIL_SHIFT = 0x1A,
+			GFXS1_STENCIL_BACK_FUNC_SHIFT = 0x1D,
+			GFXS1_STENCIL_BACK_MASK = 0xFFF00000,
+			GFXS1_STENCILFUNC_FRONTBACK_MASK = 0xE00E0000,
+			GFXS1_STENCILOP_FRONTBACK_MASK = 0x1FF1FF00,
+		};
+
+		enum GfxStencilOp
+		{
+			GFXS_STENCILOP_KEEP = 0x0,
+			GFXS_STENCILOP_ZERO = 0x1,
+			GFXS_STENCILOP_REPLACE = 0x2,
+			GFXS_STENCILOP_INCRSAT = 0x3,
+			GFXS_STENCILOP_DECRSAT = 0x4,
+			GFXS_STENCILOP_INVERT = 0x5,
+			GFXS_STENCILOP_INCR = 0x6,
+			GFXS_STENCILOP_DECR = 0x7,
+
+			GFXS_STENCILOP_COUNT,
+			GFXS_STENCILOP_MASK = 0x7
+		};
+
+		struct GfxStatebitsFlags {
+			GfxSurfaceStatebitOp0 loadbit0;
+			GfxSurfaceStatebitOp1 loadbit1;
+		};
+
+		union GfxStateBits
+		{
+			GfxStatebitsFlags flags;
+			int loadbits[2];
 		};
 
 		struct WaterWritable
@@ -435,7 +579,7 @@ namespace Game
 			char nameStart;
 			char nameEnd;
 			char samplerState;
-			char semantic;
+			TextureSemantic semantic;
 			MaterialTextureDefInfo u;
 		};
 
@@ -473,19 +617,9 @@ namespace Game
 			unsigned int nameHash;
 		};
 
-		/* MaterialShaderArgument->type */
-#define MTL_ARG_MATERIAL_VERTEX_CONST	0x0
-#define MTL_ARG_LITERAL_VERTEX_CONST	0x1
-#define MTL_ARG_MATERIAL_PIXEL_SAMPLER	0x2
-#define MTL_ARG_CODE_VERTEX_CONST	    0x3
-#define MTL_ARG_CODE_PIXEL_SAMPLER	    0x4
-#define MTL_ARG_CODE_PIXEL_CONST	    0x5
-#define MTL_ARG_MATERIAL_PIXEL_CONST	0x6
-#define MTL_ARG_LITERAL_PIXEL_CONST	    0x7
-
 		struct MaterialShaderArgument
 		{
-			unsigned __int16 type;
+			MaterialShaderArgumentType type;
 			unsigned __int16 dest;
 			MaterialArgumentDef u;
 		};
@@ -595,10 +729,65 @@ namespace Game
             CONST_SRC_NONE = 0x5B,
         };
 
+		enum GfxRenderTargetId
+		{
+			R_RENDERTARGET_SAVED_SCREEN = 0x0,
+			R_RENDERTARGET_FRAME_BUFFER = 0x1,
+			R_RENDERTARGET_SCENE = 0x2,
+			R_RENDERTARGET_RESOLVED_POST_SUN = 0x3,
+			R_RENDERTARGET_RESOLVED_SCENE = 0x4,
+			R_RENDERTARGET_FLOAT_Z = 0x5,
+			R_RENDERTARGET_DYNAMICSHADOWS = 0x6,
+			R_RENDERTARGET_PINGPONG_0 = 0x7,
+			R_RENDERTARGET_PINGPONG_1 = 0x8,
+			R_RENDERTARGET_SHADOWCOOKIE = 0x9,
+			R_RENDERTARGET_SHADOWCOOKIE_BLUR = 0xA,
+			R_RENDERTARGET_POST_EFFECT_0 = 0xB,
+			R_RENDERTARGET_POST_EFFECT_1 = 0xC,
+			R_RENDERTARGET_SHADOWMAP_SUN = 0xD,
+			R_RENDERTARGET_SHADOWMAP_SPOT = 0xE,
+			R_RENDERTARGET_COUNT = 0xF,
+			R_RENDERTARGET_NONE = 0x10,
+		};
+
+
+		enum MaterialStreamRoutingSource : unsigned char
+		{
+			STREAM_SRC_POSITION = 0x0,
+			STREAM_SRC_COLOR = 0x1,
+			STREAM_SRC_TEXCOORD_0 = 0x2,
+			STREAM_SRC_NORMAL = 0x3,
+			STREAM_SRC_TANGENT = 0x4,
+			STREAM_SRC_OPTIONAL_BEGIN = 0x5,
+			STREAM_SRC_PRE_OPTIONAL_BEGIN = 0x4,
+			STREAM_SRC_TEXCOORD_1 = 0x5,
+			STREAM_SRC_TEXCOORD_2 = 0x6,
+			STREAM_SRC_NORMAL_TRANSFORM_0 = 0x7,
+			STREAM_SRC_NORMAL_TRANSFORM_1 = 0x8,
+			STREAM_SRC_COUNT = 0x9,
+		};
+
+		enum MaterialStreamRoutingDestination : unsigned char
+		{
+			STREAM_DST_POSITION = 0x0,
+			STREAM_DST_NORMAL = 0x1,
+			STREAM_DST_COLOR_0 = 0x2,
+			STREAM_DST_COLOR_1 = 0x3,
+			STREAM_DST_TEXCOORD_0 = 0x4,
+			STREAM_DST_TEXCOORD_1 = 0x5,
+			STREAM_DST_TEXCOORD_2 = 0x6,
+			STREAM_DST_TEXCOORD_3 = 0x7,
+			STREAM_DST_TEXCOORD_4 = 0x8,
+			STREAM_DST_TEXCOORD_5 = 0x9,
+			STREAM_DST_TEXCOORD_6 = 0xA,
+			STREAM_DST_TEXCOORD_7 = 0xB,
+			STREAM_DST_COUNT = 0xC,
+		};
+
         struct MaterialStreamRouting
         {
-            char source;
-            char dest;
+			MaterialStreamRoutingSource source;
+			MaterialStreamRoutingDestination dest;
         };
 
         struct MaterialVertexStreamRouting
@@ -658,6 +847,9 @@ namespace Game
 		{
 			char *name;
 			MaterialWorldVertexFormat worldVertFormat;
+			bool hasBeenUploaded;
+			char unused[1];
+			MaterialTechniqueSet* remappedTechniqueSet;
 			MaterialTechnique *techniques[34];
 		};
 
@@ -714,6 +906,38 @@ namespace Game
 			TECHNIQUE_DEBUG_BUMPMAP = 0x20,
 			TECHNIQUE_DEBUG_BUMPMAP_INSTANCED = 0x21,
 			//TECHNIQUE_COUNT = 0x22
+		};
+
+		enum MaterialTextureSource : unsigned int
+		{
+			TEXTURE_SRC_CODE_BLACK = 0x0,
+			TEXTURE_SRC_CODE_WHITE = 0x1,
+			TEXTURE_SRC_CODE_IDENTITY_NORMAL_MAP = 0x2,
+			TEXTURE_SRC_CODE_MODEL_LIGHTING = 0x3,
+			TEXTURE_SRC_CODE_LIGHTMAP_PRIMARY = 0x4,
+			TEXTURE_SRC_CODE_LIGHTMAP_SECONDARY = 0x5,
+			TEXTURE_SRC_CODE_SHADOWCOOKIE = 0x6,
+			TEXTURE_SRC_CODE_SHADOWMAP_SUN = 0x7,
+			TEXTURE_SRC_CODE_SHADOWMAP_SPOT = 0x8,
+			TEXTURE_SRC_CODE_FEEDBACK = 0x9,
+			TEXTURE_SRC_CODE_RESOLVED_POST_SUN = 0xA,
+			TEXTURE_SRC_CODE_RESOLVED_SCENE = 0xB,
+			TEXTURE_SRC_CODE_POST_EFFECT_0 = 0xC,
+			TEXTURE_SRC_CODE_POST_EFFECT_1 = 0xD,
+			TEXTURE_SRC_CODE_SKY = 0xE,
+			TEXTURE_SRC_CODE_LIGHT_ATTENUATION = 0xF,
+			TEXTURE_SRC_CODE_DYNAMIC_SHADOWS = 0x10,
+			TEXTURE_SRC_CODE_OUTDOOR = 0x11,
+			TEXTURE_SRC_CODE_FLOATZ = 0x12,
+			TEXTURE_SRC_CODE_PROCESSED_FLOATZ = 0x13,
+			TEXTURE_SRC_CODE_RAW_FLOATZ = 0x14,
+			TEXTURE_SRC_CODE_CASE_TEXTURE = 0x15,
+			TEXTURE_SRC_CODE_CINEMATIC_Y = 0x16,
+			TEXTURE_SRC_CODE_CINEMATIC_CR = 0x17,
+			TEXTURE_SRC_CODE_CINEMATIC_CB = 0x18,
+			TEXTURE_SRC_CODE_CINEMATIC_A = 0x19,
+			TEXTURE_SRC_CODE_REFLECTION_PROBE = 0x1A,
+			TEXTURE_SRC_CODE_COUNT = 0x1B,
 		};
 
 		struct infoParm_t
@@ -797,10 +1021,16 @@ namespace Game
 			unsigned short *vertsBlend;
 		};
 
+
+		struct GameWorldMp
+		{
+			const char* name;
+		};
+
 		union GfxColor
 		{
 			unsigned int packed;
-			char array[4];
+			unsigned char array[4];
 		};
 
 		union PackedTexCoords
@@ -863,7 +1093,7 @@ namespace Game
 
 		struct XSurface
 		{
-			char tileMode;
+			unsigned char tileMode;
 			bool deformed;
 			unsigned __int16 vertCount;
 			unsigned __int16 triCount;
@@ -989,10 +1219,10 @@ namespace Game
 			unsigned char numsurfs;
 			char lodRampType;
 			unsigned __int16 *boneNames;
-			char *parentList;
+			unsigned char *parentList;
 			__int16 *quats;
 			float *trans;
-			char *partClassification;
+			unsigned char *partClassification;
 			DObjAnimMat *baseMat;
 			XSurface *surfs;
 			Material **materialHandles;
@@ -1004,8 +1234,8 @@ namespace Game
 			float radius;
 			float mins[3];
 			float maxs[3];
-			__int16 numLods;
-			__int16 collLod;
+			unsigned __int16 numLods;
+			unsigned __int16 collLod;
 			XModelStreamInfo streamInfo;
 			int memUsage;
 			char flags;
@@ -1288,8 +1518,8 @@ namespace Game
 			GfxPortal *portals;
 			int cullGroupCount;
 			int *cullGroups;
-			char reflectionProbeCount;
-			char *reflectionProbes;
+			unsigned char reflectionProbeCount;
+			unsigned char *reflectionProbes;
 		};
 
 		struct GfxLightmapArray
@@ -1446,10 +1676,10 @@ namespace Game
 		{
 			srfTriangles_t tris;
 			Material *material;
-			char lightmapIndex;
-			char reflectionProbeIndex;
-			char primaryLightIndex;
-			char flags;
+			unsigned char lightmapIndex;
+			unsigned char reflectionProbeIndex;
+			unsigned char primaryLightIndex;
+			unsigned char flags;
 			float bounds[2][3];
 		};
 
@@ -1474,10 +1704,10 @@ namespace Game
 			GfxPackedPlacement placement;
 			XModel *model;
 			unsigned __int16 smodelCacheIndex[4];
-			char reflectionProbeIndex;
-			char primaryLightIndex;
+			unsigned char reflectionProbeIndex;
+			unsigned char primaryLightIndex;
 			unsigned __int16 lightingHandle;
-			char flags;
+			unsigned char flags;
 		};
 
 		struct GfxWorldDpvsStatic
@@ -1493,8 +1723,8 @@ namespace Game
 			unsigned int emissiveSurfsEnd;
 			unsigned int smodelVisDataCount;
 			unsigned int surfaceVisDataCount;
-			char *smodelVisData[3];
-			char *surfaceVisData[3];
+			unsigned char *smodelVisData[3];
+			unsigned char *surfaceVisData[3];
 			unsigned int *lodData;
 			unsigned __int16 *sortedSurfIndex;
 			GfxStaticModelInst *smodelInsts;
@@ -1710,7 +1940,6 @@ namespace Game
 			unsigned __int16 firstHull;
 		};
 
-		/* 2376 */
 		struct TriggerHull
 		{
 			Bounds bounds;
@@ -1719,7 +1948,6 @@ namespace Game
 			unsigned __int16 firstSlab;
 		};
 
-		/* 2377 */
 		struct TriggerSlab
 		{
 			float dir[3];
@@ -1727,7 +1955,6 @@ namespace Game
 			float halfSize;
 		};
 
-		/* 2378 */
 		struct MapTriggers
 		{
 			unsigned int count;
@@ -1771,6 +1998,197 @@ namespace Game
 			XModelPiece* pieces;
 		};
 
+
+		struct FxSpawnDefLooping
+		{
+			int intervalMsec;
+			int count;
+		};
+
+		struct FxIntRange
+		{
+			int base;
+			int amplitude;
+		};
+
+		struct FxSpawnDefOneShot
+		{
+			FxIntRange count;
+		};
+
+		union FxSpawnDef
+		{
+			FxSpawnDefLooping looping;
+			FxSpawnDefOneShot oneShot;
+		};
+
+		struct FxFloatRange
+		{
+			float base;
+			float amplitude;
+		};
+
+		struct FxElemAtlas
+		{
+			char behavior;
+			char index;
+			char fps;
+			char loopCount;
+			char colIndexBits;
+			char rowIndexBits;
+			__int16 entryCount;
+		};
+
+		struct FxElemVec3Range
+		{
+			float base[3];
+			float amplitude[3];
+		};
+
+		struct FxElemVelStateInFrame
+		{
+			FxElemVec3Range velocity;
+			FxElemVec3Range totalDelta;
+		};
+
+		const struct FxElemVelStateSample
+		{
+			FxElemVelStateInFrame local;
+			FxElemVelStateInFrame world;
+		};
+
+		struct FxElemVisualState
+		{
+			char color[4];
+			float rotationDelta;
+			float rotationTotal;
+			float size[2];
+			float scale;
+		};
+
+		const struct FxElemVisStateSample
+		{
+			FxElemVisualState base;
+			FxElemVisualState amplitude;
+		};
+
+
+		struct FxEffectDef;
+		union FxEffectDefRef
+		{
+			FxEffectDef* handle;
+			const char* name;
+		};
+
+		union FxElemVisuals
+		{
+			const void* anonymous;
+			Material* material;
+			XModel* model;
+			FxEffectDefRef effectDef;
+			const char* soundName;
+		};
+
+		struct FxElemMarkVisuals
+		{
+			Material* materials[2];
+		};
+
+		union FxElemDefVisuals
+		{
+			FxElemMarkVisuals* markArray;
+			FxElemVisuals* array;
+			FxElemVisuals instance;
+		};
+
+		struct FxTrailVertex
+		{
+			float pos[2];
+			float normal[2];
+			float texCoord;
+		};
+
+		struct FxTrailDef
+		{
+			int scrollTimeMsec;
+			int repeatDist;
+			int splitDist;
+			int vertCount;
+			FxTrailVertex* verts;
+			int indCount;
+			unsigned __int16* inds;
+		};
+
+		enum FxElemType : char
+		{
+			FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
+			FX_ELEM_TYPE_SPRITE_ORIENTED = 0x1,
+			FX_ELEM_TYPE_TAIL = 0x2,
+			FX_ELEM_TYPE_TRAIL = 0x3,
+			FX_ELEM_TYPE_CLOUD = 0x4,
+			FX_ELEM_TYPE_MODEL = 0x5,
+			FX_ELEM_TYPE_OMNI_LIGHT = 0x6,
+			FX_ELEM_TYPE_SPOT_LIGHT = 0x7,
+			FX_ELEM_TYPE_SOUND = 0x8,
+			FX_ELEM_TYPE_DECAL = 0x9,
+			FX_ELEM_TYPE_RUNNER = 0xA,
+			FX_ELEM_TYPE_COUNT = 0xB,
+			FX_ELEM_TYPE_LAST_SPRITE = 0x3,
+			FX_ELEM_TYPE_LAST_DRAWN = 0x7,
+		};
+
+		const struct FxElemDef
+		{
+			int flags;
+			FxSpawnDef spawn;
+			FxFloatRange spawnRange;
+			FxFloatRange fadeInRange;
+			FxFloatRange fadeOutRange;
+			float spawnFrustumCullRadius;
+			FxIntRange spawnDelayMsec;
+			FxIntRange lifeSpanMsec;
+			FxFloatRange spawnOrigin[3];
+			FxFloatRange spawnOffsetRadius;
+			FxFloatRange spawnOffsetHeight;
+			FxFloatRange spawnAngles[3];
+			FxFloatRange angularVelocity[3];
+			FxFloatRange initialRotation;
+			FxFloatRange gravity;
+			FxFloatRange reflectionFactor;
+			FxElemAtlas atlas;
+			FxElemType elemType;
+			char visualCount;
+			char velIntervalCount;
+			char visStateIntervalCount;
+			FxElemVelStateSample* velSamples;
+			FxElemVisStateSample* visSamples;
+			FxElemDefVisuals visuals;
+			float collMins[3];
+			float collMaxs[3];
+			FxEffectDefRef effectOnImpact;
+			FxEffectDefRef effectOnDeath;
+			FxEffectDefRef effectEmitted;
+			FxFloatRange emitDist;
+			FxFloatRange emitDistVariance;
+			FxTrailDef* trailDef;
+			char sortOrder;
+			char lightingFrac;
+			char useItemClip;
+			char unused[1];
+		};
+
+		struct FxEffectDef
+		{
+			const char* name;
+			int flags;
+			int totalSize;
+			int msecLoopingLife;
+			int elemDefCountLooping;
+			int elemDefCountOneShot;
+			int elemDefCountEmission;
+			FxElemDef* elemDefs;
+		};
+
 		struct DynEntityDef
 		{
 		  int type;
@@ -1778,7 +2196,7 @@ namespace Game
 		  XModel *xModel;
 		  unsigned __int16 brushModel;
 		  unsigned __int16 physicsBrushModel;
-		  FxEffectDef_Placeholder *destroyFx;
+		  FxEffectDef* destroyFx;
 		  XModelPieces *destroyPieces;
 		  PhysPreset *physPreset;
 		  int health;
@@ -1871,196 +2289,6 @@ namespace Game
 			int isInUse;
 			unsigned int primaryLightCount;
 			ComPrimaryLight *primaryLights;
-		};
-
-		struct FxSpawnDefLooping
-		{
-			int intervalMsec;
-			int count;
-		};
-
-		struct FxIntRange
-		{
-			int base;
-			int amplitude;
-		};
-
-		struct FxSpawnDefOneShot
-		{
-			FxIntRange count;
-		};
-
-		union FxSpawnDef
-		{
-			FxSpawnDefLooping looping;
-			FxSpawnDefOneShot oneShot;
-		};
-
-		struct FxFloatRange
-		{
-			float base;
-			float amplitude;
-		};
-
-		struct FxElemAtlas
-		{
-			char behavior;
-			char index;
-			char fps;
-			char loopCount;
-			char colIndexBits;
-			char rowIndexBits;
-			__int16 entryCount;
-		};
-
-		struct FxElemVec3Range
-		{
-			float base[3];
-			float amplitude[3];
-		};
-
-		struct FxElemVelStateInFrame
-		{
-			FxElemVec3Range velocity;
-			FxElemVec3Range totalDelta;
-		};
-
-		const struct FxElemVelStateSample
-		{
-			FxElemVelStateInFrame local;
-			FxElemVelStateInFrame world;
-		};
-
-		struct FxElemVisualState
-		{
-			char color[4];
-			float rotationDelta;
-			float rotationTotal;
-			float size[2];
-			float scale;
-		};
-
-		const struct FxElemVisStateSample
-		{
-			FxElemVisualState base;
-			FxElemVisualState amplitude;
-		};
-
-		struct FxEffectDef;
-
-		union FxEffectDefRef
-		{
-			FxEffectDef *handle;
-			const char *name;
-		};
-
-		union FxElemVisuals
-		{
-			const void *anonymous;
-			Material *material;
-			XModel *model;
-			FxEffectDefRef effectDef;
-			const char *soundName;
-		};
-
-		struct FxElemMarkVisuals
-		{
-			Material *materials[2];
-		};
-
-		union FxElemDefVisuals
-		{
-			FxElemMarkVisuals *markArray;
-			FxElemVisuals *array;
-			FxElemVisuals instance;
-		};
-
-		struct FxTrailVertex
-		{
-			float pos[2];
-			float normal[2];
-			float texCoord;
-		};
-
-		struct FxTrailDef
-		{
-			int scrollTimeMsec;
-			int repeatDist;
-			int splitDist;
-			int vertCount;
-			FxTrailVertex *verts;
-			int indCount;
-			unsigned __int16 *inds;
-		};
-
-		const struct FxElemDef
-		{
-			int flags;
-			FxSpawnDef spawn;
-			FxFloatRange spawnRange;
-			FxFloatRange fadeInRange;
-			FxFloatRange fadeOutRange;
-			float spawnFrustumCullRadius;
-			FxIntRange spawnDelayMsec;
-			FxIntRange lifeSpanMsec;
-			FxFloatRange spawnOrigin[3];
-			FxFloatRange spawnOffsetRadius;
-			FxFloatRange spawnOffsetHeight;
-			FxFloatRange spawnAngles[3];
-			FxFloatRange angularVelocity[3];
-			FxFloatRange initialRotation;
-			FxFloatRange gravity;
-			FxFloatRange reflectionFactor;
-			FxElemAtlas atlas;
-			char elemType;
-			char visualCount;
-			char velIntervalCount;
-			char visStateIntervalCount;
-			FxElemVelStateSample *velSamples;
-			FxElemVisStateSample *visSamples;
-			FxElemDefVisuals visuals;
-			float collMins[3];
-			float collMaxs[3];
-			FxEffectDefRef effectOnImpact;
-			FxEffectDefRef effectOnDeath;
-			FxEffectDefRef effectEmitted;
-			FxFloatRange emitDist;
-			FxFloatRange emitDistVariance;
-			FxTrailDef *trailDef;
-			char sortOrder;
-			char lightingFrac;
-			char useItemClip;
-			char unused[1];
-		};
-
-		struct FxEffectDef
-		{
-			const char *name;
-			int flags;
-			int totalSize;
-			int msecLoopingLife;
-			int elemDefCountLooping;
-			int elemDefCountOneShot;
-			int elemDefCountEmission;
-			FxElemDef *elemDefs;
-		};
-
-		enum FxElemType : char
-		{
-			FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
-			FX_ELEM_TYPE_SPRITE_ORIENTED = 0x1,
-			FX_ELEM_TYPE_TAIL = 0x2,
-			FX_ELEM_TYPE_TRAIL = 0x3,
-			FX_ELEM_TYPE_CLOUD = 0x4,
-			FX_ELEM_TYPE_MODEL = 0x5,
-			FX_ELEM_TYPE_OMNI_LIGHT = 0x6,
-			FX_ELEM_TYPE_SPOT_LIGHT = 0x7,
-			FX_ELEM_TYPE_SOUND = 0x8,
-			FX_ELEM_TYPE_DECAL = 0x9,
-			FX_ELEM_TYPE_RUNNER = 0xA,
-			FX_ELEM_TYPE_COUNT = 0xB,
-			FX_ELEM_TYPE_LAST_SPRITE = 0x3,
-			FX_ELEM_TYPE_LAST_DRAWN = 0x7,
 		};
 
 		struct _AILSOUNDINFO
@@ -2201,7 +2429,7 @@ namespace Game
  			clipMap_t *clipMap;
 			ComWorld *comWorld;
 // 			GameWorldSp *gameWorldSp;
-// 			GameWorldMp *gameWorldMp;
+ 			GameWorldMp *gameWorldMp;
 			MapEnts *mapEnts;
 			GfxWorld *gfxWorld;
 			GfxLightDef *lightDef;
@@ -2231,6 +2459,12 @@ namespace Game
 			unsigned __int16 nextHash;
 			unsigned __int16 nextOverride;
 			unsigned __int16 usageFrame;
+		};
+
+		union XAssetEntryPoolEntry
+		{
+			XAssetEntry entry;
+			XAssetEntryPoolEntry* next;
 		};
 
 		struct XBlock
@@ -2266,6 +2500,13 @@ namespace Game
 #ifdef __cplusplus
 	namespace IW4
 	{
+		enum StaticModelFlag : char
+		{
+			STATIC_MODEL_FLAG_SUB_INDEX_MASK = 0x7,
+			STATIC_MODEL_FLAG_NO_CAST_SHADOW = 0x10,
+			STATIC_MODEL_FLAG_GROUND_LIGHTING = 0x20,
+		};
+
 		enum SndChannel
 		{
 			SND_CHANNEL_PHYSICS,
@@ -2315,6 +2556,24 @@ namespace Game
 			FOG_DFOG = 0x2,
 		};
 
+		enum GfxRenderTargetId
+		{
+			R_RENDERTARGET_SAVED_SCREEN = 0x0,
+			R_RENDERTARGET_FRAME_BUFFER = 0x1,
+			R_RENDERTARGET_SCENE = 0x2,
+			R_RENDERTARGET_RESOLVED_POST_SUN = 0x3,
+			R_RENDERTARGET_RESOLVED_SCENE = 0x4,
+			R_RENDERTARGET_FLOAT_Z = 0x5,
+			R_RENDERTARGET_PINGPONG_0 = 0x6,
+			R_RENDERTARGET_PINGPONG_1 = 0x7,
+			R_RENDERTARGET_POST_EFFECT_0 = 0x8,
+			R_RENDERTARGET_POST_EFFECT_1 = 0x9,
+			R_RENDERTARGET_SHADOWMAP_LARGE = 0xA,
+			R_RENDERTARGET_SHADOWMAP_SMALL = 0xB,
+			R_RENDERTARGET_COUNT = 0xC,
+			R_RENDERTARGET_NONE = 0xD,
+		};
+
 		struct GfxImageFileHeader
 		{
 			char tag[3];
@@ -2331,6 +2590,8 @@ namespace Game
 			vec3_t halfSize; // maxs
 
 			void compute(vec3_t mins, vec3_t maxs);
+			void max(vec3_t& out);
+			void min(vec3_t& out);
 		};
 
 		struct TriggerModel
@@ -2518,10 +2779,10 @@ namespace Game
 		{
 			IW3::srfTriangles_t tris;
 			IW3::Material *material;
-			char lightmapIndex;
-			char reflectionProbeIndex;
-			char primaryLightIndex;
-			char flags;
+			unsigned char lightmapIndex;
+			unsigned char reflectionProbeIndex;
+			unsigned char primaryLightIndex;
+			unsigned char flags;
 		};
 
 		struct GfxPortal;
@@ -2556,8 +2817,8 @@ namespace Game
 			Bounds bounds;
 			int portalCount;
 			GfxPortal *portals;
-			char reflectionProbeCount;
-			char *reflectionProbes;
+			unsigned char reflectionProbeCount;
+			unsigned char *reflectionProbes;
 		};
 
 #pragma pack(push, 4)
@@ -2574,10 +2835,10 @@ namespace Game
 			IW3::XModel *model;
 			unsigned __int16 cullDist;
 			unsigned __int16 lightingHandle;
-			char reflectionProbeIndex;
-			char primaryLightIndex;
-			char flags;
-			char firstMtlSkinIndex;
+			unsigned char reflectionProbeIndex;
+			unsigned char primaryLightIndex;
+			unsigned char flags;
+			unsigned char firstMtlSkinIndex;
 			IW3::GfxColor groundLighting;
 			unsigned __int16 cacheId[4];
 		};
@@ -2816,6 +3077,41 @@ namespace Game
 			IMG_FLAG_SYSTEMMEM = 0x4000000,
 		};
 
+		struct G_GlassPiece
+		{
+			unsigned __int16 damageTaken;
+			unsigned __int16 collapseTime;
+			int lastStateChangeTime;
+			char impactDir;
+			char impactPos[2];
+		};
+
+		struct G_GlassName
+		{
+			char* nameStr;
+			unsigned __int16 name;
+			unsigned __int16 pieceCount;
+			unsigned __int16* pieceIndices;
+		};
+
+		struct G_GlassData
+		{
+			G_GlassPiece* glassPieces;
+			unsigned int pieceCount;
+			unsigned __int16 damageToWeaken;
+			unsigned __int16 damageToDestroy;
+			unsigned int glassNameCount;
+			G_GlassName* glassNames;
+			char pad[108];
+		};
+
+
+		struct GameWorldMp
+		{
+			const char* name;
+			G_GlassData* g_glassData;
+		};
+
 		struct CollisionAabbTree
 		{
 			float midPoint[3];
@@ -2874,7 +3170,7 @@ namespace Game
 
 		struct XSurface
 		{
-			char tileMode;
+			unsigned char tileMode;
 			bool deformed;
 			unsigned __int16 vertCount;
 			unsigned __int16 triCount;
@@ -2924,24 +3220,24 @@ namespace Game
 		struct XModel
 		{
 			const char *name;
-			char numBones;
-			char numRootBones;
+			unsigned char numBones;
+			unsigned char numRootBones;
 			unsigned char numsurfs;
 			char lodRampType;
 			float scale;
 			unsigned int noScalePartBits[6];
 			unsigned __int16 *boneNames;
-			char *parentList;
+			unsigned char *parentList;
 			__int16 *quats;
 			float *trans;
-			char *partClassification;
+			unsigned char *partClassification;
 			IW3::DObjAnimMat *baseMat;
 			IW3::Material **materialHandles;
 			XModelLodInfo lodInfo[4];
 			char maxLoadedLod;
 			char numLods;
 			char collLod;
-			char flags;
+			unsigned char flags;
 			XModelCollSurf_s *collSurfs;
 			int numCollSurfs;
 			int contents;
@@ -3115,6 +3411,38 @@ namespace Game
 			TECHNIQUE_NONE = 0x32,
 		};
 
+		enum MaterialTextureSource : unsigned int
+		{
+			TEXTURE_SRC_CODE_BLACK = 0x0,
+			TEXTURE_SRC_CODE_WHITE = 0x1,
+			TEXTURE_SRC_CODE_IDENTITY_NORMAL_MAP = 0x2,
+			TEXTURE_SRC_CODE_MODEL_LIGHTING = 0x3,
+			TEXTURE_SRC_CODE_LIGHTMAP_PRIMARY = 0x4,
+			TEXTURE_SRC_CODE_LIGHTMAP_SECONDARY = 0x5,
+			TEXTURE_SRC_CODE_SHADOWMAP_SUN = 0x6,
+			TEXTURE_SRC_CODE_SHADOWMAP_SPOT = 0x7,
+			TEXTURE_SRC_CODE_FEEDBACK = 0x8,
+			TEXTURE_SRC_CODE_RESOLVED_POST_SUN = 0x9,
+			TEXTURE_SRC_CODE_RESOLVED_SCENE = 0xA,
+			TEXTURE_SRC_CODE_POST_EFFECT_0 = 0xB,
+			TEXTURE_SRC_CODE_POST_EFFECT_1 = 0xC,
+			TEXTURE_SRC_CODE_LIGHT_ATTENUATION = 0xD,
+			TEXTURE_SRC_CODE_OUTDOOR = 0xE,
+			TEXTURE_SRC_CODE_FLOATZ = 0xF,
+			TEXTURE_SRC_CODE_PROCESSED_FLOATZ = 0x10,
+			TEXTURE_SRC_CODE_RAW_FLOATZ = 0x11,
+			TEXTURE_SRC_CODE_HALF_PARTICLES = 0x12,
+			TEXTURE_SRC_CODE_HALF_PARTICLES_Z = 0x13,
+			TEXTURE_SRC_CODE_CASE_TEXTURE = 0x14,
+			TEXTURE_SRC_CODE_CINEMATIC_Y = 0x15,
+			TEXTURE_SRC_CODE_CINEMATIC_CR = 0x16,
+			TEXTURE_SRC_CODE_CINEMATIC_CB = 0x17,
+			TEXTURE_SRC_CODE_CINEMATIC_A = 0x18,
+			TEXTURE_SRC_CODE_REFLECTION_PROBE = 0x19,
+			TEXTURE_SRC_CODE_ALTERNATE_SCENE = 0x1A,
+			TEXTURE_SRC_CODE_COUNT = 0x1B,
+		};
+
 		enum StateFlags : unsigned char {
 			STATE_FLAG_CULL_BACK = 0x1,
 			STATE_FLAG_AMBIENT = 0x2,
@@ -3165,10 +3493,47 @@ namespace Game
 		};
 #pragma pack(pop)
 
+
+		enum MaterialStreamRoutingSource : unsigned char
+		{
+			STREAM_SRC_POSITION = 0x0,
+			STREAM_SRC_COLOR = 0x1,
+			STREAM_SRC_TEXCOORD_0 = 0x2,
+			STREAM_SRC_NORMAL = 0x3,
+			STREAM_SRC_TANGENT = 0x4,
+			STREAM_SRC_OPTIONAL_BEGIN = 0x5,
+			STREAM_SRC_PRE_OPTIONAL_BEGIN = 0x4,
+			STREAM_SRC_TEXCOORD_1 = 0x5,
+			STREAM_SRC_TEXCOORD_2 = 0x6,
+			STREAM_SRC_NORMAL_TRANSFORM_0 = 0x7,
+			STREAM_SRC_NORMAL_TRANSFORM_1 = 0x8,
+			STREAM_SRC_COUNT = 0x9,
+		};
+
+		/* 227 */
+		enum MaterialStreamRoutingDestination : unsigned char
+		{
+			STREAM_DST_POSITION = 0x0,
+			STREAM_DST_NORMAL = 0x1,
+			STREAM_DST_COLOR_0 = 0x2,
+			STREAM_DST_COLOR_1 = 0x3,
+			STREAM_DST_DEPTH = 0x4,
+			STREAM_DST_TEXCOORD_0 = 0x5,
+			STREAM_DST_TEXCOORD_1 = 0x6,
+			STREAM_DST_TEXCOORD_2 = 0x7,
+			STREAM_DST_TEXCOORD_3 = 0x8,
+			STREAM_DST_TEXCOORD_4 = 0x9,
+			STREAM_DST_TEXCOORD_5 = 0xA,
+			STREAM_DST_TEXCOORD_6 = 0xB,
+			STREAM_DST_TEXCOORD_7 = 0xC,
+			STREAM_DST_COUNT = 0xD,
+		};
+
+
         struct MaterialStreamRouting
         {
-            char source;
-            char dest;
+			MaterialStreamRoutingSource source;
+			MaterialStreamRoutingDestination dest;
         };
 
         /* 968 */
@@ -3359,6 +3724,26 @@ namespace Game
             CONST_SRC_NONE = 0x85,
         };
 
+		enum FxElemType : char
+		{
+			FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
+			FX_ELEM_TYPE_SPRITE_ORIENTED = 0x1,
+			FX_ELEM_TYPE_TAIL = 0x2,
+			FX_ELEM_TYPE_TRAIL = 0x3,
+			FX_ELEM_TYPE_CLOUD = 0x4,
+			FX_ELEM_TYPE_SPARKCLOUD = 0x5,
+			FX_ELEM_TYPE_SPARKFOUNTAIN = 0x6,
+			FX_ELEM_TYPE_MODEL = 0x7,
+			FX_ELEM_TYPE_OMNI_LIGHT = 0x8,
+			FX_ELEM_TYPE_SPOT_LIGHT = 0x9,
+			FX_ELEM_TYPE_SOUND = 0xA,
+			FX_ELEM_TYPE_DECAL = 0xB,
+			FX_ELEM_TYPE_RUNNER = 0xC,
+			FX_ELEM_TYPE_COUNT = 0xD,
+			FX_ELEM_TYPE_LAST_SPRITE = 0x3,
+			FX_ELEM_TYPE_LAST_DRAWN = 0x9,
+		};
+
 		struct FxElemDef
 		{
 			int flags;
@@ -3378,7 +3763,7 @@ namespace Game
 			IW3::FxFloatRange gravity;
 			IW3::FxFloatRange reflectionFactor;
 			IW3::FxElemAtlas atlas;
-			char elemType;
+			FxElemType elemType;
 			char visualCount;
 			char velIntervalCount;
 			char visStateIntervalCount;
@@ -3410,25 +3795,6 @@ namespace Game
 			FxElemDef *elemDefs;
 		};
 
-		enum FxElemType : char
-		{
-			FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
-			FX_ELEM_TYPE_SPRITE_ORIENTED = 0x1,
-			FX_ELEM_TYPE_TAIL = 0x2,
-			FX_ELEM_TYPE_TRAIL = 0x3,
-			FX_ELEM_TYPE_CLOUD = 0x4,
-			FX_ELEM_TYPE_SPARKCLOUD = 0x5,
-			FX_ELEM_TYPE_SPARKFOUNTAIN = 0x6,
-			FX_ELEM_TYPE_MODEL = 0x7,
-			FX_ELEM_TYPE_OMNI_LIGHT = 0x8,
-			FX_ELEM_TYPE_SPOT_LIGHT = 0x9,
-			FX_ELEM_TYPE_SOUND = 0xA,
-			FX_ELEM_TYPE_DECAL = 0xB,
-			FX_ELEM_TYPE_RUNNER = 0xC,
-			FX_ELEM_TYPE_COUNT = 0xD,
-			FX_ELEM_TYPE_LAST_SPRITE = 0x3,
-			FX_ELEM_TYPE_LAST_DRAWN = 0x9,
-		};
 	}
 #endif
 

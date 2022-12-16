@@ -4,6 +4,8 @@
 
 namespace Components
 {
+	std::unordered_set<unsigned short> IGfxWorld::removedStaticModelIndices{};
+
 	void IGfxWorld::SaveGfxWorldDpvsStatic(Game::IW4::GfxWorld* world, Game::IW4::GfxWorldDpvsStatic* asset, Utils::Stream* buffer)
 	{
 		AssertSize(Game::IW4::GfxWorldDpvsStatic, 108);
@@ -45,6 +47,7 @@ namespace Components
 		if (asset->smodelDrawInsts)
 		{
 			AssertSize(Game::IW4::GfxStaticModelDrawInst, 76);
+
 			buffer->saveArray(asset->smodelDrawInsts, asset->smodelCount);
 
 			for (unsigned int i = 0; i < asset->smodelCount; ++i)
@@ -189,6 +192,223 @@ namespace Components
 		}
 	}
 
+	void IGfxWorld::RemoveIncompatibleModelsForIW4(Game::IW4::GfxWorld* asset, unsigned int fixMethod)
+	{
+		constexpr unsigned int REMOVE_MODELS = 1;
+		constexpr unsigned int SWAP_MODELS = 2;
+
+		// Alright everybody, we're in for a ride so let's go:
+		// - Static models in iw3 store all sorts of things. Vehicles, buildings, scenery
+		// - Static models in iw4 don't work like that. In fact, most of them are trees, grass... nothing complex
+		// IW4 has a HARD limitation (and i mean HARD) of 16 XSurfaces per LOD per static model. No more. More you crash.
+		// IW3 doesn't care about this and some models have way way more. vehicle_small_hatch_green has 40 surfaces per lod.
+		// The rendering in iw4 being completely differently handled, this will hard crash iw4 OR slow it down because it will
+		//	try to read surfaces from other models or from litterally any garbage memory span once past the first 16 surfaces
+		// This has caused numerous bugs and was hard to investigate. 
+		// There are two ways to solve it:
+		// - Modify iw4 rendering and make it more like iw3 rendering (easy to fuckup and frankly not a great thing to do)
+		// - Move offending iw3 models to script_model in entities to make them render as Scene Entities... boom problem solved
+		// We're doing that until we find another way!
+		removedStaticModelIndices.clear();
+		constexpr unsigned char SURF_PER_LOD_HARD_LIMIT = 16;
+
+		for (unsigned short iw3Index = 0; iw3Index < asset->dpvs.smodelCount; iw3Index++)
+		{
+			auto xmodel = asset->dpvs.smodelDrawInsts[iw3Index].model;
+
+			if (xmodel) 
+			{
+				for (unsigned char lodIndex = 0; lodIndex < xmodel->numLods; lodIndex++)
+				{
+					// Oh boy
+					if (xmodel->lodInfo[lodIndex].numsurfs > SURF_PER_LOD_HARD_LIMIT)
+					{
+						if (fixMethod == REMOVE_MODELS)
+						{
+							// Good fix, but my code to remove SModels is not perfect yet
+							// It works well on some maps (mp_bloc)
+							// But it breaks visdata on other maps (mp_zavod)
+							// I do not know why!
+							removedStaticModelIndices.insert(iw3Index);
+							Components::Logger::Print("Moving %s to entities because its model is incompatible with iw4\n", xmodel->name);
+						}
+						else if (fixMethod == SWAP_MODELS)
+						{
+							// Poor man's fix
+							if (iw3Index > 0)
+							{
+								auto* inst = &asset->dpvs.smodelDrawInsts[iw3Index];
+								inst->model = asset->dpvs.smodelDrawInsts[iw3Index - 1].model;
+								Components::Logger::Print("Swapping %s with %s model and putting its scale to zero because it is incompatible with iw4\n", xmodel->name, inst->model->name);
+								inst->placement.origin[0] = std::numeric_limits<float>().min();
+								inst->placement.origin[1] = std::numeric_limits<float>().min();
+								inst->placement.origin[2] = std::numeric_limits<float>().min();
+								inst->placement.scale = 0.f;
+
+								asset->dpvs.smodelInsts[iw3Index].bounds = Game::IW4::Bounds{};
+								asset->dpvs.smodelInsts[iw3Index].bounds.midPoint[0] = std::numeric_limits<float>().min();
+								asset->dpvs.smodelInsts[iw3Index].bounds.midPoint[1] = std::numeric_limits<float>().min();
+								asset->dpvs.smodelInsts[iw3Index].bounds.midPoint[2] = std::numeric_limits<float>().min();
+							}
+						}
+
+
+					}
+				}
+			}
+		}
+
+		if (removedStaticModelIndices.size() > 0)
+		{
+			RemoveModels(asset, removedStaticModelIndices);
+		}
+	}
+
+	void IGfxWorld::RemoveModels(Game::IW4::GfxWorld* asset, const std::unordered_set<unsigned short>& indices)
+	{
+		unsigned short previousModelCount = static_cast<unsigned short>(asset->dpvs.smodelCount);
+		std::map<unsigned short, unsigned short> indexesTranslation{};
+
+		// Update static model draw inst
+		{
+			unsigned short skips = 0;
+			for (unsigned short iw3Index = 0; iw3Index < previousModelCount; iw3Index++)
+			{
+				if (indices.contains(iw3Index))
+				{
+					skips++;
+					continue;
+				}
+
+				if (skips > 0)
+				{
+					asset->dpvs.smodelDrawInsts[iw3Index - skips] = asset->dpvs.smodelDrawInsts[iw3Index];
+					asset->dpvs.smodelInsts[iw3Index - skips] = asset->dpvs.smodelInsts[iw3Index];
+					indexesTranslation[iw3Index] = iw3Index - skips/* std::numeric_limits<unsigned short>().max()*/;
+				}
+				else{
+					indexesTranslation[iw3Index] = iw3Index/* std::numeric_limits<unsigned short>().max()*/;
+				}
+			}
+
+			asset->dpvs.smodelCount -= skips;
+
+			if (skips == 0)
+			{
+				// No need to go further tbh
+				return;
+			}
+		}
+
+		// Update visdata
+		// Might be useless because this is dynamic data...
+		{
+			for (int partitionIndex = 0; partitionIndex < 3; partitionIndex++)
+			{
+				if (asset->dpvs.smodelVisData[partitionIndex])
+				{
+					unsigned short skips = 0;
+					for (unsigned short iw3SModelIndex = 0; iw3SModelIndex < previousModelCount; iw3SModelIndex++)
+					{
+						if (indices.contains(iw3SModelIndex))
+						{
+							skips++;
+							continue;
+						}
+
+						if (skips == 0) {
+							continue;
+						}
+
+						unsigned short iw4SModelIndex = iw3SModelIndex - skips;
+						auto newIndex = indexesTranslation[iw3SModelIndex];
+						assert(newIndex == iw4SModelIndex);
+
+						asset->dpvs.smodelVisData[partitionIndex][newIndex] = asset->dpvs.smodelVisData[partitionIndex][iw3SModelIndex];
+					}
+				}
+			}
+		}
+
+		// Shadow Geoms
+		{
+			if (asset->shadowGeom)
+			{
+				unsigned short skips = 0;
+				for (size_t i = 0; i < asset->shadowGeom->smodelCount; i++)
+				{
+					if (indices.contains(asset->shadowGeom->smodelIndex[i]))
+					{
+						skips++;
+						continue;
+					}
+
+					if (skips == 0) {
+						continue;
+					}
+
+					auto oldModelIndex = asset->shadowGeom->smodelIndex[i];
+					auto newModelIndex = indexesTranslation.at(oldModelIndex);
+
+					asset->shadowGeom->smodelIndex[i-skips] = newModelIndex;
+				}
+
+				asset->shadowGeom->smodelCount -= skips;
+			}
+		}
+
+
+		{
+			// AABB Tree
+			if (asset->aabbTrees)
+			{
+				int cellCount = asset->dpvsPlanes.cellCount;
+				std::unordered_set<unsigned __int16*> convertedIndices{};
+
+				for (int i = 0; i < cellCount; ++i)
+				{
+					Game::IW4::GfxCellTree* cellTree = &asset->aabbTrees[i];
+
+					if (cellTree->aabbTree)
+					{
+
+						for (int treeIndex = 0; treeIndex < asset->aabbTreeCounts[i].aabbTreeCount; ++treeIndex)
+						{
+							Game::IW4::GfxAabbTree* aabbTree = &cellTree->aabbTree[treeIndex];
+
+							if (aabbTree->smodelIndexes)
+							{
+								unsigned short skips = 0;
+								for (unsigned short smodelIndexIndex = 0; smodelIndexIndex < aabbTree->smodelIndexCount; ++smodelIndexIndex)
+								{
+									if (convertedIndices.contains(&aabbTree->smodelIndexes[smodelIndexIndex]))
+									{
+										continue;
+									}
+
+									convertedIndices.insert(&aabbTree->smodelIndexes[smodelIndexIndex]);
+
+									if (indices.contains(aabbTree->smodelIndexes[smodelIndexIndex]))
+									{
+										skips++;
+										continue;
+									}
+
+									auto oldModelIndex = aabbTree->smodelIndexes[smodelIndexIndex];
+									auto newModelIndex = indexesTranslation.at(oldModelIndex);
+
+									aabbTree->smodelIndexes[smodelIndexIndex - skips] = newModelIndex;
+								}
+
+								aabbTree->smodelIndexCount -= skips;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	void IGfxWorld::SaveConvertedWorld(Game::IW4::GfxWorld* asset)
 	{
 		Utils::Stream buffer;
@@ -310,6 +530,7 @@ namespace Components
 		if (asset->models)
 		{
 			AssertSize(Game::IW4::GfxBrushModel, 60);
+
 			buffer.saveArray(asset->models, asset->modelCount);
 		}
 
@@ -429,7 +650,7 @@ namespace Components
 		map.skies = &sky;
 
 		sky.skyImage = world->skyImage;
-		sky.skySamplerState = world->skySamplerState & 0xFF;
+		sky.skySamplerState = world->skySamplerState/* & 0xFF*/;
 		sky.skyStartSurfs = world->skyStartSurfs;
 		sky.skySurfCount = world->skySurfCount;
 
@@ -437,6 +658,34 @@ namespace Components
 		map.primaryLightCount = world->primaryLightCount;
 
 		map.dpvsPlanes = world->dpvsPlanes;
+
+
+
+
+		map.dpvs.surfaceMaterials = allocator.allocateArray<Game::IW4::GfxDrawSurf>(world->surfaceCount);
+		for (auto i = 0; i < world->surfaceCount; i++)
+		{
+			map.dpvs.surfaceMaterials[i].fields.objectId = world->dpvs.surfaceMaterials[i].fields.objectId;
+			map.dpvs.surfaceMaterials[i].fields.reflectionProbeIndex = world->dpvs.surfaceMaterials[i].fields.reflectionProbeIndex;
+			map.dpvs.surfaceMaterials[i].fields.customIndex = world->dpvs.surfaceMaterials[i].fields.customIndex;
+			map.dpvs.surfaceMaterials[i].fields.materialSortedIndex = world->dpvs.surfaceMaterials[i].fields.materialSortedIndex;
+			map.dpvs.surfaceMaterials[i].fields.prepass = world->dpvs.surfaceMaterials[i].fields.prepass;
+			map.dpvs.surfaceMaterials[i].fields.sceneLightIndex = world->dpvs.surfaceMaterials[i].fields.primaryLightIndex;
+			map.dpvs.surfaceMaterials[i].fields.surfType = world->dpvs.surfaceMaterials[i].fields.surfType;
+			map.dpvs.surfaceMaterials[i].fields.primarySortKey = world->dpvs.surfaceMaterials[i].fields.primarySortKey;
+			map.dpvs.surfaceMaterials[i].fields.unused = world->dpvs.surfaceMaterials[i].fields.unused;
+		}
+
+
+		map.dpvs.surfaceCastsSunShadow = world->dpvs.surfaceCastsSunShadow;
+		map.dpvs.usageCount = world->dpvs.usageCount;
+
+		map.dpvsDyn = world->dpvsDyn;
+
+		// iw4_credits has 0x3
+		// Probably do not add Game::IW4::FogTypes::FOG_DFOG here, cod4 doesn't support it !
+		map.fogTypesAllowed = Game::IW4::FogTypes::FOG_NORMAL;
+
 
 		// AABBTree data is stored as part of the cells.
 		// However, in IW4 it's not, so we have to extract the data
@@ -553,7 +802,8 @@ namespace Components
 
 		if (world->models)
 		{
-			map.models = allocator.allocateArray<Game::IW4::GfxBrushModel>(world->modelCount);
+			// We're about to add two brushmodels here, which are identical : one for the airdrop package and one for the 4-streak care package
+			map.models = allocator.allocateArray<Game::IW4::GfxBrushModel>(world->modelCount + 2);
 
 			for (int i = 0; i < world->modelCount; ++i)
 			{
@@ -567,6 +817,30 @@ namespace Components
 				map.models[i].startSurfIndex = world->models[i].startSurfIndex;
 				map.models[i].surfaceCountNoDecal = world->models[i].surfaceCountNoDecal;
 			}
+
+			auto index = world->modelCount;
+
+			// Create the care packages
+			Game::IW4::GfxBrushModel carePackage{};
+			Game::IW4::Bounds packageBounds = IclipMap_t::makeCarePackageBounds();
+
+			carePackage.bounds = packageBounds;
+
+			carePackage.radius = 47.f;
+			carePackage.surfaceCount = 0;
+			carePackage.surfaceCountNoDecal = 0;
+			carePackage.startSurfIndex = std::numeric_limits<unsigned short>().max();
+
+			// Airdrop package
+			map.models[index++] = carePackage;
+
+			// K4 care package
+			map.models[index++] = carePackage;
+
+			// Add 2 to modelcount because we just added two brushmodels
+			map.modelCount += 2;
+
+			// and that should be it?
 		}
 
 		map.bounds.compute(world->mins, world->maxs);
@@ -628,10 +902,14 @@ namespace Components
 			{
 				map.dpvs.smodelInsts[i].bounds.compute(world->dpvs.smodelInsts[i].mins, world->dpvs.smodelInsts[i].maxs); // Verified
 
-				// I guess the sun is always a good lighting source ;)
-				map.dpvs.smodelInsts[i].lightingOrigin[0] = world->sun.sunFxPosition[0];
-				map.dpvs.smodelInsts[i].lightingOrigin[1] = world->sun.sunFxPosition[1];
-				map.dpvs.smodelInsts[i].lightingOrigin[2] = world->sun.sunFxPosition[2];
+				// this is CORRECT! Lighting origin is the place where the light grid gets sampled, and it must be the object's position!
+				// This is how iw3 does it!
+				// Check out 0x62EFF0 (iw3) 
+				// and 0x524C80 (iw4)
+				// (R_SetStaticModelLighting)
+				map.dpvs.smodelInsts[i].lightingOrigin[0] = map.dpvs.smodelInsts[i].bounds.midPoint[0];
+				map.dpvs.smodelInsts[i].lightingOrigin[1] = map.dpvs.smodelInsts[i].bounds.midPoint[1];
+				map.dpvs.smodelInsts[i].lightingOrigin[2] = map.dpvs.smodelInsts[i].bounds.midPoint[2];
 			}
 		}
 
@@ -647,10 +925,6 @@ namespace Components
 				map.dpvs.surfaces[i].lightmapIndex = world->dpvs.surfaces[i].lightmapIndex;
 				map.dpvs.surfaces[i].reflectionProbeIndex = world->dpvs.surfaces[i].reflectionProbeIndex;
 				map.dpvs.surfaces[i].primaryLightIndex = world->dpvs.surfaces[i].primaryLightIndex;
-
-				// Static model flags in iw3 do not correspond to static model flags in iw4
-				// I think they're intentionally misaligned because iw3:STATIC_MODEL_FLAG_NO_SHADOW does NOT correspond to iw4:STATIC_MODEL_FLAG_NO_CAST_SHADOW
-				// If you make them match you'll get fucked up shadows. So let's put everything to zero instead!
 				map.dpvs.surfaces[i].flags = world->dpvs.surfaces[i].flags;
 
 				map.dpvs.surfacesBounds[i].bounds.compute(world->dpvs.surfaces[i].bounds[0], world->dpvs.surfaces[i].bounds[1]); // Verified
@@ -670,45 +944,66 @@ namespace Components
 
 				map.dpvs.smodelDrawInsts[i].placement.scale = world->dpvs.smodelDrawInsts[i].placement.scale;
 				map.dpvs.smodelDrawInsts[i].model = world->dpvs.smodelDrawInsts[i].model;
-				map.dpvs.smodelDrawInsts[i].cullDist = static_cast<unsigned short>(world->dpvs.smodelDrawInsts[i].cullDist * 2);
+
+
+				float iw3CullDist = world->dpvs.smodelDrawInsts[i].cullDist;
+
+#if EXTEND_CULLING
+				// Double cull distance so it looks nicer in iw4
+				iw3CullDist *= 2;
+#endif
+
+				unsigned short iw4CullDist = 0;
+
+				if (iw3CullDist > std::numeric_limits<unsigned short>().max())
+				{
+					iw4CullDist = std::numeric_limits<unsigned short>().max();
+				}
+				else
+				{
+					iw4CullDist = static_cast<unsigned short>(iw3CullDist);
+				}
+
+				map.dpvs.smodelDrawInsts[i].cullDist = iw4CullDist;
+
 				map.dpvs.smodelDrawInsts[i].reflectionProbeIndex = world->dpvs.smodelDrawInsts[i].reflectionProbeIndex;
 				map.dpvs.smodelDrawInsts[i].primaryLightIndex = world->dpvs.smodelDrawInsts[i].primaryLightIndex;
 				map.dpvs.smodelDrawInsts[i].lightingHandle = world->dpvs.smodelDrawInsts[i].lightingHandle;
-				map.dpvs.smodelDrawInsts[i].flags = world->dpvs.smodelDrawInsts[i].flags;
+				map.dpvs.smodelDrawInsts[i].flags = 0;
 
-				// This has been moved
-				if (world->dpvs.smodelInsts) map.dpvs.smodelDrawInsts[i].groundLighting = world->dpvs.smodelInsts[i].groundLighting;
+				if (world->dpvs.smodelDrawInsts[i].flags & Game::IW3::STATIC_MODEL_FLAG_NO_SHADOW)
+				{
+					// Confirmed to be the same in the rendering functions
+					// Check R_AddAllStaticModelSurfacesSpotShadow in both iw3 and iw4
+					map.dpvs.smodelDrawInsts[i].flags |= Game::IW4::STATIC_MODEL_FLAG_NO_CAST_SHADOW;
+				}
+
+				if (world->dpvs.smodelInsts)
+				{
+					map.dpvs.smodelDrawInsts[i].groundLighting = world->dpvs.smodelInsts[i].groundLighting;
+
+					//// Grass needs 0x20 otherwise it doesn't read data from the lightmap and it's full bright !
+					//// Whenever a model needs ground lighting in iw4, it has to specify it
+					if (map.dpvs.smodelDrawInsts[i].groundLighting.packed > 0)
+					{
+						map.dpvs.smodelDrawInsts[i].flags |= Game::IW4::STATIC_MODEL_FLAG_GROUND_LIGHTING;
+					}
+				}
 			}
 		}
 
-
-		map.dpvs.surfaceMaterials = allocator.allocateArray<Game::IW4::GfxDrawSurf>(world->surfaceCount);
-		for (auto i = 0; i < world->surfaceCount; i++)
-		{
-			map.dpvs.surfaceMaterials[i].fields.objectId = world->dpvs.surfaceMaterials[i].fields.objectId;
-			map.dpvs.surfaceMaterials[i].fields.reflectionProbeIndex = world->dpvs.surfaceMaterials[i].fields.reflectionProbeIndex;
-			map.dpvs.surfaceMaterials[i].fields.customIndex = world->dpvs.surfaceMaterials[i].fields.customIndex;
-			map.dpvs.surfaceMaterials[i].fields.materialSortedIndex = world->dpvs.surfaceMaterials[i].fields.materialSortedIndex;
-			map.dpvs.surfaceMaterials[i].fields.prepass = world->dpvs.surfaceMaterials[i].fields.prepass;
-			map.dpvs.surfaceMaterials[i].fields.sceneLightIndex = world->dpvs.surfaceMaterials[i].fields.primaryLightIndex;
-			map.dpvs.surfaceMaterials[i].fields.surfType = world->dpvs.surfaceMaterials[i].fields.surfType;
-			map.dpvs.surfaceMaterials[i].fields.primarySortKey = world->dpvs.surfaceMaterials[i].fields.primarySortKey;
-			map.dpvs.surfaceMaterials[i].fields.unused = world->dpvs.surfaceMaterials[i].fields.unused;
-		}
-
-
-		map.dpvs.surfaceCastsSunShadow = world->dpvs.surfaceCastsSunShadow;
-		map.dpvs.usageCount = world->dpvs.usageCount;
-
-		map.dpvsDyn = world->dpvsDyn;
-
-		// iw4_credits has 0x3
-		map.fogTypesAllowed = Game::IW4::FogTypes::FOG_DFOG | Game::IW4::FogTypes::FOG_NORMAL;
-
+		#if USE_IW3_SORTKEYS
+		// IW3 values
+		map.sortKeyLitDecal = 9;
+		map.sortKeyEffectDecal = 29;
+		map.sortKeyEffectAuto = 48;
+		map.sortKeyDistortion = 0;
+#else
 		map.sortKeyLitDecal = 0x6;
 		map.sortKeyEffectDecal = 0x27;
 		map.sortKeyEffectAuto = 0x30;
 		map.sortKeyDistortion = 0x2b;
+#endif
 
 		int baseIndex = 0;
 		map.draw.indices = allocator.allocateArray<unsigned short>(map.draw.indexCount);
@@ -725,14 +1020,21 @@ namespace Components
 		}
 
 		// Specify that it's a custom map
-		map.checksum = 0x0000C0D4;
+		map.checksum = 0xC0D40000;
+
+		auto smodelsFixMethod = Game::Dvar_FindVar("iw3x_smodels_fix_method");
+		if (smodelsFixMethod) 
+		{
+			auto method = std::stoi(smodelsFixMethod->current.string);
+			IGfxWorld::RemoveIncompatibleModelsForIW4(&map, method);
+		}
 
 		IGfxWorld::SaveConvertedWorld(&map);
 	}
 
 	IGfxWorld::IGfxWorld()
 	{
-		Command::Add("dumpGfxWorld", [](Command::Params params)
+		Command::Add("dumpGfxWorld", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
 				IGfxWorld::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFXWORLD, params[1]).gfxWorld);

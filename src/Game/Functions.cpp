@@ -25,16 +25,16 @@ namespace Game
 	cmd_function_s** cmd_ptr = reinterpret_cast<cmd_function_s**>(0x1410B3C);
 
 	IW3::XZone* g_zones = reinterpret_cast<IW3::XZone*>(0xFFEFD0);
-	IW3::XAssetEntry* g_assetEntryPool = reinterpret_cast<IW3::XAssetEntry*>(0xF0D640);
+	IW3::XAssetEntryPoolEntry* g_assetEntryPool = reinterpret_cast<IW3::XAssetEntryPoolEntry*>(0xF0D640);
 	unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0xE62A80);
 
 	IW3::infoParm_t* infoParams = reinterpret_cast<Game::IW3::infoParm_t*>(0x71FBD0); // Count 0x1C
 
-	void DB_EnumXAssetEntries(XAssetType type, std::function<void(IW3::XAssetEntry*)> callback, bool overrides)
+	void DB_EnumXAssetEntries(XAssetType type, std::function<void(IW3::XAssetEntryPoolEntry*)> callback, bool overrides)
 	{
 		volatile long* lock = reinterpret_cast<volatile long*>(0x10D01A4);
 		InterlockedIncrement(lock);
-
+		
 		while (*reinterpret_cast<volatile long*>(0x10D01A8)) std::this_thread::sleep_for(1ms);
 
 		unsigned int index = 0;
@@ -45,21 +45,21 @@ namespace Game
 			{
 				do
 				{
-					IW3::XAssetEntry* asset = &g_assetEntryPool[hashIndex];
-					hashIndex = asset->nextHash;
-					if (asset->asset.type == type)
+					IW3::XAssetEntryPoolEntry* asset = &g_assetEntryPool[hashIndex];
+					hashIndex = asset->entry.nextHash;
+					if (asset->entry.asset.type == type)
 					{
 						callback(asset);
 						if (overrides)
 						{
-							unsigned short overrideIndex = asset->nextOverride;
-							if (asset->nextOverride)
+							unsigned short overrideIndex = asset->entry.nextOverride;
+							if (asset->entry.nextOverride)
 							{
 								do
 								{
 									asset = &g_assetEntryPool[overrideIndex];
 									callback(asset);
-									overrideIndex = asset->nextOverride;
+									overrideIndex = asset->entry.nextOverride;
 								} while (overrideIndex);
 							}
 						}
@@ -68,8 +68,61 @@ namespace Game
 			}
 			++index;
 		} while (index < 0x10000);
-
 		InterlockedDecrement(lock);
+	}
+
+	int DB_HashForName(Game::XAssetType type, const char* name)
+	{
+		int result = static_cast<int>(type);
+		int v4; // eax
+
+		while (1)
+		{
+			while (1)
+			{
+				v4 = tolower(*name);
+				if (v4 != 92)
+				{
+					break;
+				}
+				result = 31 * result + 47;
+				++name;
+			}
+			if (!v4)
+			{
+				break;
+			}
+			result = v4 + 31 * result;
+			++name;
+		}
+
+		return result & 0x7FFF;
+	}
+
+	Game::IW3::XAssetEntryPoolEntry* DB_FindXAssetEntry(Game::XAssetType type, const char* name)
+	{
+		Game::IW3::XAssetEntryPoolEntry* entry = nullptr;
+		auto hash = db_hashTable[DB_HashForName(type, name)];
+		if (!hash)
+		{
+			return 0;
+		}
+		while (1)
+		{
+			entry = &g_assetEntryPool[hash];
+			if (entry->entry.asset.type == type)
+			{
+				auto assetName = DB_GetXAssetNameHandlers[entry->entry.asset.type](&entry->entry.asset.header);
+				if (!_stricmp(name, assetName))
+					break;
+			}
+
+			hash = entry->entry.nextHash;
+			if (!entry->entry.nextHash)
+				return 0;
+		}
+
+		return entry;
 	}
 
 	int FS_ReadFile(const char* path, char** buffer)
@@ -246,6 +299,29 @@ namespace Game
 		}
 	}
 
+	__declspec(naked) void AxisToAngles(vec3_t*, vec3_t*)
+	{
+		__asm
+		{
+			pushad
+			mov ecx, [esp + 0x8 + 0x20]
+			push ecx
+			mov eax, [esp + 0x8 + 0x20]
+			push eax
+
+			mov ebx, 0x561B50
+			call ebx
+			
+			pop eax
+			pop ecx
+			popad
+
+			retn
+
+		}
+	}
+
+
 	// Bounds in IW3, as stored as two coordinates
 	// e.g. Bottom-Left and Top-Right
 	// (example is in R2, but works the same for R3):
@@ -278,6 +354,22 @@ namespace Game
 		void Bounds::compute(vec3_t mins, vec3_t maxs)
 		{
 			ConvertBounds(this, mins, maxs);
+		}
+
+		void Bounds::min(vec3_t &out)
+		{
+			for (int i = 0; i < 3; ++i)
+			{
+				out[i] = midPoint[i] - halfSize[i];
+			}
+		}
+
+		void Bounds::max(vec3_t& out)
+		{
+			for (int i = 0; i < 3; ++i)
+			{
+				out[i] = midPoint[i] + halfSize[i];
+			}
 		}
 	}
 }
