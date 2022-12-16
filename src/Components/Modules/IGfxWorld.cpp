@@ -319,9 +319,13 @@ namespace Components
 						if (skips == 0) {
 							continue;
 						}
-
+						
+#if DEBUG
 						unsigned short iw4SModelIndex = iw3SModelIndex - skips;
+#endif
+						
 						auto newIndex = indexesTranslation[iw3SModelIndex];
+
 						assert(newIndex == iw4SModelIndex);
 
 						asset->dpvs.smodelVisData[partitionIndex][newIndex] = asset->dpvs.smodelVisData[partitionIndex][iw3SModelIndex];

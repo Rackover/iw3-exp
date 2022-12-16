@@ -120,8 +120,6 @@ namespace Components
 		#define SIDES 6 // Cube has 6 SIDES!
 		#define CHANNELS 4 // R G B and A
 		#define IWI_HEADER_SIZE 28 // This would be 32 for IW4, and it's 28 for IW3. This is the size of the header on .IWI file before the actual data
-
-		const unsigned int sizeOfASide = image->texture.loadDef->resourceSize / SIDES;
 		
 		std::string mapName = MapDumper::GetMapName();
 
