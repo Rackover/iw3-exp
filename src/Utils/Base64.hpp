@@ -11,7 +11,6 @@ namespace Utils
     {
         std::string Encode(std::span<std::uint8_t const> const input);
 
-        std::optional<std::vector<std::uint8_t>> Decode(
-            std::string_view const encoded_str);
+        std::optional<std::vector<std::uint8_t>> Decode(std::string_view const encoded_str);
     }
 } 

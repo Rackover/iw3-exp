@@ -176,8 +176,8 @@ namespace Components
 			for (size_t side = 0; side < SIDES; side++)
 			{
 				// Blur it !
-				unsigned char buff1[16384]; // 64 * 64 * 4, should be enough?
-				unsigned char buff2[16384]; // 64 * 64 * 4, should be enough?
+				unsigned char* buff1 = new unsigned char[16384]; // 64 * 64 * 4, should be enough?
+				unsigned char* buff2 = new unsigned char[16384]; // 64 * 64 * 4, should be enough?
 
 				memcpy_s(buff1, faceSize, &image->texture.loadDef->data[dataIndex], faceSize);
 
@@ -221,6 +221,9 @@ namespace Components
 						}
 					}
 				}
+
+				delete buff1;
+				delete buff2;
 			}
 		}
 	}
