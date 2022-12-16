@@ -645,7 +645,7 @@ namespace Components
 
     IMaterialTechniqueSet::IMaterialTechniqueSet()
     {
-        Command::Add("dumpTechset", [](Command::Params params)
+        Command::Add("dumpTechset", [](const Command::Params& params)
         {
             if (params.Length() < 2) return;
             IMaterialTechniqueSet::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, params[1]).techniqueSet);

@@ -28,7 +28,7 @@ namespace Components
 
 	IGfxLightDef::IGfxLightDef()
 	{
-		Command::Add("dumpGfxLightDef", [](Command::Params params)
+		Command::Add("dumpGfxLightDef", [](const Command::Params& params)
 		{
 			if (params.Length() < 2) return;
 			IGfxLightDef::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_LIGHT_DEF, params[1]).lightDef);

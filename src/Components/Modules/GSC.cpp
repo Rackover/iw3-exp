@@ -211,7 +211,7 @@ namespace Components
 
 	void GSC::UpgradeCreateFog(std::string& data)
 	{
-		std::regex regex("setExpFog\\(((?:(?:[0-9]*|\\.| )*,*){6}),"s, std::regex_constants::icase);
+		static std::regex regex("setExpFog\\(((?:(?:[0-9]*|\\.| )*,*){6}),"s, std::regex_constants::icase);
 
 		data = std::regex_replace(data, regex, "setExpFog($1, 1.0,"); // CoD4 fog is always with 1.0 max opacity
 	}

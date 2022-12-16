@@ -169,7 +169,7 @@ namespace Components
 
 	MapDumper::MapDumper()
 	{
-		Command::Add("dumpMap", [](Command::Params params)
+		Command::Add("dumpMap", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
 				std::string mapname = params[1];

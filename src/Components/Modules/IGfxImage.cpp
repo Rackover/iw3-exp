@@ -252,7 +252,7 @@ namespace Components
 
 	IGfxImage::IGfxImage()
 	{
-		Command::Add("dumpGfxImage", [](Command::Params params)
+		Command::Add("dumpGfxImage", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
 

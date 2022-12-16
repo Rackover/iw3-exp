@@ -39,7 +39,7 @@ namespace Components
 
 	IMapEnts::IMapEnts()
 	{
-		Command::Add("dumpMapEnts", [](Command::Params params)
+		Command::Add("dumpMapEnts", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
 				IMapEnts::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]).clipMap->mapEnts);

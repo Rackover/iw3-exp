@@ -229,7 +229,7 @@ namespace Components
 
 	Isnd_alias_list_t::Isnd_alias_list_t()
 	{
-		Command::Add("dumpSound", [](Command::Params params)
+		Command::Add("dumpSound", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
 				Isnd_alias_list_t::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_SOUND, params[1]).sound);
