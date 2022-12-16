@@ -372,6 +372,7 @@ namespace Components
 		// Do not delay model surface ever! In iw4 this doesn't even exist
 		// If this flag is ever set to 1 it usually burns the delayed surface buffer of IW4
 		mat.gameFlags.fields.delayModelSurface = 0; 
+
 		// Sort key
 #if USE_IW3_SORTKEYS
 		mat.sortKey = material->info.sortKey; // Using iw3 value directly
@@ -425,13 +426,8 @@ namespace Components
 			mat.stateFlags = static_cast<Game::IW4::StateFlags>(mat.stateFlags | Game::IW4::STATE_FLAG_AMBIENT);
 			Logger::Print("Added STATE_FLAG_AMBIENT on %s (sortkey is opaque-ambient)\n", mat.name);
 		}
-#else
-		// Give ambient to everyone. Why not?
-		// While this sounds evil, it actually fixes lighting issues on grass, rocks, everything
-		// And does not seem to have any drawback!
-		mat.stateFlags = static_cast<Game::IW4::StateFlags>(mat.stateFlags | Game::IW4::STATE_FLAG_AMBIENT);
-#endif
 
+		// Should we give ambient stateflag to everybody by default?
 		mat.cameraRegion   = material->cameraRegion;
 
 		if (mat.cameraRegion == 0x3) {

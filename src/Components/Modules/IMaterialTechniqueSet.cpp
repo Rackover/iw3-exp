@@ -318,6 +318,7 @@ namespace Components
                 {
                     rapidjson::Value literalsArray(rapidjson::kArrayType);
 
+                    // always four
                     for (size_t j = 0; j < 4; j++)
                     {
                         literalsArray.PushBack(arg->u.literalConst[j], allocator);
