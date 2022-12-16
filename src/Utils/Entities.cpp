@@ -108,71 +108,71 @@ namespace Utils
 
 	void Entities::addCarePackages()
 	{
-		auto subModelCount = 0;
+        auto subModelCount = 0;
 
-		// We don't have a clipmap reference, so 
-		Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, [&subModelCount](Game::IW3::XAssetEntryPoolEntry* poolEntry) {
-			auto entry = &poolEntry->entry;
-			if (entry && entry->asset.header.clipMap && subModelCount == 0)
-			{
-				// A clipmap is loaded, we may add the care packages
-				auto clipMap = entry->asset.header.clipMap;
+        // We don't have a clipmap reference, so 
+        Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, [&subModelCount](Game::IW3::XAssetEntryPoolEntry* poolEntry) {
+            auto entry = &poolEntry->entry;
+            if (entry && entry->asset.header.clipMap && subModelCount == 0)
+            {
+                // A clipmap is loaded, we may add the care packages
+                auto clipMap = entry->asset.header.clipMap;
 
-				subModelCount = clipMap->numSubModels;
-			}
-			}, false);
+                subModelCount = clipMap->numSubModels;
+            }
+            }, false);
 
 
-		if (subModelCount > 0)
-		{
-			// The last two static models will always be the care packages if we added them ourselves
-			auto countWithoutPackages = subModelCount - 2;
+        if (subModelCount > 0)
+        {
+            // The last two static models will always be the care packages if we added them ourselves
+            auto countWithoutPackages = subModelCount - 2;
 
-			// All values here taken from mp_rust
-			std::unordered_map<std::string, std::string> airdropPalletBrushModel =
-			{
-				{	"script_gameobjectname",	"airdrop_pallet"},
-				{	"targetname",				"iw3x_entity_carepackage"},
-				{	"classname",				"script_brushmodel"},
-				{	"origin",					"-5072 6560 858"},
-				{	"model",					"*" + std::to_string(countWithoutPackages) }
-			};
+            // All values here taken from mp_rust
+            std::unordered_map<std::string, std::string> airdropPalletBrushModel =
+            {
+                {    "script_gameobjectname",    "airdrop_pallet"},
+                {    "targetname",               "iw3x_entity_carepackage"},
+                {    "classname",                "script_brushmodel"},
+                {    "origin",                   "-5072 6560 858"},
+                {    "model",                    "*" + std::to_string(countWithoutPackages) }
+            };
 
-			std::unordered_map<std::string, std::string> airdropPalletScriptModel =
-			{
-				{	"ltOrigin",					"-5072 6560.19 872.889"},
-				{	"target",					"iw3x_entity_carepackage"},
-				{	"targetname",				"airdrop_crate"},
-				{	"origin",					"-5072 6560 858"},
-				{	"classname",				"script_model"},
-				{	"model",					"com_plasticcase_green_big_us_dirt"}
-			};
+            std::unordered_map<std::string, std::string> airdropPalletScriptModel =
+            {
+                {    "ltOrigin",                 "-5072 6560.19 872.889"},
+                {    "target",                   "iw3x_entity_carepackage"},
+                {    "targetname",               "airdrop_crate"},
+                {    "origin",                   "-5072 6560 858"},
+                {    "classname",                "script_model"},
+                {    "model",                    "com_plasticcase_green_big_us_dirt"}
+            };
 
-			std::unordered_map<std::string, std::string> carePackageBrushModel =
-			{
-				{	"script_gameobjectname",	"airdrop_pallet"},
-				{	"targetname",				"iw3x_entity_airdroppallet"},
-				{	"classname",				"script_brushmodel"},
-				{	"origin",					"250 325 -299"},
-				{	"model",					"*" + std::to_string(countWithoutPackages + 1) }
-			};
+            std::unordered_map<std::string, std::string> carePackageBrushModel =
+            {
+                {    "script_gameobjectname",    "airdrop_pallet"},
+                {    "targetname",               "iw3x_entity_airdroppallet"},
+                {    "classname",                "script_brushmodel"},
+                {    "origin",                   "250 325 -299"},
+                {    "model",                    "*" + std::to_string(countWithoutPackages + 1) }
+            };
 
-			std::unordered_map<std::string, std::string> carePackageScriptModel =
-			{
-				{	"ltOrigin",					"249.7 324.886 -299.611"},
-				{	"target",					"iw3x_entity_carepackage"},
-				{	"targetname",				"care_package"},
-				{	"origin",					"249.7 324.7 -314.5"},
-				{	"classname",				"script_model"},
-				{	"model",					"com_plasticcase_green_big_us_dirt"}
-			};
+            std::unordered_map<std::string, std::string> carePackageScriptModel =
+            {
+                {    "ltOrigin",                 "249.7 324.886 -299.611"},
+                {    "target",                   "iw3x_entity_carepackage"},
+                {    "targetname",               "care_package"},
+                {    "origin",                   "249.7 324.7 -314.5"},
+                {    "classname",                "script_model"},
+                {    "model",                    "com_plasticcase_green_big_us_dirt"}
+            };
 
-			entities.push_back(airdropPalletBrushModel);
-			entities.push_back(airdropPalletScriptModel);
-			entities.push_back(carePackageBrushModel);
-			entities.push_back(carePackageScriptModel);
-		}
-	}
+            entities.push_back(airdropPalletBrushModel);
+            entities.push_back(airdropPalletScriptModel);
+            entities.push_back(carePackageBrushModel);
+            entities.push_back(carePackageScriptModel);
+        }
+    }
 
 	bool Entities::convertTurrets()
 	{
@@ -212,12 +212,12 @@ namespace Utils
 
 				std::unordered_map<std::string, std::string> scriptModelEntity =
 				{
-					{	"_comment",					"added by iw3xport"},
-					{	"classname",				"script_model"},
-					{	"ltOrigin",					origin},
-					{	"origin",					origin},
-					{	"angles",					anglesStr},
-					{	"model",					drawInst->model->name }
+                    {    "_comment",                 "added by iw3xport"},
+                    {    "classname",                "script_model"},
+                    {    "ltOrigin",                 origin},
+                    {    "origin",                   origin},
+                    {    "angles",                   anglesStr},
+                    {    "model",                    drawInst->model->name }
 				};
 
 				entities.push_back(scriptModelEntity);
