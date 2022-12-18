@@ -361,13 +361,12 @@ namespace Components
 		Game::IW4::Material mat;
 		ZeroMemory(&mat, sizeof mat);
 
-		mat.name                    = material->info.name;
+		mat.name = material->info.name;
 
-		mat.gameFlags.packed               = material->info.gameFlags.packed;
+		mat.gameFlags.packed = material->info.gameFlags.packed;
 
 		// ???
-		mat.gameFlags.fields.unk8 = material->info.gameFlags.fields.unk7;
-		mat.gameFlags.fields.unk7 = material->info.gameFlags.fields.unk8;
+		mat.gameFlags.fields.unkNeededForSModelDisplay = 1;
 
 		// Do not delay model surface ever! In iw4 this doesn't even exist
 		// If this flag is ever set to 1 it usually burns the delayed surface buffer of IW4

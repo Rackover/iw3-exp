@@ -136,9 +136,9 @@ namespace Game
 		unsigned char isFoliageRequiresGroundLighting : 1;
 		unsigned char unk4 : 1;
 		unsigned char unk5 : 1;
+		unsigned char unk6 : 1;
 		unsigned char delayModelSurface : 1;
-		unsigned char unk7 : 1;
-		unsigned char unk8 : 1;
+		unsigned char unkNeededForSModelDisplay : 1;
 	};
 
 	union MaterialGameFlags
