@@ -365,13 +365,6 @@ namespace Components
 
 		mat.gameFlags.packed = material->info.gameFlags.packed;
 
-		// ???
-		mat.gameFlags.fields.unkNeededForSModelDisplay = 1;
-
-		// Do not delay model surface ever! In iw4 this doesn't even exist
-		// If this flag is ever set to 1 it usually burns the delayed surface buffer of IW4
-		mat.gameFlags.fields.delayModelSurface = 0; 
-
 		// Sort key
 #if USE_IW3_SORTKEYS
 		mat.sortKey = material->info.sortKey; // Using iw3 value directly

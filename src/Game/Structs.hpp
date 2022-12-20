@@ -137,7 +137,7 @@ namespace Game
 		unsigned char unk4 : 1;
 		unsigned char unk5 : 1;
 		unsigned char unk6 : 1;
-		unsigned char delayModelSurface : 1;
+		unsigned char doNotDelaySurface : 1;
 		unsigned char unkNeededForSModelDisplay : 1;
 	};
 
