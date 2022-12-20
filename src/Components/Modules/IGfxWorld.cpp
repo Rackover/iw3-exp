@@ -993,10 +993,26 @@ namespace Components
 						map.dpvs.smodelDrawInsts[i].flags |= Game::IW4::STATIC_MODEL_FLAG_GROUND_LIGHTING;
 					}
 				}
+
+				auto xmodel = map.dpvs.smodelDrawInsts[i].model;
+				if (xmodel)
+				{
+					for (size_t surfaceIndex = 0; surfaceIndex < xmodel->numsurfs; surfaceIndex++)
+					{
+						auto material = xmodel->materialHandles[surfaceIndex];
+
+						// Do not delay model surface ever! In iw4 this doesn't even exist
+						// If this flag is ever set to 0 it usually burns the delayed surface buffer of IW4
+						//material->info.gameFlags.fields.unkNeededForSModelDisplay = 1;
+						//material->info.gameFlags.fields.doNotDelaySurface = 1; // Still blocky shadows even when i have just this one enabled
+						//material->info.gameFlags.fields.isFoliageRequiresGroundLighting = (map.dpvs.smodelDrawInsts[i].flags & Game::IW4::STATIC_MODEL_FLAG_GROUND_LIGHTING) != 0;
+					}
+				}
+
 			}
 		}
 
-		#if USE_IW3_SORTKEYS
+#if USE_IW3_SORTKEYS
 		// IW3 values
 		map.sortKeyLitDecal = 9;
 		map.sortKeyEffectDecal = 29;
