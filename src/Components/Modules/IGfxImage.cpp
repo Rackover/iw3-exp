@@ -138,7 +138,7 @@ namespace Components
 		//	the specular reflections are very aggressive. That's about it! :)
 
 		std::vector<std::tuple<unsigned int, unsigned int>> mips = std::vector<std::tuple<unsigned int, unsigned int>>();
-		unsigned int totalSize = 0;
+		[[maybe_unused]] unsigned int totalSize = 0;
 		if (image->noPicmip == false) // => Has mipmaps
 		{
 			unsigned short maxDimension = std::max(image->height, image->width);
@@ -154,8 +154,6 @@ namespace Components
 				mips.emplace_back(std::tuple<int, int>(x, y));
 				mipmapFactor *= 2;
 			}
-
-			assert(totalSize == sizeOfASide);
 
 		}
 		else {
