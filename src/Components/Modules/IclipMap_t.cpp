@@ -40,7 +40,7 @@ namespace Components
 
 		Game::IW4::SModelAabbNode* node = allocator->allocate<Game::IW4::SModelAabbNode>();
 		node->bounds.compute(mins, maxs);
-		node->childCount = static_cast<short>(clipMap->numStaticModels - IGfxWorld::removedStaticModelIndices.size() <= 0);
+		node->childCount = static_cast<short>(clipMap->numStaticModels - IGfxWorld::removedStaticModelIndices.size());
 		node->firstChild = 0;
 
 		*size = 1;
