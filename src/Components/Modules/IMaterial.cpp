@@ -364,6 +364,8 @@ namespace Components
 		mat.name = material->info.name;
 
 		mat.gameFlags.packed = material->info.gameFlags.packed;
+		mat.gameFlags.fields.unk7 = material->info.gameFlags.fields.unkNeededForSModelDisplay;
+		mat.gameFlags.fields.unkCastShadowMaybe = material->info.gameFlags.fields.MTL_GAMEFLAG_CASTS_SHADOW;
 
 		// Sort key
 #if USE_IW3_SORTKEYS
