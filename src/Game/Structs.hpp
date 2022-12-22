@@ -129,25 +129,6 @@ namespace Game
 		SAT_COUNT = 0x3,
 	};
 
-	struct MaterialGameFlagsFields
-	{
-		unsigned char unk1 : 1; // 0x1
-		unsigned char addShadowToPrimaryLight : 1; // 0x2
-		unsigned char isFoliageRequiresGroundLighting : 1; // 0x4
-		unsigned char unk4 : 1; // 0x8
-		unsigned char unk5 : 1; // 0x10
-		unsigned char unk6 : 1; // 0x20
-		unsigned char MTL_GAMEFLAG_CASTS_SHADOW : 1; // 0x40
-		unsigned char unkNeededForSModelDisplay : 1; // 0x80
-	};
-
-	union MaterialGameFlags
-	{
-		MaterialGameFlagsFields fields;
-		unsigned char packed;
-	};
-
-
 	struct cmd_function_s
 	{
 		cmd_function_s *next;
@@ -851,6 +832,24 @@ namespace Game
 			char unused[1];
 			MaterialTechniqueSet* remappedTechniqueSet;
 			MaterialTechnique *techniques[34];
+		};
+
+		struct MaterialGameFlagsFields
+		{
+			unsigned char unk1 : 1; // 0x1
+			unsigned char addShadowToPrimaryLight : 1; // 0x2
+			unsigned char isFoliageRequiresGroundLighting : 1; // 0x4
+			unsigned char unk4 : 1; // 0x8
+			unsigned char unk5 : 1; // 0x10
+			unsigned char unk6 : 1; // 0x20
+			unsigned char MTL_GAMEFLAG_CASTS_SHADOW : 1; // 0x40
+			unsigned char unkNeededForSModelDisplay : 1; // 0x80
+		};
+
+		union MaterialGameFlags
+		{
+			MaterialGameFlagsFields fields;
+			unsigned char packed;
 		};
 
 #pragma pack(push, 4)
@@ -3466,6 +3465,24 @@ namespace Game
 			MTL_STATE_SET_STENCIL = 0x9,
 			MTL_STATE_SET_WIREFRAME = 0xA,
 			MTL_STATE_SET_COUNT = 0xB,
+		};
+
+		struct MaterialGameFlagsFields
+		{
+			unsigned char unk1 : 1; // 0x1
+			unsigned char addShadowToPrimaryLight : 1; // 0x2
+			unsigned char isFoliageRequiresGroundLighting : 1; // 0x4
+			unsigned char unk4 : 1; // 0x8
+			unsigned char unk5 : 1; // 0x10
+			unsigned char unk6 : 1; // 0x20
+			unsigned char unk7 : 1; // 0x40
+			unsigned char unkCastShadowMaybe : 1; // 0x80
+		};
+
+		union MaterialGameFlags
+		{
+			MaterialGameFlagsFields fields;
+			unsigned char packed;
 		};
 
 #pragma pack(push, 4)

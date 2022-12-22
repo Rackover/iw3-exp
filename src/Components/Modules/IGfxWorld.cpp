@@ -979,7 +979,14 @@ namespace Components
 				{
 					// Confirmed to be the same in the rendering functions
 					// Check R_AddAllStaticModelSurfacesSpotShadow in both iw3 and iw4
+					 
 					map.dpvs.smodelDrawInsts[i].flags |= Game::IW4::STATIC_MODEL_FLAG_NO_CAST_SHADOW;
+					
+					// aaaaand NO it's not !
+					// For some reason while being used in the same place for the same thing AFAIK,
+					// setting this to the "correct value" in iw4 results in blocky smodel shadows!
+					// Unless we keep the iw3 flag in (which should be non existent in iw4!)
+					map.dpvs.smodelDrawInsts[i].flags |= Game::IW3::STATIC_MODEL_FLAG_NO_SHADOW;
 				}
 
 				if (world->dpvs.smodelInsts)
@@ -993,22 +1000,6 @@ namespace Components
 						map.dpvs.smodelDrawInsts[i].flags |= Game::IW4::STATIC_MODEL_FLAG_GROUND_LIGHTING;
 					}
 				}
-
-				auto xmodel = map.dpvs.smodelDrawInsts[i].model;
-				if (xmodel)
-				{
-					for (size_t surfaceIndex = 0; surfaceIndex < xmodel->numsurfs; surfaceIndex++)
-					{
-						auto material = xmodel->materialHandles[surfaceIndex];
-
-						// Do not delay model surface ever! In iw4 this doesn't even exist
-						// If this flag is ever set to 0 it usually burns the delayed surface buffer of IW4
-						//material->info.gameFlags.fields.unkNeededForSModelDisplay = 1;
-						//material->info.gameFlags.fields.doNotDelaySurface = 1; // Still blocky shadows even when i have just this one enabled
-						//material->info.gameFlags.fields.isFoliageRequiresGroundLighting = (map.dpvs.smodelDrawInsts[i].flags & Game::IW4::STATIC_MODEL_FLAG_GROUND_LIGHTING) != 0;
-					}
-				}
-
 			}
 		}
 
