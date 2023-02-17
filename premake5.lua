@@ -60,6 +60,9 @@ newaction {
 	end
 }
 
+
+require("deps/iw4-open-formats")
+	
 workspace "iw3-exp"
 	location "./build"
 	objdir "%{wks.location}/obj"
@@ -113,6 +116,8 @@ workspace "iw3-exp"
 		resincludedirs {
 			"$(ProjectDir)src" -- fix for VS IDE
 		}
+		
+		iw4_open_formats.import()
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
@@ -153,3 +158,6 @@ workspace "iw3-exp"
 		configuration "Release"
 			flags { "FatalCompileWarnings" }
 		configuration {}
+
+group "External Dependencies"
+iw4_open_formats.project()
