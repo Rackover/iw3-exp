@@ -5,6 +5,11 @@ namespace Components
 
 	std::string MapDumper::mapName;
 	int MapDumper::zoneIndex;
+	iw4of::api* MapDumper::api;
+
+	iw4of::api* MapDumper::GetApi() {
+		return MapDumper::api;
+	}
 
 	std::string MapDumper::GetMapName() {
 		return MapDumper::mapName;
@@ -16,7 +21,6 @@ namespace Components
 
 	void MapDumper::DumpMap(std::string mapToDump)
 	{
-
 		MapDumper::mapName = mapToDump;
 		std::string bspName = Utils::VA("maps/mp/%s.d3dbsp", mapToDump.data());
 
@@ -167,12 +171,59 @@ namespace Components
 		}
 	}
 
+	std::string MapDumper::APIFileRead(const std::string& filename)
+	{
+		if (filename.ends_with(".iwi"))
+		{
+			return IGfxImage::ConvertIWIOnTheFly(filename);
+		}
+
+		return FileSystem::File(filename).GetBuffer();
+	}
+
+	iw4of::params_t MapDumper::GetParams()
+	{
+		auto params = iw4of::params_t();
+
+		params.write_only_once = true;
+
+		params.fs_read_file = APIFileRead; 
+
+		params.get_from_string_table = [](unsigned int index)
+		{
+			return Game::SL_ConvertToString(index);
+		};
+
+		params.print = [](int level, const std::string& message)
+		{
+			if (level)
+			{
+				Logger::Error(message.data());
+				assert(false);
+			}
+			else
+			{
+				Logger::Print(message.data());
+			}
+		};
+
+		params.work_directory = "iw3xport_out/default";
+
+		return params;
+	}
+
 	MapDumper::MapDumper()
 	{
+
+		api = new iw4of::api(GetParams());
+
 		Command::Add("dumpMap", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
 				std::string mapname = params[1];
+
+				api->set_work_path(AssetHandler::GetExportPath());
+
 				MapDumper::DumpMap(mapname);
 				Logger::Print("Map '%s' successfully exported.\n", mapname.data());
 			});
@@ -180,6 +231,6 @@ namespace Components
 
 	MapDumper::~MapDumper()
 	{
-
+		delete api;
 	}
 }

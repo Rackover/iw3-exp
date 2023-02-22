@@ -9,6 +9,7 @@ namespace Components
 
 		static std::string GetMapName();
 		static int GetZoneIndex();
+		static iw4of::api* GetApi();
 
 		MapDumper();
 		~MapDumper();
@@ -17,7 +18,12 @@ namespace Components
 		static void DumpMap(std::string  mapName);
 		static void DumpLoadedGSCs(std::string mapName);
 
+		static std::string APIFileRead(const std::string& filename);
+
+		iw4of::params_t GetParams();
+
 		static std::string mapName;
 		static int zoneIndex;
+		static iw4of::api* api;
 	};
 }

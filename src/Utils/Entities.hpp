@@ -10,14 +10,14 @@ namespace Utils
 		Entities(std::string buffer) : Entities() { this->parse(buffer); };
 		Entities(const Entities &obj) : entities(obj.entities) {};
 
-		std::string build();
+		std::string Build();
 
-		std::vector<std::string> getModels(bool includeDestructibles);
-		void deleteOldSchoolPickups();
-		bool convertTurrets();
-		bool convertVehicles();
-		void addCarePackages();
-		void addRemovedSModels();
+		std::vector<std::string> GetModels(bool includeDestructibles);
+		void DeleteOldSchoolPickups();
+		bool ConvertTurrets();
+		bool ConvertVehicles();
+		void AddCarePackages();
+		void AddRemovedSModels();
 
 	private:
 		enum

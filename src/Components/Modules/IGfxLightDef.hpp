@@ -9,7 +9,7 @@ namespace Components
 		~IGfxLightDef();
 
 		const char* getName() override { return "IGfxLightDef"; };
-		Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_LIGHT_DEF; };
+		Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_LIGHT_DEF; };
 		void dump(Game::IW3::XAssetHeader header) override { Dump(header.lightDef); };
 
 	private:

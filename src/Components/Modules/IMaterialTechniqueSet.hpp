@@ -15,16 +15,16 @@ namespace Components
         static const std::string techsetSuffix;
 
         const char* getName() override { return "IMaterialTechniqueSet"; };
-        Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET; };
+        Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET; };
         void dump(Game::IW3::XAssetHeader header) override { Dump(header.techniqueSet); };
 
     private:
         static Game::IW4::MaterialTechniqueSet* Dump(Game::IW3::MaterialTechniqueSet* techset);
 
-        static std::string DumpTechnique(Game::IW3::MaterialTechnique* tech);
-        static std::string DumpDecl(Game::IW3::MaterialVertexDeclaration* decl);
-        static std::string DumpVS(Game::IW3::MaterialVertexShader* vs);
-        static std::string DumpPS(Game::IW3::MaterialPixelShader* ps);
+        static Game::IW3::MaterialTechnique* ConvertTechnique(Game::IW3::MaterialTechnique* tech);
+        static Game::IW4::MaterialVertexDeclaration* ConvertDecl(Game::IW3::MaterialVertexDeclaration* decl);
+        static Game::IW3::MaterialVertexShader* ConvertVS(Game::IW3::MaterialVertexShader* vs);
+        static Game::IW3::MaterialPixelShader* ConvertPS(Game::IW3::MaterialPixelShader* ps);
         static void SaveConvertedTechset(Game::IW4::MaterialTechniqueSet* techset);
         static std::string GetDeclarationName(const Game::IW3::MaterialVertexDeclaration* decl);
 

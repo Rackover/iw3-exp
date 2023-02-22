@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	void IMapEnts::Dump(Game::IW3::MapEnts* ents)
+	Game::IW4::MapEnts* IMapEnts::Convert(Game::IW3::MapEnts* ents)
 	{
 		if (!ents) return;
 		std::string basename(ents->name);
@@ -15,26 +15,30 @@ namespace Components
 
 		Utils::Entities mapEnts(entString);
 
-		mapEnts.addCarePackages();
-		mapEnts.deleteOldSchoolPickups();
-		mapEnts.addRemovedSModels();
+		mapEnts.AddCarePackages();
+		mapEnts.DeleteOldSchoolPickups();
+		mapEnts.AddRemovedSModels();
 
-		if (mapEnts.convertTurrets())
+		if (mapEnts.ConvertTurrets())
 		{
 			// The map features turrets! We need to write a file somewhere to inform the converter about it so that the proper iw4 minigun source will be included
 			Utils::WriteFile(Utils::VA("%s/HAS_MINIGUN", AssetHandler::GetExportPath().data()), "\0");
 		}
 
-		bool hasVehicles = mapEnts.convertVehicles();
+		bool hasVehicles = mapEnts.ConvertVehicles();
 
-		entString = mapEnts.build();
+		entString = mapEnts.Build();
+		mapEnts.GetModels(hasVehicles); // Add additional models to file
 
-		for (auto& model : mapEnts.getModels(hasVehicles))
-		{
-			AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_XMODEL, { Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, model.data()).model });
-		}
+		Game::IW4::MapEnts* iw4Ents = LocalAllocator.Allocate<Game::IW4::MapEnts>();
 
-		Utils::WriteFile(Utils::VA("%s/mapents/%s.ents", AssetHandler::GetExportPath().data(), basename.data()), entString);
+		iw4Ents->name = ents->name;
+		iw4Ents->entityString = LocalAllocator.DuplicateString(entString);
+		iw4Ents->numEntityChars = entString.size() +1;
+		iw4Ents->stages = nullptr; 
+
+
+		return iw4Ents;
 	}
 
 	IMapEnts::IMapEnts()
@@ -42,7 +46,9 @@ namespace Components
 		Command::Add("dumpMapEnts", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
-				IMapEnts::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]).clipMap->mapEnts);
+				 
+				 auto converted = IMapEnts::Convert(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]).clipMap->mapEnts);
+				 MapDumper::GetApi()->write(Game::IW4::ASSET_TYPE_MAP_ENTS, converted);
 			});
 	}
 

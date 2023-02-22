@@ -3,20 +3,28 @@
 namespace Components
 {
 	std::map<Game::XAssetType, AssetHandler::AssetInterface*> AssetHandler::AssetInterfaces;
-	std::vector<Game::IW3::XAsset> AssetHandler::DumpedAssets;
+	std::vector<Game::IW3::XAsset> AssetHandler::ConvertedAssets;
 
-	void AssetHandler::Dump(Game::XAssetType type, Game::IW3::XAssetHeader header)
+	Game::IW4::XAssetHeader AssetHandler::Convert(Game::XAssetType type, Game::IW3::XAssetHeader header)
 	{
-		if(std::find_if(AssetHandler::DumpedAssets.begin(), AssetHandler::DumpedAssets.end(), [&](Game::IW3::XAsset& asset)
-		{
-			return (asset.type == type && asset.header.data == header.data);
-		}) == AssetHandler::DumpedAssets.end())
-		{
-			if (AssetHandler::AssetInterfaces.find(type) != AssetHandler::AssetInterfaces.end())
+		const auto& existing = std::find_if(AssetHandler::ConvertedAssets.begin(), AssetHandler::ConvertedAssets.end(), [&](Game::IW3::XAsset& asset)
 			{
-				AssetHandler::AssetInterfaces[type]->dump(header);
-				AssetHandler::DumpedAssets.push_back({ type, header });
+				return (asset.type == type && asset.header.data == header.data);
+			});
+		if(existing == AssetHandler::ConvertedAssets.end())
+		{
+			if (AssetHandler::AssetInterfaces.contains(type))
+			{
+				const auto& result = AssetHandler::AssetInterfaces[type]->convert(header);
+				AssetHandler::ConvertedAssets.push_back({ type, header });
+				return result;
 			}
+
+			return { nullptr };
+		}
+		else
+		{
+			return { existing._Ptr->header.data };
 		}
 	}
 
@@ -58,6 +66,6 @@ namespace Components
 	AssetHandler::~AssetHandler()
 	{
 		AssetHandler::AssetInterfaces.clear();
-		AssetHandler::DumpedAssets.clear();
+		AssetHandler::ConvertedAssets.clear();
 	}
 }
