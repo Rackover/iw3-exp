@@ -2,7 +2,7 @@
 
 namespace Utils
 {
-	std::string Entities::build()
+	std::string Entities::Build()
 	{
 		std::string entityString;
 
@@ -25,7 +25,7 @@ namespace Utils
 		return entityString;
 	}
 
-	std::vector<std::string> Entities::getModels(bool includeDestructibles)
+	std::vector<std::string> Entities::GetModels(bool includeDestructibles)
 	{
 		std::vector<std::string>* models = new std::vector<std::string>();
 		std::ofstream destructiblesModelList;
@@ -84,7 +84,7 @@ namespace Utils
 		return *models;
 	}
 
-	bool Entities::convertVehicles() {
+	bool Entities::ConvertVehicles() {
 		bool hasVehicles = false;
 
 		for (auto& entity : this->entities)
@@ -106,7 +106,7 @@ namespace Utils
 		return hasVehicles;
 	}
 
-	void Entities::addCarePackages()
+	void Entities::AddCarePackages()
 	{
         auto subModelCount = 0;
 
@@ -174,7 +174,7 @@ namespace Utils
         }
     }
 
-	bool Entities::convertTurrets()
+	bool Entities::ConvertTurrets()
 	{
 		bool hasTurrets = false;
 
@@ -194,7 +194,7 @@ namespace Utils
 		return hasTurrets;
 	}
 
-	void Entities::addRemovedSModels()
+	void Entities::AddRemovedSModels()
 	{
 		const std::string mapName = Components::MapDumper::GetMapName();
 		const std::string bspName = Utils::VA("maps/mp/%s.d3dbsp", mapName.data());
@@ -225,7 +225,7 @@ namespace Utils
 		}
 	}
 
-	void Entities::deleteOldSchoolPickups()
+	void Entities::DeleteOldSchoolPickups()
 	{
 		for (auto i = this->entities.begin(); i != this->entities.end();)
 		{

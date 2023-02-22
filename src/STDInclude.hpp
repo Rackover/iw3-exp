@@ -57,6 +57,8 @@ template <size_t S> class Sizer { };
 // Version number
 #include <version.hpp>
 
+#include "api.hpp"
+
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
@@ -69,7 +71,7 @@ template <size_t S> class Sizer { };
 #include "Utils/Base64.hpp"
 #include "Utils/Image.hpp"
 
-#include "Game/Structs.hpp"
+#include "Game/Structs.IW4.hpp"
 #include "Game/Functions.hpp"
 
 #include "Components/Loader.hpp"

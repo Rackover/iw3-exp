@@ -6,192 +6,6 @@ namespace Components
 {
 	std::unordered_set<unsigned short> IGfxWorld::removedStaticModelIndices{};
 
-	void IGfxWorld::SaveGfxWorldDpvsStatic(Game::IW4::GfxWorld* world, Game::IW4::GfxWorldDpvsStatic* asset, Utils::Stream* buffer)
-	{
-		AssertSize(Game::IW4::GfxWorldDpvsStatic, 108);
-
-		if (asset->sortedSurfIndex)
-		{
-			buffer->saveArray(asset->sortedSurfIndex, asset->staticSurfaceCount + asset->staticSurfaceCountNoDecal);
-		}
-
-		if (asset->smodelInsts)
-		{
-			AssertSize(Game::IW4::GfxStaticModelInst, 36);
-			buffer->saveArray(asset->smodelInsts, asset->smodelCount);
-		}
-
-		if (asset->surfaces)
-		{
-			AssertSize(Game::IW4::GfxSurface, 24);
-			buffer->saveArray(asset->surfaces, world->surfaceCount);
-
-			for (unsigned int i = 0; i < world->surfaceCount; ++i)
-			{
-				Game::IW4::GfxSurface* surface = &asset->surfaces[i];
-
-				if (surface->material)
-				{
-					buffer->saveString(world->dpvs.surfaces[i].material->info.name); // Redundant, but too lazy to implement pointer support
-					AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_MATERIAL, { world->dpvs.surfaces[i].material });
-				}
-			}
-		}
-
-		if (asset->surfacesBounds)
-		{
-			AssertSize(Game::IW4::GfxSurfaceBounds, 24);
-			buffer->saveArray(asset->surfacesBounds, world->surfaceCount);
-		}
-
-		if (asset->smodelDrawInsts)
-		{
-			AssertSize(Game::IW4::GfxStaticModelDrawInst, 76);
-
-			buffer->saveArray(asset->smodelDrawInsts, asset->smodelCount);
-
-			for (unsigned int i = 0; i < asset->smodelCount; ++i)
-			{
-				Game::IW4::GfxStaticModelDrawInst* model = &asset->smodelDrawInsts[i];
-
-				if (model->model)
-				{
-					buffer->saveString(model->model->name);
-					AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_XMODEL, { model->model });
-				}
-			}
-		}
-	}
-
-	void IGfxWorld::SaveGfxLightGrid(Game::IW3::GfxLightGrid* asset, Utils::Stream* buffer)
-	{
-		AssertSize(Game::IW3::GfxLightGrid, 56);
-
-		if (asset->rowDataStart)
-		{
-			buffer->saveArray(asset->rowDataStart, (asset->maxs[asset->rowAxis] - asset->mins[asset->rowAxis]) + 1);
-		}
-
-		if (asset->rawRowData)
-		{
-			// no align for char
-			buffer->saveArray(asset->rawRowData, asset->rawRowDataSize);
-		}
-
-		if (asset->entries)
-		{
-			AssertSize(Game::IW3::GfxLightGridEntry, 4);
-			buffer->saveArray(asset->entries, asset->entryCount);
-		}
-
-		if (asset->colors)
-		{
-			AssertSize(Game::IW3::GfxLightGridColors, 168);
-			buffer->saveArray(asset->colors, asset->colorCount);
-		}
-	}
-
-	void IGfxWorld::SaveGfxWorldDraw(Game::IW4::GfxWorldDraw* asset, Utils::Stream* buffer)
-	{
-		AssertSize(Game::IW4::GfxWorldDraw, 72);
-
-		if (asset->reflectionImages)
-		{
-			buffer->saveArray(asset->reflectionImages, asset->reflectionProbeCount);
-
-			for (unsigned int i = 0; i < asset->reflectionProbeCount; ++i)
-			{
-				if (asset->reflectionImages[i])
-				{
-					buffer->saveString(asset->reflectionImages[i]->name);
-					AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_IMAGE, { asset->reflectionImages[i] });
-				}
-			}
-		}
-
-		if (asset->reflectionProbes)
-		{
-			AssertSize(Game::IW4::GfxReflectionProbe, 12);
-			buffer->saveArray(asset->reflectionProbes, asset->reflectionProbeCount);
-		}
-
-		if (asset->lightmaps)
-		{
-			AssertSize(Game::IW3::GfxLightmapArray, 8);
-			buffer->saveArray(asset->lightmaps, asset->lightmapCount);
-
-			for (int i = 0; i < asset->lightmapCount; ++i)
-			{
-				Game::IW3::GfxLightmapArray* lightmapArray = &asset->lightmaps[i];
-
-				if (lightmapArray->primary)
-				{
-					buffer->saveString(lightmapArray->primary->name);
-					AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_IMAGE, { lightmapArray->primary });
-				}
-
-				if (lightmapArray->secondary)
-				{
-					buffer->saveString(lightmapArray->secondary->name);
-					AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_IMAGE, { lightmapArray->secondary });
-				}
-			}
-		}
-
-		if (asset->skyImage)
-		{
-			buffer->saveString(asset->skyImage->name);
-			AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_IMAGE, { asset->skyImage });
-		}
-
-		if (asset->outdoorImage)
-		{
-			buffer->saveString(asset->outdoorImage->name);
-			AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_IMAGE, { asset->outdoorImage });
-		}
-
-		// saveGfxWorldVertexData
-		{
-			if (asset->vd.vertices)
-			{
-				AssertSize(Game::IW3::GfxWorldVertex, 44);
-				buffer->saveArray(asset->vd.vertices, asset->vertexCount);
-			}
-		}
-
-		// saveGfxWorldVertexLayerData
-		{
-			if (asset->vld.data)
-			{
-				// no align for char
-				buffer->saveArray(asset->vld.data, asset->vertexLayerDataSize);
-			}
-		}
-
-		if (asset->indices)
-		{
-			buffer->saveArray(asset->indices, asset->indexCount);
-		}
-	}
-
-	void IGfxWorld::SaveGfxWorldDpvsPlanes(Game::IW4::GfxWorld* world, Game::IW3::GfxWorldDpvsPlanes* asset, Utils::Stream* buffer)
-	{
-		AssertSize(Game::IW3::GfxWorldDpvsPlanes, 16);
-
-		if (asset->planes)
-		{
-			for (int i = 0; i < world->planeCount; ++i)
-			{
-				buffer->saveObject(asset->planes[i]);
-			}
-		}
-
-		if (asset->nodes)
-		{
-			buffer->saveArray(asset->nodes, world->nodeCount);
-		}
-	}
-
 	void IGfxWorld::RemoveIncompatibleModelsForIW4(Game::IW4::GfxWorld* asset, unsigned int fixMethod)
 	{
 		constexpr unsigned int REMOVE_MODELS = 1;
@@ -413,231 +227,9 @@ namespace Components
 		}
 	}
 
-	void IGfxWorld::SaveConvertedWorld(Game::IW4::GfxWorld* asset)
-	{
-		Utils::Stream buffer;
-		buffer.saveArray("IW4xGfxW", 8);
-		buffer.saveObject(IW4X_GFXMAP_VERSION);
-
-		buffer.saveObject(*asset);
-
-		if (asset->name)
-		{
-			buffer.saveString(asset->name);
-		}
-
-		if (asset->baseName)
-		{
-			buffer.saveString(asset->baseName);
-		}
-
-		if (asset->skies)
-		{
-			AssertSize(Game::IW4::GfxSky, 16);
-
-			buffer.saveArray(asset->skies, asset->skyCount);
-
-			for (int i = 0; i < asset->skyCount; ++i)
-			{
-				Game::IW4::GfxSky* sky = &asset->skies[i];
-
-				if (sky->skyStartSurfs)
-				{
-					buffer.saveArray(sky->skyStartSurfs, sky->skySurfCount);
-				}
-
-				if (sky->skyImage)
-				{
-					buffer.saveString(sky->skyImage->name);
-					AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_IMAGE, { sky->skyImage });
-				}
-			}
-		}
-
-		IGfxWorld::SaveGfxWorldDpvsPlanes(asset, &asset->dpvsPlanes, &buffer);
-
-		int cellCount = asset->dpvsPlanes.cellCount;
-
-		if (asset->aabbTreeCounts)
-		{
-			AssertSize(Game::IW4::GfxCellTreeCount, 4);
-			buffer.saveArray(asset->aabbTreeCounts, cellCount);
-		}
-
-		if (asset->aabbTrees)
-		{
-			AssertSize(Game::IW4::GfxCellTree, 4);
-			buffer.saveArray(asset->aabbTrees, cellCount);
-
-			for (int i = 0; i < cellCount; ++i)
-			{
-				Game::IW4::GfxCellTree* cellTree = &asset->aabbTrees[i];
-
-				if (cellTree->aabbTree)
-				{
-					AssertSize(Game::IW3::GfxAabbTree, 44);
-					AssertSize(Game::IW4::GfxAabbTree, 44);
-					buffer.saveArray(cellTree->aabbTree, asset->aabbTreeCounts[i].aabbTreeCount);
-
-					for (int j = 0; j < asset->aabbTreeCounts[i].aabbTreeCount; ++j)
-					{
-						Game::IW4::GfxAabbTree* aabbTree = &cellTree->aabbTree[j];
-
-						if (aabbTree->smodelIndexes)
-						{
-							for (unsigned short k = 0; k < aabbTree->smodelIndexCount; ++k)
-							{
-								buffer.saveObject(aabbTree->smodelIndexes[k]);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if (asset->cells)
-		{
-			AssertSize(Game::IW4::GfxCell, 40);
-			buffer.saveArray(asset->cells, cellCount);
-
-			for (int i = 0; i < cellCount; ++i)
-			{
-				Game::IW4::GfxCell* cell = &asset->cells[i];
-
-				if (cell->portals)
-				{
-					AssertSize(Game::IW4::GfxPortal, 60);
-					buffer.saveArray(cell->portals, cell->portalCount);
-
-					for (int j = 0; j < cell->portalCount; ++j)
-					{
-						Game::IW4::GfxPortal* portal = &cell->portals[j];
-
-						if (portal->vertices)
-						{
-							buffer.saveArray(portal->vertices, portal->vertexCount);
-						}
-					}
-				}
-
-				if (cell->reflectionProbes)
-				{
-					// no align for char
-					buffer.saveArray(cell->reflectionProbes, cell->reflectionProbeCount);
-				}
-			}
-		}
-
-		IGfxWorld::SaveGfxWorldDraw(&asset->draw, &buffer);
-		IGfxWorld::SaveGfxLightGrid(&asset->lightGrid, &buffer);
-
-		if (asset->models)
-		{
-			AssertSize(Game::IW4::GfxBrushModel, 60);
-
-			buffer.saveArray(asset->models, asset->modelCount);
-		}
-
-		if (asset->materialMemory)
-		{
-			AssertSize(Game::IW3::MaterialMemory, 8);
-			buffer.saveArray(asset->materialMemory, asset->materialMemoryCount);
-
-			for (int i = 0; i < asset->materialMemoryCount; ++i)
-			{
-				Game::IW3::MaterialMemory* materialMemory = &asset->materialMemory[i];
-
-				if (materialMemory->material)
-				{
-					buffer.saveString(materialMemory->material->info.name);
-					AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_MATERIAL, { materialMemory->material });
-				}
-			}
-		}
-
-		if (asset->sun.spriteMaterial)
-		{
-			buffer.saveString(asset->sun.spriteMaterial->info.name);
-			AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_MATERIAL, { asset->sun.spriteMaterial });
-		}
-
-		if (asset->sun.flareMaterial)
-		{
-			buffer.saveString(asset->sun.flareMaterial->info.name);
-			AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_MATERIAL, { asset->sun.flareMaterial });
-		}
-
-		if (asset->outdoorImage)
-		{
-			buffer.saveString(asset->outdoorImage->name);
-			AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_IMAGE, { asset->outdoorImage });
-		}
-
-		if (asset->shadowGeom)
-		{
-			AssertSize(Game::IW3::GfxShadowGeometry, 12);
-			buffer.saveArray(asset->shadowGeom, asset->primaryLightCount);
-
-			for (unsigned int i = 0; i < asset->primaryLightCount; ++i)
-			{
-				Game::IW3::GfxShadowGeometry* shadowGeometry = &asset->shadowGeom[i];
-
-				if (shadowGeometry->sortedSurfIndex)
-				{
-					buffer.saveArray(shadowGeometry->sortedSurfIndex, shadowGeometry->surfaceCount);
-				}
-
-				if (shadowGeometry->smodelIndex)
-				{
-					buffer.saveArray(shadowGeometry->smodelIndex, shadowGeometry->smodelCount);
-				}
-			}
-		}
-
-		if (asset->lightRegion)
-		{
-			AssertSize(Game::IW3::GfxLightRegion, 8);
-			buffer.saveArray(asset->lightRegion, asset->primaryLightCount);
-
-			for (unsigned int i = 0; i < asset->primaryLightCount; ++i)
-			{
-				Game::IW3::GfxLightRegion* lightRegion = &asset->lightRegion[i];
-
-				if (lightRegion->hulls)
-				{
-					AssertSize(Game::IW3::GfxLightRegionHull, 80);
-					buffer.saveArray(lightRegion->hulls, lightRegion->hullCount);
-
-					for (unsigned int j = 0; j < lightRegion->hullCount; ++j)
-					{
-						Game::IW3::GfxLightRegionHull* lightRegionHull = &lightRegion->hulls[j];
-
-						if (lightRegionHull->axis)
-						{
-							AssertSize(Game::IW3::GfxLightRegionAxis, 20);
-							buffer.saveArray(lightRegionHull->axis, lightRegionHull->axisCount);
-						}
-					}
-				}
-			}
-		}
-
-		IGfxWorld::SaveGfxWorldDpvsStatic(asset, &asset->dpvs, &buffer);
-
-		// Obsolete, IW3 has no support for that
-		if (asset->heroOnlyLights)
-		{
-			AssertSize(Game::IW4::GfxHeroOnlyLight, 56);
-			buffer.saveArray(asset->heroOnlyLights, asset->heroOnlyLightCount);
-		}
-
-		Utils::WriteFile(Utils::VA("%s/gfxworld/%s.iw4xGfxWorld", AssetHandler::GetExportPath().data(), asset->baseName), buffer.toBuffer());
-	}
-
-	void IGfxWorld::Dump(Game::IW3::GfxWorld* world)
+	Game::IW4::GfxWorld* IGfxWorld::Convert(Game::IW3::GfxWorld* world)
 	{
 		if (!world) return;
-		Utils::Memory::Allocator allocator;
 
 		Game::IW4::GfxSky sky;
 		Game::IW4::GfxWorld map;
@@ -666,7 +258,7 @@ namespace Components
 
 
 
-		map.dpvs.surfaceMaterials = allocator.allocateArray<Game::IW4::GfxDrawSurf>(world->surfaceCount);
+		map.dpvs.surfaceMaterials = LocalAllocator.AllocateArray<Game::IW4::GfxDrawSurf>(world->surfaceCount);
 		for (auto i = 0; i < world->surfaceCount; i++)
 		{
 			map.dpvs.surfaceMaterials[i].fields.objectId = world->dpvs.surfaceMaterials[i].fields.objectId;
@@ -695,9 +287,9 @@ namespace Components
 		// However, in IW4 it's not, so we have to extract the data
 		if (world->cells)
 		{
-			map.aabbTreeCounts = allocator.allocateArray<Game::IW4::GfxCellTreeCount>(world->dpvsPlanes.cellCount);
-			map.aabbTrees = allocator.allocateArray<Game::IW4::GfxCellTree>(world->dpvsPlanes.cellCount);
-			map.cells = allocator.allocateArray<Game::IW4::GfxCell>(world->dpvsPlanes.cellCount);
+			map.aabbTreeCounts = LocalAllocator.AllocateArray<Game::IW4::GfxCellTreeCount>(world->dpvsPlanes.cellCount);
+			map.aabbTrees = LocalAllocator.AllocateArray<Game::IW4::GfxCellTree>(world->dpvsPlanes.cellCount);
+			map.cells = LocalAllocator.AllocateArray<Game::IW4::GfxCell>(world->dpvsPlanes.cellCount);
 
 			for (int i = 0; i < world->dpvsPlanes.cellCount; ++i)
 			{
@@ -710,7 +302,7 @@ namespace Components
 
 				if (world->cells[i].aabbTree)
 				{
-					map.aabbTrees[i].aabbTree = allocator.allocateArray<Game::IW4::GfxAabbTree>(world->cells[i].aabbTreeCount);
+					map.aabbTrees[i].aabbTree = LocalAllocator.AllocateArray<Game::IW4::GfxAabbTree>(world->cells[i].aabbTreeCount);
 					std::memcpy(map.aabbTrees[i].aabbTree, world->cells[i].aabbTree, sizeof(Game::IW4::GfxAabbTree) * world->cells[i].aabbTreeCount);
 
 					for (int j = 0; j < world->cells[i].aabbTreeCount; ++j)
@@ -725,7 +317,7 @@ namespace Components
 
 				if (world->cells[i].portals)
 				{
-					map.cells[i].portals = allocator.allocateArray<Game::IW4::GfxPortal>(world->cells[i].portalCount);
+					map.cells[i].portals = LocalAllocator.AllocateArray<Game::IW4::GfxPortal>(world->cells[i].portalCount);
 
 					// Map all portals, so we have them ready for the next loop (might be unnecessary, as they are mapped at runtime)
 					std::unordered_map<Game::IW3::GfxPortal*, Game::IW4::GfxPortal*> portalMap = { { nullptr, nullptr } };
@@ -790,8 +382,8 @@ namespace Components
 		// Split reflection images and probes
 		if (world->reflectionProbes)
 		{
-			map.draw.reflectionImages = allocator.allocateArray<Game::IW3::GfxImage*>(world->reflectionProbeCount);
-			map.draw.reflectionProbes = allocator.allocateArray<Game::IW4::GfxReflectionProbe>(world->reflectionProbeCount);
+			map.draw.reflectionImages = LocalAllocator.AllocateArray<Game::IW3::GfxImage*>(world->reflectionProbeCount);
+			map.draw.reflectionProbes = LocalAllocator.AllocateArray<Game::IW4::GfxReflectionProbe>(world->reflectionProbeCount);
 
 			for (unsigned int i = 0; i < world->reflectionProbeCount; ++i)
 			{
@@ -807,7 +399,7 @@ namespace Components
 		if (world->models)
 		{
 			// We're about to add two brushmodels here, which are identical : one for the airdrop package and one for the 4-streak care package
-			map.models = allocator.allocateArray<Game::IW4::GfxBrushModel>(world->modelCount + 2);
+			map.models = LocalAllocator.AllocateArray<Game::IW4::GfxBrushModel>(world->modelCount + 2);
 
 			for (int i = 0; i < world->modelCount; ++i)
 			{
@@ -826,7 +418,7 @@ namespace Components
 
 			// Create the care packages
 			Game::IW4::GfxBrushModel carePackage{};
-			Game::IW4::Bounds packageBounds = IclipMap_t::makeCarePackageBounds();
+			Game::IW4::Bounds packageBounds = IclipMap_t::MakeCarePackageBounds();
 
 			carePackage.bounds = packageBounds;
 
@@ -900,7 +492,7 @@ namespace Components
 
 		if (world->dpvs.smodelInsts)
 		{
-			map.dpvs.smodelInsts = allocator.allocateArray<Game::IW4::GfxStaticModelInst>(world->dpvs.smodelCount);
+			map.dpvs.smodelInsts = LocalAllocator.AllocateArray<Game::IW4::GfxStaticModelInst>(world->dpvs.smodelCount);
 
 			for (unsigned int i = 0; i < world->dpvs.smodelCount; ++i)
 			{
@@ -919,8 +511,8 @@ namespace Components
 
 		if (world->dpvs.surfaces)
 		{
-			map.dpvs.surfaces = allocator.allocateArray<Game::IW4::GfxSurface>(world->surfaceCount);
-			map.dpvs.surfacesBounds = allocator.allocateArray<Game::IW4::GfxSurfaceBounds>(world->surfaceCount);
+			map.dpvs.surfaces = LocalAllocator.AllocateArray<Game::IW4::GfxSurface>(world->surfaceCount);
+			map.dpvs.surfacesBounds = LocalAllocator.AllocateArray<Game::IW4::GfxSurfaceBounds>(world->surfaceCount);
 
 			for (int i = 0; i < world->surfaceCount; ++i)
 			{
@@ -937,7 +529,7 @@ namespace Components
 
 		if (world->dpvs.smodelDrawInsts)
 		{
-			map.dpvs.smodelDrawInsts = allocator.allocateArray<Game::IW4::GfxStaticModelDrawInst>(world->dpvs.smodelCount);
+			map.dpvs.smodelDrawInsts = LocalAllocator.AllocateArray<Game::IW4::GfxStaticModelDrawInst>(world->dpvs.smodelCount);
 
 			for (unsigned int i = 0; i < world->dpvs.smodelCount; ++i)
 			{
@@ -1017,7 +609,7 @@ namespace Components
 #endif
 
 		int baseIndex = 0;
-		map.draw.indices = allocator.allocateArray<unsigned short>(map.draw.indexCount);
+		map.draw.indices = LocalAllocator.AllocateArray<unsigned short>(map.draw.indexCount);
 		for (unsigned int i = 0; i < map.surfaceCount; ++i)
 		{
 			std::memcpy(&map.draw.indices[baseIndex], &world->indices[map.dpvs.surfaces[i].tris.baseIndex], map.dpvs.surfaces[i].tris.triCount * 6);
@@ -1031,7 +623,7 @@ namespace Components
 		}
 
 		// Specify that it's a custom map
-		map.checksum = 0xC0D40000;
+		map.checksum = 0xC0D40001;
 
 		auto smodelsFixMethod = Game::Dvar_FindVar("iw3x_smodels_fix_method");
 		if (smodelsFixMethod) 
@@ -1040,7 +632,10 @@ namespace Components
 			IGfxWorld::RemoveIncompatibleModelsForIW4(&map, method);
 		}
 
-		IGfxWorld::SaveConvertedWorld(&map);
+		auto output = LocalAllocator.Allocate<Game::IW4::GfxWorld>();
+		*output = map;
+
+		return output;
 	}
 
 	IGfxWorld::IGfxWorld()
@@ -1048,7 +643,8 @@ namespace Components
 		Command::Add("dumpGfxWorld", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
-				IGfxWorld::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFXWORLD, params[1]).gfxWorld);
+				auto converted = IGfxWorld::Convert(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFXWORLD, params[1]).gfxWorld);
+				MapDumper::GetApi()->write(Game::XAssetType::ASSET_TYPE_GFXWORLD, converted);
 			});
 	}
 

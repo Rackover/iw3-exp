@@ -7,7 +7,7 @@ namespace Components
 	public:
 		Component() {};
 		virtual ~Component() {};
-		virtual const char* getName() { return "Unknown"; };
+		virtual const char* GetName() { return "Unknown"; };
 	};
 
 	class Loader

@@ -9,7 +9,7 @@ namespace Components
 		~IFxEffectDef();
 
 		const char* getName() override { return "IFxEffectDef"; };
-		Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_FX; };
+		Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_FX; };
 		void dump(Game::IW3::XAssetHeader header) override { Dump(header.fx); };
 
 	private:

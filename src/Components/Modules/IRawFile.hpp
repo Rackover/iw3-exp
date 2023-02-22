@@ -8,11 +8,11 @@ namespace Components
 		IRawFile();
 		~IRawFile();
 
-		const char* getName() override { return "IRawFile"; };
-		Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_RAWFILE; };
-		void dump(Game::IW3::XAssetHeader header) override { Dump(header.rawfile); };
+		const char* GetName() override { return "IRawFile"; };
+		Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_RAWFILE; };
+		Game::IW4::XAssetHeader Convert(Game::IW3::XAssetHeader header) override { return { Convert(header.rawfile) }; };
 
 	private:
-		static void Dump(Game::IW3::RawFile* rawfile);
+		static Game::IW4::RawFile* Convert(Game::IW3::RawFile* rawfile);
 	};
 }

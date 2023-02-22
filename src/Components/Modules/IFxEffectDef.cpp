@@ -214,7 +214,7 @@ namespace Components
 		std::memcpy(&newFx, fx, sizeof(newFx));
 
 		int count = newFx.elemDefCountEmission + newFx.elemDefCountLooping + newFx.elemDefCountOneShot;
-		newFx.elemDefs = allocator.allocateArray<Game::IW4::FxElemDef>(count);
+		newFx.elemDefs = allocator.AllocateArray<Game::IW4::FxElemDef>(count);
 
 		for (int i = 0; i < count; ++i)
 		{
@@ -233,7 +233,7 @@ namespace Components
 			{
 				if (elemDef->elemType == Game::IW4::FX_ELEM_TYPE_TRAIL)
 				{
-					elemDef->trailDef = allocator.allocate<Game::IW4::FxTrailDef>();
+					elemDef->trailDef = allocator.Allocate<Game::IW4::FxTrailDef>();
 
 					elemDef->trailDef->scrollTimeMsec = srcElemDef->trailDef->scrollTimeMsec;
 					elemDef->trailDef->repeatDist = srcElemDef->trailDef->repeatDist;

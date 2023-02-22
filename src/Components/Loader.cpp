@@ -7,7 +7,7 @@ namespace Components
 
 	void Loader::Initialize()
 	{
-		Loader::MemAllocator.clear();
+		Loader::MemAllocator.Clear();
 
 		Loader::Register(new Flags());
 
@@ -24,13 +24,13 @@ namespace Components
 		for (auto component : Loader::Components)
 		{
 #ifdef DEBUG
-			Logger::Print("Unregistering component: %s\n", component->getName());
+			Logger::Print("Unregistering component: %s\n", component->GetName());
 #endif
 			delete component;
 		}
 
 		Loader::Components.clear();
-		Loader::MemAllocator.clear();
+		Loader::MemAllocator.Clear();
 		fflush(stdout);
 		fflush(stderr);
 	}
@@ -40,7 +40,7 @@ namespace Components
 		if (component)
 		{
 #ifdef DEBUG
-			Logger::Print("Component registered: %s\n", component->getName());
+			Logger::Print("Component registered: %s\n", component->GetName());
 #endif
 			Loader::Components.push_back(component);
 		}

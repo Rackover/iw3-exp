@@ -2,10 +2,17 @@
 
 namespace Components
 {
-	void IRawFile::Dump(Game::IW3::RawFile* rawfile)
+	Game::IW4::RawFile* IRawFile::Convert(Game::IW3::RawFile* rawfile)
 	{
-		if (!rawfile || !rawfile->buffer) return;
-		Utils::WriteFile(Utils::VA("%s/%s", AssetHandler::GetExportPath().data(), rawfile->name), std::string(rawfile->buffer, rawfile->len));
+		if (!rawfile || !rawfile->buffer) return nullptr;
+
+		auto iw4Rawfile = LocalAllocator.Allocate<Game::IW4::RawFile>();
+		iw4Rawfile->buffer = rawfile->buffer;
+		iw4Rawfile->compressedLen = 0;
+		iw4Rawfile->len = rawfile->len;
+		iw4Rawfile->name = rawfile->name;
+
+		return iw4Rawfile;
 	}
 
 	IRawFile::IRawFile()
@@ -33,7 +40,8 @@ namespace Components
 
 			if (entry)
 			{
-				IRawFile::Dump(entry->entry.asset.header.rawfile);
+				auto converted = IRawFile::Convert(entry->entry.asset.header.rawfile);
+				MapDumper::GetApi()->write(Game::IW4::ASSET_TYPE_RAWFILE, converted);
 			}
 		});
 	}

@@ -9,7 +9,7 @@ namespace Components
 		~ILoadedSound();
 
 		const char* getName() override { return "ILoadedSound"; };
-		Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_LOADED_SOUND; };
+		Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_LOADED_SOUND; };
 		void dump(Game::IW3::XAssetHeader header) override { Dump(header.loadSnd); };
 		static void DuplicateSoundData(Game::IW3::LoadedSound* loadedSound);
 

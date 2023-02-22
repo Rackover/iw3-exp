@@ -1,265 +1,14 @@
 #include "STDInclude.hpp"
 
-#define IW4X_MODEL_VERSION 8
-
 using namespace std::literals;
 
 static_assert(sizeof(Game::IW3::XModel) == 220, "Size of XModel is invalid!");
 
 namespace Components
 {
-	std::unordered_set<std::string> IXModel::alreadySavedModels = std::unordered_set<std::string>();
-
-	void IXModel::SaveXSurfaceCollisionTree(Game::IW3::XSurfaceCollisionTree* entry, Utils::Stream* buffer)
-	{
-		buffer->saveObject(*entry);
-
-		if (entry->nodes)
-		{
-			buffer->saveArrayIfNotExisting(entry->nodes, entry->nodeCount);
-		}
-
-		if (entry->leafs)
-		{
-			buffer->saveArrayIfNotExisting(entry->leafs, entry->leafCount);
-		}
-	}
-
-	void IXModel::SaveXSurface(Game::IW4::XSurface* surf, Utils::Stream* buffer)
-	{
-		if (surf->vertInfo.vertsBlend)
-		{
-			buffer->saveArrayIfNotExisting(surf->vertInfo.vertsBlend, surf->vertInfo.vertCount[0] + (surf->vertInfo.vertCount[1] * 3) + (surf->vertInfo.vertCount[2] * 5) + (surf->vertInfo.vertCount[3] * 7));
-		}
-
-		// Access vertex block
-		if (surf->verts0)
-		{
-			buffer->saveArrayIfNotExisting(surf->verts0, surf->vertCount);
-		}
-
-		// Save_XRigidVertListArray
-		if (surf->vertList)
-		{
-			buffer->saveArrayIfNotExisting(surf->vertList, surf->vertListCount);
-
-			for (unsigned int i = 0; i < surf->vertListCount; ++i)
-			{
-				Game::IW3::XRigidVertList* rigidVertList = &surf->vertList[i];
-
-				if (rigidVertList->collisionTree)
-				{
-					IXModel::SaveXSurfaceCollisionTree(rigidVertList->collisionTree, buffer);
-				}
-			}
-		}
-
-		// Access index block
-		if (surf->triIndices)
-		{
-			buffer->saveArrayIfNotExisting(surf->triIndices, surf->triCount * 3);
-		}
-	}
-
-	void IXModel::SaveXModelSurfs(Game::IW4::XModelSurfs* asset, Utils::Stream* buffer)
-	{
-		buffer->saveObject(*asset);
-
-		if (asset->name)
-		{
-			buffer->saveString(asset->name);
-		}
-
-		if (asset->surfaces)
-		{
-			buffer->saveArrayIfNotExisting(asset->surfaces, asset->numSurfaces);
-
-			for (int i = 0; i < asset->numSurfaces; ++i)
-			{
-				IXModel::SaveXSurface(&asset->surfaces[i], buffer);
-			}
-		}
-	}
-
-	void IXModel::SaveConvertedModel(Game::IW4::XModel* asset)
-	{
-		Utils::Stream buffer;
-		buffer.saveArray("IW4xModl", 8);
-		buffer.saveObject(IW4X_MODEL_VERSION);
-
-		buffer.saveObject(*asset);
-
-		if (asset->name)
-		{
-			buffer.saveString(asset->name);
-		}
-
-		if (asset->boneNames)
-		{
-			for (char i = 0; i < asset->numBones; ++i)
-			{
-				buffer.saveString(Game::SL_ConvertToString(asset->boneNames[i]));
-			}
-		}
-
-		if (asset->parentList)
-		{
-			buffer.saveArrayIfNotExisting(asset->parentList, asset->numBones - asset->numRootBones);
-		}
-
-		if (asset->quats)
-		{
-			buffer.saveArrayIfNotExisting(asset->quats, (asset->numBones - asset->numRootBones) * 4);
-		}
-
-		if (asset->trans)
-		{
-			buffer.saveArrayIfNotExisting(asset->trans, (asset->numBones - asset->numRootBones) * 3);
-		}
-
-		if (asset->partClassification)
-		{
-			buffer.saveArrayIfNotExisting(asset->partClassification, asset->numBones);
-		}
-
-		if (asset->baseMat)
-		{
-			buffer.saveArrayIfNotExisting(asset->baseMat, asset->numBones);
-		}
-
-		if (asset->materialHandles)
-		{
-			buffer.saveArray(asset->materialHandles, asset->numsurfs);
-
-			for (unsigned char i = 0; i < asset->numsurfs; ++i)
-			{
-				if (asset->materialHandles[i])
-				{
-					buffer.saveString(asset->materialHandles[i]->info.name);
-					AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_MATERIAL, { asset->materialHandles[i] });
-				}
-			}
-		}
-
-		// Save_XModelLodInfoArray
-		{
-			for (int i = 0; i < 4; ++i)
-			{
-				if (asset->lodInfo[i].modelSurfs)
-				{
-					IXModel::SaveXModelSurfs(asset->lodInfo[i].modelSurfs, &buffer);
-				}
-			}
-		}
-
-		// Save_XModelCollSurfArray
-		if (asset->collSurfs)
-		{
-			buffer.saveArray(asset->collSurfs, asset->numCollSurfs);
-
-			for (int i = 0; i < asset->numCollSurfs; ++i)
-			{
-				Game::IW4::XModelCollSurf_s* collSurf = &asset->collSurfs[i];
-
-				if (collSurf->collTris)
-				{
-					buffer.saveArray(collSurf->collTris, collSurf->numCollTris);
-				}
-			}
-		}
-
-		if (asset->boneInfo)
-		{
-			buffer.saveArray(asset->boneInfo, asset->numBones);
-		}
-
-		if (asset->physPreset)
-		{
-			buffer.saveObject(*asset->physPreset);
-
-			if (asset->physPreset->name)
-			{
-				buffer.saveString(asset->physPreset->name);
-			}
-
-			if (asset->physPreset->sndAliasPrefix)
-			{
-				buffer.saveString(asset->physPreset->sndAliasPrefix);
-			}
-		}
-
-		if (asset->physCollmap)
-		{
-			Game::IW4::PhysCollmap* collmap = asset->physCollmap;
-			buffer.saveObject(*collmap);
-
-			if (collmap->name)
-			{
-				buffer.saveString(collmap->name);
-			}
-
-			if (collmap->geoms)
-			{
-				buffer.saveArray(collmap->geoms, collmap->count);
-
-				for (unsigned int i = 0; i < collmap->count; ++i)
-				{
-					Game::IW4::PhysGeomInfo* geom = &collmap->geoms[i];
-
-					if (geom->brush)
-					{
-						Game::IW4::BrushWrapper* brush = geom->brush;
-						buffer.saveObject(*brush);
-						{
-							if (brush->brush.sides)
-							{
-								buffer.saveArray(brush->brush.sides, brush->brush.numsides);
-
-								// Save_cbrushside_tArray
-								for (unsigned short j = 0; j < brush->brush.numsides; ++j)
-								{
-									Game::IW4::cbrushside_t* side = &brush->brush.sides[j];
-
-									// TODO: Add pointer support
-									if (side->plane)
-									{
-										buffer.saveObject(*side->plane);
-									}
-								}
-							}
-
-							if (brush->brush.baseAdjacentSide)
-							{
-								buffer.saveArray(brush->brush.baseAdjacentSide, brush->totalEdgeCount);
-							}
-						}
-
-						// TODO: Add pointer support
-						if (brush->planes)
-						{
-							buffer.saveArray(brush->planes, brush->brush.numsides);
-						}
-					}
-				}
-			}
-		}
-
-		Utils::WriteFile(Utils::VA("%s/xmodel/%s.iw4xModel", AssetHandler::GetExportPath().data(), asset->name), buffer.toBuffer());
-	}
-
-	void IXModel::Dump(Game::IW3::XModel* model)
+	Game::IW4::XModel* IXModel::Convert(Game::IW3::XModel* model)
 	{
 		if (!model) return;
-
-		if (IXModel::alreadySavedModels.contains(model->name)) {
-			// Already saved!
-			return;
-		};
-
-		IXModel::alreadySavedModels.emplace(model->name);
-
-
-		Utils::Memory::Allocator allocator;
 
 		Game::IW4::XModel xmodel;
 		ZeroMemory(&xmodel, sizeof(xmodel));
@@ -302,7 +51,7 @@ namespace Components
 
 			if (xmodel.lodInfo[i].numsurfs)
 			{
-				xmodel.lodInfo[i].surfs = allocator.allocateArray<Game::IW4::XSurface>(xmodel.lodInfo[i].numsurfs);
+				xmodel.lodInfo[i].surfs = LocalAllocator.AllocateArray<Game::IW4::XSurface>(xmodel.lodInfo[i].numsurfs);
 
 				for (unsigned __int16 j = 0; j < xmodel.lodInfo[i].numsurfs; ++j)
 				{
@@ -334,8 +83,8 @@ namespace Components
 					std::memcpy(target->partBits, source->partBits, sizeof(source->partBits));
 				}
 
-				xmodel.lodInfo[i].modelSurfs = allocator.allocate<Game::IW4::XModelSurfs>();
-				xmodel.lodInfo[i].modelSurfs->name = allocator.duplicateString(Utils::VA("%s_lod%d", model->name, i & 0xFF));
+				xmodel.lodInfo[i].modelSurfs = LocalAllocator.Allocate<Game::IW4::XModelSurfs>();
+				xmodel.lodInfo[i].modelSurfs->name = LocalAllocator.DuplicateString(Utils::VA("%s_lod%d", model->name, i & 0xFF));
 				xmodel.lodInfo[i].modelSurfs->numSurfaces = static_cast<int>(xmodel.lodInfo[i].numsurfs);
 				xmodel.lodInfo[i].modelSurfs->surfaces = xmodel.lodInfo[i].surfs;
 
@@ -350,7 +99,7 @@ namespace Components
 
 		if (model->collSurfs)
 		{
-			xmodel.collSurfs = allocator.allocateArray<Game::IW4::XModelCollSurf_s>(model->numCollSurfs);
+			xmodel.collSurfs = LocalAllocator.AllocateArray<Game::IW4::XModelCollSurf_s>(model->numCollSurfs);
 			for (int i = 0; i < model->numCollSurfs; ++i)
 			{
 				static_assert(sizeof(Game::IW3::XModelCollSurf_s) == sizeof(Game::IW4::XModelCollSurf_s), "Size mismatch");
@@ -364,7 +113,7 @@ namespace Components
 
 		if (model->boneInfo)
 		{
-			xmodel.boneInfo = allocator.allocateArray<Game::IW4::XBoneInfo>(model->numBones);
+			xmodel.boneInfo = LocalAllocator.AllocateArray<Game::IW4::XBoneInfo>(model->numBones);
 
 			for (char i = 0; i < model->numBones; ++i)
 			{
@@ -390,12 +139,12 @@ namespace Components
 
 		if (model->physGeoms)
 		{
-			xmodel.physCollmap = allocator.allocate<Game::IW4::PhysCollmap>();
-			xmodel.physCollmap->name = allocator.duplicateString(Utils::VA("%s_colmap", model->name));
+			xmodel.physCollmap = LocalAllocator.Allocate<Game::IW4::PhysCollmap>();
+			xmodel.physCollmap->name = LocalAllocator.DuplicateString(Utils::VA("%s_colmap", model->name));
 			xmodel.physCollmap->count = model->physGeoms->count;
 			xmodel.physCollmap->mass = model->physGeoms->mass;
 			xmodel.physCollmap->bounds = xmodel.bounds; // it's fine right?
-			xmodel.physCollmap->geoms = allocator.allocateArray<Game::IW4::PhysGeomInfo>(model->physGeoms->count);
+			xmodel.physCollmap->geoms = LocalAllocator.AllocateArray<Game::IW4::PhysGeomInfo>(model->physGeoms->count);
 
 			for (unsigned int i = 0; i < model->physGeoms->count; ++i)
 			{
@@ -442,7 +191,7 @@ namespace Components
 
 				if (source->brush)
 				{
-					target->brush = allocator.allocate<Game::IW4::BrushWrapper>();
+					target->brush = LocalAllocator.Allocate<Game::IW4::BrushWrapper>();
 					target->brush->bounds.compute(source->brush->mins, source->brush->maxs);
 
 					target->brush->brush.numsides = static_cast<unsigned short>(source->brush->numsides);
@@ -463,7 +212,7 @@ namespace Components
 					target->brush->planes = source->brush->planes;
 					target->brush->totalEdgeCount = source->brush->totalEdgeCount;
 
-					target->brush->brush.sides = allocator.allocateArray<Game::IW4::cbrushside_t>(target->brush->brush.numsides);
+					target->brush->brush.sides = LocalAllocator.AllocateArray<Game::IW4::cbrushside_t>(target->brush->brush.numsides);
 
 					for (unsigned short j = 0; j < target->brush->brush.numsides; ++j)
 					{
@@ -487,7 +236,10 @@ namespace Components
 			xmodel.physCollmap = nullptr;
 		}
 
-		IXModel::SaveConvertedModel(&xmodel);
+		auto xmodelPtr = LocalAllocator.Allocate<Game::IW4::XModel>();
+		*xmodelPtr = xmodel;
+
+		return xmodelPtr;
 	}
 
 	IXModel::IXModel()
@@ -496,7 +248,9 @@ namespace Components
 		Command::Add("dumpXModel", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
-				IXModel::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, params[1]).model);
+				
+				auto converted = IXModel::Convert(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, params[1]).model);
+				MapDumper::GetApi()->write(Game::IW4::ASSET_TYPE_XMODEL, converted);
 			});
 	}
 

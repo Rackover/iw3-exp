@@ -17,10 +17,10 @@ namespace Utils
 			}
 			~Allocator()
 			{
-				this->clear();
+				this->Clear();
 			}
 
-			void clear()
+			void Clear()
 			{
 				std::lock_guard<std::mutex> _(this->mutex);
 
@@ -73,7 +73,7 @@ namespace Utils
 				this->refMemory[memory] = callback;
 			}
 
-			void* allocate(size_t length)
+			void* Allocate(size_t length)
 			{
 				std::lock_guard<std::mutex> _(this->mutex);
 
@@ -81,13 +81,13 @@ namespace Utils
 				this->pool.push_back(data);
 				return data;
 			}
-			template <typename T> inline T* allocate()
+			template <typename T> inline T* Allocate()
 			{
-				return this->allocateArray<T>(1);
+				return this->AllocateArray<T>(1);
 			}
-			template <typename T> inline T* allocateArray(size_t count = 1)
+			template <typename T> inline T* AllocateArray(size_t count = 1)
 			{
-				return static_cast<T*>(this->allocate(count * sizeof(T)));
+				return static_cast<T*>(this->Allocate(count * sizeof(T)));
 			}
 
 			bool empty()
@@ -95,7 +95,7 @@ namespace Utils
 				return (this->pool.empty() && this->refMemory.empty());
 			}
 
-			char* duplicateString(std::string string)
+			char* DuplicateString(std::string string)
 			{
 				std::lock_guard<std::mutex> _(this->mutex);
 
