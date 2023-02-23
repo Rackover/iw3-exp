@@ -5,7 +5,7 @@
 #ifdef __cplusplus
 namespace Game::IW4
 {
-
+	struct Material;
 
 	enum XAssetType
 	{
@@ -130,6 +130,40 @@ namespace Game::IW4
 		R_RENDERTARGET_SHADOWMAP_SMALL = 0xB,
 		R_RENDERTARGET_COUNT = 0xC,
 		R_RENDERTARGET_NONE = 0xD,
+	};
+
+
+	struct GfxImageLoadDef
+	{
+		char levelCount;
+		char pad[3];
+		int flags;
+		int format;
+		int resourceSize;
+		char data[1];
+	};
+
+	union GfxTexture
+	{
+		GfxImageLoadDef* loadDef;
+	};
+
+	struct GfxImage
+	{
+		GfxTexture texture;
+		unsigned char mapType;
+		unsigned char semantic;
+		unsigned char category;
+		bool useSrgbReads;
+		Game::IW3::Picmip picmip;
+		bool noPicmip;
+		char track;
+		Game::IW3::CardMemory cardMemory;
+		unsigned short width;
+		unsigned short height;
+		unsigned short depth;
+		bool delayLoadPixels;
+		const char* name;
 	};
 
 	struct GfxImageFileHeader
@@ -336,7 +370,7 @@ namespace Game::IW4
 	struct GfxSurface
 	{
 		IW3::srfTriangles_t tris;
-		IW3::Material* material;
+		Material* material;
 		unsigned char lightmapIndex;
 		unsigned char reflectionProbeIndex;
 		unsigned char primaryLightIndex;
@@ -390,7 +424,7 @@ namespace Game::IW4
 	struct GfxStaticModelDrawInst
 	{
 		GfxPackedPlacement placement;
-		IW3::XModel* model;
+		struct XModel* model;
 		unsigned __int16 cullDist;
 		unsigned __int16 lightingHandle;
 		unsigned char reflectionProbeIndex;
@@ -429,25 +463,29 @@ namespace Game::IW4
 		float angles[3];
 	};
 
-	typedef IW3::GfxTexture GfxRawTexture;
-
 	struct GfxReflectionProbe
 	{
 		float origin[3];
 	};
 
+	struct GfxLightmapArray
+	{
+		GfxImage* primary;
+		GfxImage* secondary;
+	};
+
 	struct GfxWorldDraw
 	{
 		unsigned int reflectionProbeCount;
-		IW3::GfxImage** reflectionImages;
+		GfxImage** reflectionImages;
 		GfxReflectionProbe* reflectionProbes;
-		GfxRawTexture* reflectionProbeTextures; //Count = refelctionProbeCount
+		GfxTexture* reflectionProbeTextures; //Count = refelctionProbeCount
 		int lightmapCount;
-		IW3::GfxLightmapArray* lightmaps;
-		GfxRawTexture* lightmapPrimaryTextures; //Count = lightmapCount
-		GfxRawTexture* lightmapSecondaryTextures; //Count = lightmapCount
-		IW3::GfxImage* skyImage;
-		IW3::GfxImage* outdoorImage;
+		GfxLightmapArray* lightmaps;
+		GfxTexture* lightmapPrimaryTextures; //Count = lightmapCount
+		GfxTexture* lightmapSecondaryTextures; //Count = lightmapCount
+		GfxImage* skyImage;
+		GfxImage* outdoorImage;
 		unsigned int vertexCount;
 		IW3::GfxWorldVertexData vd;
 		unsigned int vertexLayerDataSize;
@@ -460,7 +498,7 @@ namespace Game::IW4
 	{
 		int skySurfCount;
 		int* skyStartSurfs;
-		IW3::GfxImage* skyImage;
+		GfxImage* skyImage;
 		int skySamplerState;
 	};
 
@@ -562,6 +600,12 @@ namespace Game::IW4
 		volatile int usageCount;
 	};
 
+	struct MaterialMemory
+	{
+		Material* material;
+		int memory;
+	};
+
 	struct GfxWorld
 	{
 		const char* name;
@@ -588,10 +632,10 @@ namespace Game::IW4
 		Bounds bounds;
 		unsigned int checksum;
 		int materialMemoryCount;
-		IW3::MaterialMemory* materialMemory;
+		MaterialMemory* materialMemory;
 		IW3::sunflare_t sun;
 		float outdoorLookupMatrix[4][4];
-		IW3::GfxImage* outdoorImage;
+		GfxImage* outdoorImage;
 		unsigned int* cellCasterBits;
 		unsigned int* cellHasSunLitSurfsBits;
 		IW3::GfxSceneDynModel* sceneDynModel;
@@ -790,7 +834,7 @@ namespace Game::IW4
 		float* trans;
 		unsigned char* partClassification;
 		IW3::DObjAnimMat* baseMat;
-		IW3::Material** materialHandles;
+		Material** materialHandles;
 		XModelLodInfo lodInfo[4];
 		char maxLoadedLod;
 		char numLods;
@@ -857,6 +901,104 @@ namespace Game::IW4
 		unsigned __int16 childCount;
 	};
 
+	enum FxElemType : char
+	{
+		FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
+		FX_ELEM_TYPE_SPRITE_ORIENTED = 0x1,
+		FX_ELEM_TYPE_TAIL = 0x2,
+		FX_ELEM_TYPE_TRAIL = 0x3,
+		FX_ELEM_TYPE_CLOUD = 0x4,
+		FX_ELEM_TYPE_SPARKCLOUD = 0x5,
+		FX_ELEM_TYPE_SPARKFOUNTAIN = 0x6,
+		FX_ELEM_TYPE_MODEL = 0x7,
+		FX_ELEM_TYPE_OMNI_LIGHT = 0x8,
+		FX_ELEM_TYPE_SPOT_LIGHT = 0x9,
+		FX_ELEM_TYPE_SOUND = 0xA,
+		FX_ELEM_TYPE_DECAL = 0xB,
+		FX_ELEM_TYPE_RUNNER = 0xC,
+		FX_ELEM_TYPE_COUNT = 0xD,
+		FX_ELEM_TYPE_LAST_SPRITE = 0x3,
+		FX_ELEM_TYPE_LAST_DRAWN = 0x9,
+	};
+
+
+	union FxEffectDefRef
+	{
+		struct FxEffectDef* handle;
+		const char* name;
+	};
+
+	union FxElemVisuals
+	{
+		const void* anonymous;
+		struct Material* material;
+		XModel* model;
+		FxEffectDefRef effectDef;
+		const char* soundName;
+	};
+
+	struct FxElemMarkVisuals
+	{
+		struct Material* materials[2];
+	};
+
+	union FxElemDefVisuals
+	{
+		FxElemMarkVisuals* markArray;
+		FxElemVisuals* array;
+		FxElemVisuals instance;
+	};
+
+	struct FxElemDef
+	{
+		int flags;
+		IW3::FxSpawnDef spawn;
+		IW3::FxFloatRange spawnRange;
+		IW3::FxFloatRange fadeInRange;
+		IW3::FxFloatRange fadeOutRange;
+		float spawnFrustumCullRadius;
+		IW3::FxIntRange spawnDelayMsec;
+		IW3::FxIntRange lifeSpanMsec;
+		IW3::FxFloatRange spawnOrigin[3];
+		IW3::FxFloatRange spawnOffsetRadius;
+		IW3::FxFloatRange spawnOffsetHeight;
+		IW3::FxFloatRange spawnAngles[3];
+		IW3::FxFloatRange angularVelocity[3];
+		IW3::FxFloatRange initialRotation;
+		IW3::FxFloatRange gravity;
+		IW3::FxFloatRange reflectionFactor;
+		IW3::FxElemAtlas atlas;
+		FxElemType elemType;
+		char visualCount;
+		char velIntervalCount;
+		char visStateIntervalCount;
+		IW3::FxElemVelStateSample* velSamples;
+		IW3::FxElemVisStateSample* visSamples;
+		FxElemDefVisuals visuals;
+		Bounds bounds;
+		FxEffectDefRef effectOnImpact; // ~
+		FxEffectDefRef effectOnDeath; // ~
+		FxEffectDefRef effectEmitted; // ~
+		IW3::FxFloatRange emitDist;
+		IW3::FxFloatRange emitDistVariance;
+		struct FxTrailDef* trailDef; // FxElemExtendedDef; IW3 only has trails
+		char sortOrder;
+		char lightingFrac;
+		char useItemClip;
+		char unused[1];
+	};
+
+	struct FxEffectDef
+	{
+		const char* name;
+		int flags;
+		int totalSize;
+		int msecLoopingLife;
+		int elemDefCountLooping;
+		int elemDefCountOneShot;
+		int elemDefCountEmission;
+		FxElemDef* elemDefs;
+	};
 
 	struct DynEntityDef
 	{
@@ -866,7 +1008,7 @@ namespace Game::IW4
 		unsigned short brushModel;
 		unsigned short physicsBrushModel;
 		FxEffectDef* destroyFx;
-		PhysPreset* physPreset;
+		struct PhysPreset* physPreset;
 		int health;
 		Game::IW3::PhysMass mass;
 		int contents;
@@ -913,7 +1055,7 @@ namespace Game::IW4
 		cbrush_t* brushes;
 		Bounds* brushBounds;
 		int* brushContents;
-		MapEnts* mapEnts;
+		struct MapEnts* mapEnts;
 		unsigned short smodelNodeCount;
 		SModelAabbNode* smodelNodes;
 		unsigned short dynEntCount[2];
@@ -924,61 +1066,6 @@ namespace Game::IW4
 		unsigned int checksum;
 		char padding[48];
 	};
-
-	struct clipMap_t_old
-	{
-		const char* name;
-		int isInUse; // +8
-		int numCPlanes; // +8
-		IW3::cplane_s* cPlanes; // sizeof 20, +12
-		int numStaticModels; // +16
-		cStaticModel_t* staticModelList; // sizeof 76, +20
-		int numMaterials; // +24
-		dmaterial_t* materials; // sizeof 12 with a string (possibly name?), +28
-		int numCBrushSides; // +32
-		IW3::cbrushside_t* cBrushSides; // sizeof 8, +36
-		int numCBrushEdges; // +40
-		char* cBrushEdges; // +44
-		int numCNodes; // +48
-		IW3::cNode_t* cNodes; // sizeof 8, +52
-		int numCLeaf; // +56
-		cLeaf_t* cLeaf; // +60
-		int numCLeafBrushNodes; // +64
-		cLeafBrushNode_t* cLeafBrushNodes; // +68
-		int numLeafBrushes; // +72
-		short* leafBrushes; // +76
-		int numLeafSurfaces; // +80
-		int* leafSurfaces; // +84
-		int numVerts; // +88
-		vec3_t* verts; // +92
-		int numTriIndices; // +96
-		short* triIndices; // +100
-		bool* triEdgeIsWalkable; // +104
-		int numCollisionBorders; // +108
-		IW3::CollisionBorder* collisionBorders;// sizeof 28, +112
-		int numCollisionPartitions; // +116
-		IW3::CollisionPartition* collisionPartitions; // sizeof 12, +120
-		int numCollisionAABBTrees; // +124
-		CollisionAabbTree* collisionAABBTrees;// sizeof 32, +128
-		int numCModels; // +132
-		cmodel_t* cModels; // sizeof 68, +136
-		short numCBrushes; // +140
-		short pad2; // +142
-		cbrush_t* cBrushes; // sizeof 36, +144
-		Bounds* cBrushBounds; // same count as cBrushes, +148
-		int* cBrushContents; // same count as cBrushes, +152
-		IW3::MapEnts* mapEnts; // +156
-		unsigned __int16 smodelNodeCount;
-		short pad; // +160
-		SModelAabbNode* smodelNodes;
-		unsigned __int16 dynEntCount[2];
-		IW3::DynEntityDef* dynEntDefList[2];
-		/*DynEntityPose*/ void* dynEntPoseList[2];
-		/*DynEntityClient*/ void* dynEntClientList[2];
-		/*DynEntityColl*/ void* dynEntCollList[2];
-		unsigned int checksum;
-		char unknown5[0x30];
-	}; // +256
 
 	enum MaterialTechniqueType
 	{
@@ -1112,43 +1199,27 @@ namespace Game::IW4
 		unsigned char packed;
 	};
 
-	struct GfxImageLoadDef
+	struct water_t
 	{
-		char levelCount;
-		char pad[3];
-		int flags;
-		int format;
-		int resourceSize;
-		char data[1];
-	};
-
-	union GfxTexture
-	{
-		GfxImageLoadDef* loadDef;
-	};
-
-	struct GfxImage
-	{
-		GfxTexture texture;
-		unsigned char mapType;
-		unsigned char semantic;
-		unsigned char category;
-		bool useSrgbReads;
-		Game::IW3::Picmip picmip;
-		bool noPicmip;
-		char track;
-		Game::IW3::CardMemory cardMemory;
-		uint16_t width;
-		uint16_t height;
-		uint16_t depth;
-		bool delayLoadPixels;
-		const char* name;
+		IW3::WaterWritable writable;
+		IW3::complex_s* H0;
+		float* wTerm;
+		int M;
+		int N;
+		float Lx;
+		float Lz;
+		float gravity;
+		float windvel;
+		float winddir[2];
+		float amplitude;
+		float codeConstant[4];
+		GfxImage* image;
 	};
 
 	union MaterialTextureDefInfo
 	{
 		GfxImage* image;
-		Game::IW3::water_t* water;
+		water_t* water;
 	};
 
 
@@ -1418,77 +1489,6 @@ namespace Game::IW4
 		CONST_SRC_NONE = 0x85,
 	};
 
-	enum FxElemType : char
-	{
-		FX_ELEM_TYPE_SPRITE_BILLBOARD = 0x0,
-		FX_ELEM_TYPE_SPRITE_ORIENTED = 0x1,
-		FX_ELEM_TYPE_TAIL = 0x2,
-		FX_ELEM_TYPE_TRAIL = 0x3,
-		FX_ELEM_TYPE_CLOUD = 0x4,
-		FX_ELEM_TYPE_SPARKCLOUD = 0x5,
-		FX_ELEM_TYPE_SPARKFOUNTAIN = 0x6,
-		FX_ELEM_TYPE_MODEL = 0x7,
-		FX_ELEM_TYPE_OMNI_LIGHT = 0x8,
-		FX_ELEM_TYPE_SPOT_LIGHT = 0x9,
-		FX_ELEM_TYPE_SOUND = 0xA,
-		FX_ELEM_TYPE_DECAL = 0xB,
-		FX_ELEM_TYPE_RUNNER = 0xC,
-		FX_ELEM_TYPE_COUNT = 0xD,
-		FX_ELEM_TYPE_LAST_SPRITE = 0x3,
-		FX_ELEM_TYPE_LAST_DRAWN = 0x9,
-	};
-
-	struct FxElemDef
-	{
-		int flags;
-		IW3::FxSpawnDef spawn;
-		IW3::FxFloatRange spawnRange;
-		IW3::FxFloatRange fadeInRange;
-		IW3::FxFloatRange fadeOutRange;
-		float spawnFrustumCullRadius;
-		IW3::FxIntRange spawnDelayMsec;
-		IW3::FxIntRange lifeSpanMsec;
-		IW3::FxFloatRange spawnOrigin[3];
-		IW3::FxFloatRange spawnOffsetRadius;
-		IW3::FxFloatRange spawnOffsetHeight;
-		IW3::FxFloatRange spawnAngles[3];
-		IW3::FxFloatRange angularVelocity[3];
-		IW3::FxFloatRange initialRotation;
-		IW3::FxFloatRange gravity;
-		IW3::FxFloatRange reflectionFactor;
-		IW3::FxElemAtlas atlas;
-		FxElemType elemType;
-		char visualCount;
-		char velIntervalCount;
-		char visStateIntervalCount;
-		IW3::FxElemVelStateSample* velSamples;
-		IW3::FxElemVisStateSample* visSamples;
-		IW3::FxElemDefVisuals visuals;
-		Bounds bounds;
-		IW3::FxEffectDefRef* effectOnImpact; // ~
-		IW3::FxEffectDefRef* effectOnDeath; // ~
-		IW3::FxEffectDefRef* effectEmitted; // ~
-		IW3::FxFloatRange emitDist;
-		IW3::FxFloatRange emitDistVariance;
-		IW4::FxTrailDef* trailDef; // FxElemExtendedDef; IW3 only has trails
-		char sortOrder;
-		char lightingFrac;
-		char useItemClip;
-		char unused[1];
-	};
-
-	struct FxEffectDef
-	{
-		const char* name;
-		int flags;
-		int totalSize;
-		int msecLoopingLife;
-		int elemDefCountLooping;
-		int elemDefCountOneShot;
-		int elemDefCountEmission;
-		FxElemDef* elemDefs;
-	};
-
 	union SoundAliasFlags
 	{
 		struct
@@ -1593,8 +1593,8 @@ namespace Game::IW4
 	struct RawFile
 	{
 		const char* name;
-		uint32_t compressedLen;
-		uint32_t len;
+		unsigned int compressedLen;
+		unsigned int len;
 		char* buffer;
 	};
 

@@ -9,10 +9,10 @@ namespace Components
 		Command::Add("dumpComWorld", [this] (Command::Params params)
 		{
 			if (params.Length() < 2) return;
-			auto header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_COMWORLD, params[1]);
+			auto header = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_COMWORLD, params[1]);
 			auto iw4Header = IComWorld::Convert(header);
 
-			MapDumper::GetApi()->write(Game::XAssetType::ASSET_TYPE_COMWORLD, iw4Header.data);
+			MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_COMWORLD, iw4Header.data);
 		});
 	}
 

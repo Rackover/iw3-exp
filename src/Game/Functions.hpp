@@ -15,10 +15,10 @@ namespace Game
 	typedef void(__cdecl * Com_PrintMessage_t)(int, const char*, char);
 	extern Com_PrintMessage_t Com_PrintMessage;
 
-	typedef IW3::XAssetHeader(__cdecl * DB_FindXAssetHeader_t)(XAssetType type, const char* name);
+	typedef IW3::XAssetHeader(__cdecl * DB_FindXAssetHeader_t)(IW3::XAssetType type, const char* name);
 	extern DB_FindXAssetHeader_t DB_FindXAssetHeader;
 
-	typedef void(__cdecl * DB_EnumXAssets_FastFile_t)(XAssetType type, void(*)(IW3::XAssetHeader, void *), void* userdata, bool overrides);
+	typedef void(__cdecl * DB_EnumXAssets_FastFile_t)(IW3::XAssetType type, void(*)(IW3::XAssetHeader, void *), void* userdata, bool overrides);
 	extern DB_EnumXAssets_FastFile_t DB_EnumXAssets_FastFile;
 
 	typedef const char* (__cdecl * DB_GetXAssetNameHandler_t)(IW3::XAssetHeader* asset);
@@ -39,9 +39,9 @@ namespace Game
 	typedef int (*FS_FOpenFileReadDatabase_t)(char* a1, int* file);
 	extern FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase;
 
-	int DB_HashForName(Game::XAssetType type, const char* name);
+	int DB_HashForName(Game::IW3::XAssetType type, const char* name);
 
-	Game::IW3::XAssetEntryPoolEntry* DB_FindXAssetEntry(Game::XAssetType type, const char* name);
+	Game::IW3::XAssetEntryPoolEntry* DB_FindXAssetEntry(Game::IW3::XAssetType type, const char* name);
 
 	int FS_ReadFile(const char* path, char** buffer);
 	void FS_FreeFile(void* buffer);
@@ -58,7 +58,7 @@ namespace Game
 
 	extern IW3::infoParm_t* infoParams;
 
-	void DB_EnumXAssetEntries(XAssetType type, std::function<void(IW3::XAssetEntryPoolEntry*)> callback, bool overrides);
+	void DB_EnumXAssetEntries(IW3::XAssetType type, std::function<void(IW3::XAssetEntryPoolEntry*)> callback, bool overrides);
 	void Cmd_AddCommand(const char* name, void(*callback)(), cmd_function_s* data, char);
 	unsigned int R_HashString(const char* string);
 	const char* FindHash(unsigned int hash);

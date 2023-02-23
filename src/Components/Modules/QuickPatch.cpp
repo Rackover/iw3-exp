@@ -73,7 +73,7 @@ namespace Components
 
 		Command::Add("materialInfoDump", [](Command::Params)
 		{
-			Game::DB_EnumXAssets_FastFile(Game::ASSET_TYPE_MATERIAL, [](Game::IW3::XAssetHeader header, void*)
+			Game::DB_EnumXAssets_FastFile(Game::IW3::ASSET_TYPE_MATERIAL, [](Game::IW3::XAssetHeader header, void*)
 			{
 				Logger::Print("%s: %X %X %X\n", header.material->info.name, header.material->info.sortKey & 0xFF, header.material->info.gameFlags.packed & 0xFF, header.material->stateFlags & 0xFF);
 			}, nullptr, false);

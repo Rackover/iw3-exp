@@ -8,11 +8,11 @@ namespace Components
 		IGfxLightDef();
 		~IGfxLightDef();
 
-		const char* getName() override { return "IGfxLightDef"; };
-		Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_LIGHT_DEF; };
-		void dump(Game::IW3::XAssetHeader header) override { Dump(header.lightDef); };
+		const char* GetName() override { return "IGfxLightDef"; };
+		Game::IW3::XAssetType GetType() override { return Game::IW3::XAssetType::ASSET_TYPE_LIGHT_DEF; };
+		Game::IW4::XAssetHeader Convert(Game::IW3::XAssetHeader header) override { return { Convert(header.lightDef) }; };
 
 	private:
-		static void Dump(Game::IW3::GfxLightDef* lightDef);
+		static Game::IW4::GfxLightDef* Convert(Game::IW3::GfxLightDef* lightDef);
 	};
 }

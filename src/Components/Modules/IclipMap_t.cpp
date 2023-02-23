@@ -46,9 +46,73 @@ namespace Components
 		return node;
 	}
 
+	void IclipMap_t::OptimizeClipmap(Game::IW4::clipMap_t* clipMap)
+	{
+		std::vector<std::pair<int, Game::IW3::cLeafBrushNode_s*>> nodesToRepair{};
+
+		for (size_t i = 0; i < clipMap->leafbrushNodesCount; i++)
+		{
+			auto node = &clipMap->leafbrushNodes[i];
+			if (node->leafBrushCount > 0)
+			{
+				bool found = false;
+				for (size_t j = 0; j < clipMap->numLeafBrushes; j++)
+				{
+					if (&clipMap->leafbrushes[j] == node->data.leaf.brushes)
+					{
+						found = true;
+						break;
+					}
+				}
+
+				if (!found)
+				{
+					nodesToRepair.push_back({ i, node });
+				}
+			}
+		}
+
+		// Repair clipmap... i think
+		for (auto kv : nodesToRepair)
+		{
+			auto node = kv.second;
+			bool repaired = false;
+			
+			int repairedBrushRefs = 0;
+
+			for (size_t j = 0; j < clipMap->numLeafBrushes; j++)
+			{
+				// This is an error... i think ?
+				if (clipMap->leafbrushes[j] == node->data.leaf.brushes[repairedBrushRefs] && // Value correct
+					&node->data.leaf.brushes[repairedBrushRefs] != &clipMap->leafbrushes[j]) // Ref incorrect
+				{
+					repairedBrushRefs++;
+
+					if (repairedBrushRefs == node->leafBrushCount)
+					{
+						repaired = true;
+						node->data.leaf.brushes = &clipMap->leafbrushes[j];
+						repairedBrushRefs = 0;
+						break;
+					}
+				}
+				else
+				{
+					j -= repairedBrushRefs;
+					repairedBrushRefs = 0;
+				}
+			}
+
+			if (repaired)
+			{
+				Components::Logger::Print("Successfully linked node %i to brushes on clipmap\n", kv.first);
+			}
+		}
+	}
+
 	Game::IW4::clipMap_t* IclipMap_t::Convert(const Game::IW3::clipMap_t* clipMap)
 	{
-		if (!clipMap) return;
+		if (!clipMap) return nullptr;
 
 		auto iw4ClipMap = LocalAllocator.Allocate<Game::IW4::clipMap_t>();
 
@@ -80,7 +144,7 @@ namespace Components
 				std::memcpy(iw4ClipMap->staticModelList[iw4Index].absmin, clipMap->staticModelList[i].absmin, 3 * sizeof(float));
 				std::memcpy(iw4ClipMap->staticModelList[iw4Index].origin, clipMap->staticModelList[i].origin, 3 * sizeof(float));
 				std::memcpy(iw4ClipMap->staticModelList[iw4Index].invScaledAxis, clipMap->staticModelList[i].invScaledAxis, 3 * sizeof(float));
-				iw4ClipMap->staticModelList[iw4Index].xmodel = AssetHandler::Convert(Game::ASSET_TYPE_XMODEL, { clipMap->staticModelList[i].xmodel }).model;
+				iw4ClipMap->staticModelList[iw4Index].xmodel = AssetHandler::Convert(Game::IW3::ASSET_TYPE_XMODEL, { clipMap->staticModelList[i].xmodel }).model;
 			}
 			else
 			{
@@ -107,7 +171,7 @@ namespace Components
 			auto iw4BrushSide = &iw4ClipMap->brushsides[i];
 
 			iw4BrushSide->plane = iw3BrushSide->plane;
-			iw4BrushSide->materialNum = iw3BrushSide->materialNum;
+			iw4BrushSide->materialNum = static_cast<unsigned short>(iw3BrushSide->materialNum);
 			iw4BrushSide->firstAdjacentSideOffset = static_cast<char>(iw3BrushSide->firstAdjacentSideOffset);
 			iw4BrushSide->edgeCount = iw3BrushSide->edgeCount;
 		}
@@ -130,7 +194,7 @@ namespace Components
 			iw4Leaf->brushContents = iw3Leaf->brushContents;
 			iw4Leaf->terrainContents = iw3Leaf->terrainContents;
 			Game::ConvertBounds(&iw4Leaf->bounds, iw3Leaf->mins, iw3Leaf->maxs);
-			iw3Leaf->leafBrushNode = iw3Leaf->leafBrushNode;
+			iw4Leaf->leafBrushNode = iw3Leaf->leafBrushNode;
 		}
 
 		COPY_MEMBER(leafbrushNodesCount);
@@ -187,25 +251,33 @@ namespace Components
 		iw4ClipMap->brushes = LocalAllocator.AllocateArray<Game::IW4::cbrush_t>(clipMap->numBrushes);
 		iw4ClipMap->brushBounds = LocalAllocator.AllocateArray<Game::IW4::Bounds>(clipMap->numBrushes);
 		iw4ClipMap->brushContents = LocalAllocator.AllocateArray<int>(clipMap->numBrushes);
+
+		std::unordered_map<Game::IW3::cbrush_t*, Game::IW4::cbrush_t*> brushUpgradeMap{};
+
 		for (size_t i = 0; i < clipMap->numBrushes; i++)
 		{
 			const auto iw3Brush = &clipMap->brushes[i];
 			const auto iw4Brush = &iw4ClipMap->brushes[i];
 
+			brushUpgradeMap[iw3Brush] = iw4Brush;
+
 			iw4Brush->numsides = static_cast<unsigned short>(iw3Brush->numsides);
 			iw4Brush->glassPieceIndex = 0;
 
 			iw4Brush->sides = nullptr;
-			for (size_t i = 0; i < clipMap->numBrushSides; i++)
+			if (iw3Brush->sides)
 			{
-				if (iw3Brush->sides == &clipMap->brushsides[i])
+				for (size_t sideIndex = 0; sideIndex < clipMap->numBrushSides; sideIndex++)
 				{
-					iw4Brush->sides = &iw4ClipMap->brushsides[i];
-					break;
+					if (iw3Brush->sides == &clipMap->brushsides[sideIndex])
+					{
+						iw4Brush->sides = &iw4ClipMap->brushsides[sideIndex];
+						break;
+					}
 				}
-			}
 
-			assert(iw4Brush->sides);
+				assert(iw4Brush->sides);
+			}
 
 			iw4Brush->baseAdjacentSide = iw3Brush->baseAdjacentSide;
 			for (size_t x = 0; x < 2; x++)
@@ -222,7 +294,7 @@ namespace Components
 			iw4ClipMap->brushContents[i] = iw3Brush->contents;
 		}
 		
-		iw4ClipMap->mapEnts = AssetHandler::Convert(Game::XAssetType::ASSET_TYPE_MAP_ENTS, { clipMap->mapEnts }).mapEnts;
+		iw4ClipMap->mapEnts = AssetHandler::Convert(Game::IW3::XAssetType::ASSET_TYPE_MAP_ENTS, { clipMap->mapEnts }).mapEnts;
 
 		iw4ClipMap->smodelNodes = IclipMap_t::BuildSModelNodes(iw4ClipMap, &iw4ClipMap->numNodes);
 
@@ -241,7 +313,7 @@ namespace Components
 
 				if (iw3Def->xModel)
 				{
-					iw4Def->xModel = AssetHandler::Convert(Game::ASSET_TYPE_XMODEL, { iw3Def->xModel }).model;
+					iw4Def->xModel = AssetHandler::Convert(Game::IW3::ASSET_TYPE_XMODEL, { iw3Def->xModel }).model;
 				}
 
 				iw4Def->brushModel = iw3Def->brushModel;
@@ -249,12 +321,12 @@ namespace Components
 
 				if (iw3Def->destroyFx)
 				{
-					iw4Def->destroyFx = AssetHandler::Convert(Game::ASSET_TYPE_FX, { iw3Def->destroyFx }).fx;
+					iw4Def->destroyFx = AssetHandler::Convert(Game::IW3::ASSET_TYPE_FX, { iw3Def->destroyFx }).fx;
 				}
 
 				if (iw3Def->physPreset)
 				{
-					iw4Def->physPreset = AssetHandler::Convert(Game::ASSET_TYPE_PHYSPRESET, { iw3Def->physPreset }).physPreset;
+					iw4Def->physPreset = AssetHandler::Convert(Game::IW3::ASSET_TYPE_PHYSPRESET, { iw3Def->physPreset }).physPreset;
 				}
 
 				iw4Def->health = iw3Def->health;
@@ -265,9 +337,12 @@ namespace Components
 
 		
 		COPY_MEMBER(checksum);
+
+		OptimizeClipmap(iw4ClipMap);
 		
 #undef COPY_MEMBER
 
+		AddTriggersToMap(iw4ClipMap);
 		AddCarePackagesToMap(iw4ClipMap);
 
 		return iw4ClipMap;
@@ -346,7 +421,7 @@ namespace Components
 		const auto cModelIndex = iw4ClipMap->numSubModels;
 
 		// Materials
-		constexpr auto matSize = sizeof(Game::IW3::dmaterial_t);
+		constexpr auto matSize = sizeof(Game::IW4::dmaterial_t);
 		auto reallocatedDMaterials = LocalAllocator.AllocateArray<Game::IW4::dmaterial_t>(iw4ClipMap->numMaterials + 1);
 
 		memcpy_s(reallocatedDMaterials, iw4ClipMap->numMaterials * matSize, iw4ClipMap->materials, iw4ClipMap->numMaterials * matSize);
@@ -355,14 +430,15 @@ namespace Components
 		auto dmat = &reallocatedDMaterials[iw4ClipMap->numMaterials];
 		dmat->contentFlags = 134420032;
 		dmat->surfaceFlags = 13910176;
-
-		constexpr auto matName = "clip_nosight_metal";
-		memcpy_s(dmat->material, 64, matName, strnlen(matName, 64));
+		const std::string materialName = "clip_nosight_metal";
+		dmat->material = LocalAllocator.DuplicateString(materialName);
 
 		iw4ClipMap->numMaterials++;
 		iw4ClipMap->materials = reallocatedDMaterials;
 
 		// Brush edges
+		void* test = calloc(iw4ClipMap->numBrushEdges + 1, 1);
+
 		auto reallocatedBrushEdges = LocalAllocator.AllocateArray<char>(iw4ClipMap->numBrushEdges + 1);
 		memcpy_s(reallocatedBrushEdges, iw4ClipMap->numBrushEdges, iw4ClipMap->brushEdges, iw4ClipMap->numBrushEdges);
 		reallocatedBrushEdges[brushEdgeIndex] = 2;
@@ -448,7 +524,7 @@ namespace Components
 		iw4ClipMap->cmodels = reallocatedCModels;
 
 		// Brushes
-		constexpr auto brushSize = sizeof(Game::IW3::cbrush_t);
+		constexpr auto brushSize = sizeof(Game::IW4::cbrush_t);
 
 		auto reallocatedBrushes = LocalAllocator.AllocateArray<Game::IW4::cbrush_t>(iw4ClipMap->numBrushes + 1);
 		memcpy_s(reallocatedBrushes, iw4ClipMap->numBrushes * brushSize, iw4ClipMap->brushes, iw4ClipMap->numBrushes * brushSize);
@@ -473,7 +549,7 @@ namespace Components
 			for (int y = 0; y < 3; ++y)
 			{
 				// firstAdjacentSideOffsets
-				carePackageBrush.firstAdjacentSideOffsets[x][y] = adjacentSideOffset[x][y];
+				carePackageBrush.firstAdjacentSideOffsets[x][y] = static_cast<char>(adjacentSideOffset[x][y]);
 			}
 		}
 
@@ -487,10 +563,10 @@ namespace Components
 			}
 		}
 		auto reallocatedBounds = LocalAllocator.AllocateArray<Game::IW4::Bounds>(iw4ClipMap->numBrushes + 1);
-		memcpy_s(reallocatedBounds, iw4ClipMap->numBrushes * brushSize, iw4ClipMap->brushBounds, iw4ClipMap->numBrushes * brushSize);
+		memcpy_s(reallocatedBounds, iw4ClipMap->numBrushes * sizeof(Game::IW4::Bounds), iw4ClipMap->brushBounds, iw4ClipMap->numBrushes* sizeof(Game::IW4::Bounds));
 
 		auto reallocatedContents = LocalAllocator.AllocateArray<int>(iw4ClipMap->numBrushes + 1);
-		memcpy_s(reallocatedContents, iw4ClipMap->numBrushes * brushSize, iw4ClipMap->brushContents, iw4ClipMap->numBrushes * brushSize);
+		memcpy_s(reallocatedContents, iw4ClipMap->numBrushes * sizeof(int), iw4ClipMap->brushContents, iw4ClipMap->numBrushes * sizeof(int));
 
 		reallocatedBrushes[brushIndex] = carePackageBrush;
 		reallocatedBounds[brushIndex] = bounds;
@@ -521,8 +597,8 @@ namespace Components
 		Command::Add("dumpclipMap_t", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
-				auto iw4Map = IclipMap_t::Convert(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]).clipMap);
-				MapDumper::GetApi()->write(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, iw4Map);
+				auto iw4Map = IclipMap_t::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]).clipMap);
+				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_CLIPMAP_MP, iw4Map);
 			});
 	}
 

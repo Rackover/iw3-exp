@@ -14,23 +14,21 @@ namespace Components
 
         static const std::string techsetSuffix;
 
-        const char* getName() override { return "IMaterialTechniqueSet"; };
-        Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET; };
-        void dump(Game::IW3::XAssetHeader header) override { Dump(header.techniqueSet); };
+        const char* GetName() override { return "IMaterialTechniqueSet"; };
+        Game::IW3::XAssetType GetType() override { return Game::IW3::XAssetType::ASSET_TYPE_TECHNIQUE_SET; };
+        Game::IW4::XAssetHeader Convert(Game::IW3::XAssetHeader header) override { return { Convert(header.techniqueSet) }; };
 
     private:
-        static Game::IW4::MaterialTechniqueSet* Dump(Game::IW3::MaterialTechniqueSet* techset);
+        static Game::IW4::MaterialTechniqueSet* Convert(Game::IW3::MaterialTechniqueSet* techset);
 
         static Game::IW3::MaterialTechnique* ConvertTechnique(Game::IW3::MaterialTechnique* tech);
         static Game::IW4::MaterialVertexDeclaration* ConvertDecl(Game::IW3::MaterialVertexDeclaration* decl);
         static Game::IW3::MaterialVertexShader* ConvertVS(Game::IW3::MaterialVertexShader* vs);
         static Game::IW3::MaterialPixelShader* ConvertPS(Game::IW3::MaterialPixelShader* ps);
-        static void SaveConvertedTechset(Game::IW4::MaterialTechniqueSet* techset);
         static std::string GetDeclarationName(const Game::IW3::MaterialVertexDeclaration* decl);
 
         static const char* declStreamDestinations[];
         static const char* declStreamSources[];
         static std::unordered_map <std::int32_t, std::int32_t> iw3CodeConstMap;
-        static Utils::Memory::Allocator localAllocator;
     };
 }

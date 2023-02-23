@@ -5,7 +5,7 @@ namespace Components
 	class GSC : public Component
 	{
 	public:
-		const char* getName() override { return "GSC"; };
+		const char* GetName() override { return "GSC"; };
 
 		static void UpgradeGSC(const std::string& filePath, std::function<void(std::string&)> f);
 		static void ConvertMainGSC(std::string& contents);

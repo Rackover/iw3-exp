@@ -8,12 +8,11 @@ namespace Components
 		IGameWorld();
 		~IGameWorld();
 
-		const char* getName() override { return "IGameWorld"; };
-		Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP; };
-		void dump(Game::IW3::XAssetHeader header) override { Dump(header.gameWorldMp); };
+		const char* GetName() override { return "IGameWorld"; };
+		Game::IW3::XAssetType GetType() override { return Game::IW3::XAssetType::ASSET_TYPE_GAMEWORLD_MP; };
+		Game::IW4::XAssetHeader Convert(Game::IW3::XAssetHeader header) override { return { Convert(header.gameWorldMp) }; };
 
 	private:
-		static void Dump(Game::IW3::GameWorldMp* comWorld);
-	    static void SaveConvertedWorld(Game::IW4::GameWorldMp* asset);
+		static Game::IW4::GameWorldMp* Convert(Game::IW3::GameWorldMp* comWorld);
 	};
 }

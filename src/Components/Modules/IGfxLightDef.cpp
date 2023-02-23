@@ -4,26 +4,23 @@
 
 namespace Components
 {
-	void IGfxLightDef::Dump(Game::IW3::GfxLightDef* asset)
+	Game::IW4::GfxLightDef* IGfxLightDef::Convert(Game::IW3::GfxLightDef* asset)
 	{
-		if (!asset) return;
-		Utils::Stream buffer;
-		buffer.saveArray("IW4xLit" IW4X_LIGHT_VERSION, 8);
+		if (!asset) return nullptr;
 
-		buffer.saveObject(*asset);
+		auto result = LocalAllocator.Allocate<Game::IW4::GfxLightDef>();
+		
+		static_assert(sizeof(Game::IW3::GfxLightDef) == sizeof(Game::IW4::GfxLightDef));
 
-		if (asset->name)
-		{
-			buffer.saveString(asset->name);
-		}
+		std::memcpy(result, asset, sizeof Game::IW4::GfxLightDef);
+
 
 		if (asset->attenuation.image)
 		{
-			buffer.saveString(asset->attenuation.image->name);
-			AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_IMAGE, { asset->attenuation.image });
+			result->attenuation.image = AssetHandler::Convert(Game::IW3::XAssetType::ASSET_TYPE_IMAGE, { asset->attenuation.image }).image;
 		}
 
-		Utils::WriteFile(Utils::VA("%s/lights/%s.iw4xLight", AssetHandler::GetExportPath().data(), asset->name), buffer.toBuffer());
+		return result;
 	}
 
 	IGfxLightDef::IGfxLightDef()
@@ -31,7 +28,8 @@ namespace Components
 		Command::Add("dumpGfxLightDef", [](const Command::Params& params)
 		{
 			if (params.Length() < 2) return;
-			IGfxLightDef::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_LIGHT_DEF, params[1]).lightDef);
+			auto converted = IGfxLightDef::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_LIGHT_DEF, params[1]).lightDef);
+			MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_LIGHT_DEF, converted);
 		});
 	}
 

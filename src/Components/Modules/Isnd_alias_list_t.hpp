@@ -8,13 +8,13 @@ namespace Components
 		Isnd_alias_list_t();
 		~Isnd_alias_list_t();
 
-		const char* getName() override { return "Isnd_alias_list_t"; };
-		Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_SOUND; };
-		void dump(Game::IW3::XAssetHeader header) override { Dump(header.sound); };
+		const char* GetName() override { return "Isnd_alias_list_t"; };
+		Game::IW3::XAssetType GetType() override { return Game::IW3::XAssetType::ASSET_TYPE_SOUND; };
+		Game::IW4::XAssetHeader Convert(Game::IW3::XAssetHeader header) override { return {Convert(header.sound)}; };
         static int channelLookupTable[Game::IW3::SND_CHANNEL_COUNT];
 
 	private:
 
-		static void Dump(Game::IW3::snd_alias_list_t* soundAlias);
+		static Game::IW4::snd_alias_list_t* Convert(Game::IW3::snd_alias_list_t* soundAlias);
 	};
 }

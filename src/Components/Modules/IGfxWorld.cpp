@@ -30,7 +30,7 @@ namespace Components
 		{
 			auto xmodel = asset->dpvs.smodelDrawInsts[iw3Index].model;
 
-			if (xmodel) 
+			if (xmodel)
 			{
 				for (unsigned char lodIndex = 0; lodIndex < xmodel->numLods; lodIndex++)
 				{
@@ -100,7 +100,7 @@ namespace Components
 					asset->dpvs.smodelInsts[iw3Index - skips] = asset->dpvs.smodelInsts[iw3Index];
 					indexesTranslation[iw3Index] = iw3Index - skips/* std::numeric_limits<unsigned short>().max()*/;
 				}
-				else{
+				else {
 					indexesTranslation[iw3Index] = iw3Index/* std::numeric_limits<unsigned short>().max()*/;
 				}
 			}
@@ -133,11 +133,11 @@ namespace Components
 						if (skips == 0) {
 							continue;
 						}
-						
+
 #if DEBUG
 						unsigned short iw4SModelIndex = iw3SModelIndex - skips;
 #endif
-						
+
 						auto newIndex = indexesTranslation[iw3SModelIndex];
 
 						assert(newIndex == iw4SModelIndex);
@@ -168,7 +168,7 @@ namespace Components
 					auto oldModelIndex = asset->shadowGeom->smodelIndex[i];
 					auto newModelIndex = indexesTranslation.at(oldModelIndex);
 
-					asset->shadowGeom->smodelIndex[i-skips] = newModelIndex;
+					asset->shadowGeom->smodelIndex[i - skips] = newModelIndex;
 				}
 
 				asset->shadowGeom->smodelCount -= skips;
@@ -229,11 +229,11 @@ namespace Components
 
 	Game::IW4::GfxWorld* IGfxWorld::Convert(Game::IW3::GfxWorld* world)
 	{
-		if (!world) return;
+		if (!world) return nullptr;
 
-		Game::IW4::GfxSky sky;
+		Game::IW4::GfxSky* sky = LocalAllocator.Allocate<Game::IW4::GfxSky>();
+
 		Game::IW4::GfxWorld map;
-		ZeroMemory(&sky, sizeof(sky));
 		ZeroMemory(&map, sizeof(map));
 
 		map.name = world->name;
@@ -243,12 +243,16 @@ namespace Components
 		map.surfaceCount = world->surfaceCount;
 
 		map.skyCount = 1;
-		map.skies = &sky;
+		map.skies = sky;
 
-		sky.skyImage = world->skyImage;
-		sky.skySamplerState = world->skySamplerState/* & 0xFF*/;
-		sky.skyStartSurfs = world->skyStartSurfs;
-		sky.skySurfCount = world->skySurfCount;
+		if (world->skyImage)
+		{
+			sky->skyImage = AssetHandler::Convert(Game::IW3::ASSET_TYPE_IMAGE, { world->skyImage }).image;
+		}
+
+		sky->skySamplerState = world->skySamplerState/* & 0xFF*/;
+		sky->skyStartSurfs = world->skyStartSurfs;
+		sky->skySurfCount = world->skySurfCount;
 
 		map.lastSunPrimaryLightIndex = world->sunPrimaryLightIndex;
 		map.primaryLightCount = world->primaryLightCount;
@@ -365,13 +369,54 @@ namespace Components
 		}
 
 		map.draw.reflectionProbeCount = world->reflectionProbeCount;
-		map.draw.reflectionProbeTextures = world->reflectionProbeTextures;
+		map.draw.reflectionProbeTextures = LocalAllocator.AllocateArray<Game::IW4::GfxTexture>(map.draw.reflectionProbeCount);
+		for (size_t i = 0; i < map.draw.reflectionProbeCount; i++)
+		{
+			if (world->reflectionProbeTextures[i].loadDef)
+			{
+				map.draw.reflectionProbeTextures[i].loadDef = IGfxImage::ConvertLoadDef(world->reflectionProbeTextures[i].loadDef);
+			}
+		}
+
 		map.draw.lightmapCount = world->lightmapCount;
-		map.draw.lightmaps = world->lightmaps;
-		map.draw.lightmapPrimaryTextures = world->lightmapPrimaryTextures;
-		map.draw.lightmapSecondaryTextures = world->lightmapSecondaryTextures;
-		map.draw.skyImage = world->skyImage;
-		map.draw.outdoorImage = world->outdoorImage;
+
+		map.draw.lightmaps = LocalAllocator.AllocateArray<Game::IW4::GfxLightmapArray>(map.draw.lightmapCount);
+		for (size_t i = 0; i < map.draw.lightmapCount; i++)
+		{
+			auto iw4Lightmap = &map.draw.lightmaps[i];
+			auto iw3Lightmap = &world->lightmaps[i];
+
+			if (iw3Lightmap->primary)
+			{
+				iw4Lightmap->primary = AssetHandler::Convert(Game::IW3::ASSET_TYPE_IMAGE, { iw3Lightmap->primary }).image;
+			}
+
+			if (iw3Lightmap->secondary)
+			{
+				iw4Lightmap->secondary = AssetHandler::Convert(Game::IW3::ASSET_TYPE_IMAGE, { iw3Lightmap->secondary }).image;
+			}
+		}
+
+		if (world->lightmapPrimaryTextures->data)
+		{
+			map.draw.lightmapPrimaryTextures = IGfxImage::ConvertTexture(world->lightmapPrimaryTextures);
+		}
+
+		if (world->lightmapSecondaryTextures->data)
+		{
+			map.draw.lightmapSecondaryTextures = IGfxImage::ConvertTexture(world->lightmapSecondaryTextures);
+		}
+
+		if (world->skyImage)
+		{
+			map.draw.skyImage = sky->skyImage;
+		}
+
+		if (world->outdoorImage)
+		{
+			map.draw.outdoorImage = AssetHandler::Convert(Game::IW3::ASSET_TYPE_IMAGE, { world->outdoorImage }).image;
+		}
+
 		map.draw.vertexCount = world->vertexCount;
 		map.draw.vd = world->vd;
 		map.draw.vertexLayerDataSize = world->vertexLayerDataSize;
@@ -382,12 +427,12 @@ namespace Components
 		// Split reflection images and probes
 		if (world->reflectionProbes)
 		{
-			map.draw.reflectionImages = LocalAllocator.AllocateArray<Game::IW3::GfxImage*>(world->reflectionProbeCount);
+			map.draw.reflectionImages = LocalAllocator.AllocateArray<Game::IW4::GfxImage*>(world->reflectionProbeCount);
 			map.draw.reflectionProbes = LocalAllocator.AllocateArray<Game::IW4::GfxReflectionProbe>(world->reflectionProbeCount);
 
 			for (unsigned int i = 0; i < world->reflectionProbeCount; ++i)
 			{
-				map.draw.reflectionImages[i] = world->reflectionProbes[i].reflectionImage;
+				map.draw.reflectionImages[i] = AssetHandler::Convert(Game::IW3::ASSET_TYPE_IMAGE, { map.draw.reflectionImages[i] }).image;
 
 				std::memcpy(map.draw.reflectionProbes[i].origin, world->reflectionProbes[i].origin, sizeof(map.draw.reflectionProbes[i].origin));
 			}
@@ -443,11 +488,23 @@ namespace Components
 
 		map.checksum = world->checksum;
 		map.materialMemoryCount = world->materialMemoryCount;
-		map.materialMemory = world->materialMemory;
+
+		map.materialMemory = LocalAllocator.AllocateArray<Game::IW4::MaterialMemory>(world->materialMemoryCount);
+		for (size_t i = 0; i < world->materialMemoryCount; i++)
+		{
+			if (i == 64)
+			{
+				printf("");
+			}
+
+			map.materialMemory[i].memory = world->materialMemory[i].memory;
+			map.materialMemory[i].material = AssetHandler::Convert(Game::IW3::ASSET_TYPE_MATERIAL, { world->materialMemory[i].material}).material;
+		}
+		
 		map.sun = world->sun;
 
 		std::memcpy(map.outdoorLookupMatrix, world->outdoorLookupMatrix, sizeof(map.outdoorLookupMatrix));
-		map.outdoorImage = world->outdoorImage;
+		map.outdoorImage = AssetHandler::Convert(Game::IW3::ASSET_TYPE_IMAGE, { world->outdoorImage }).image;
 
 		map.cellCasterBits = world->cellCasterBits;
 		map.cellHasSunLitSurfsBits = reinterpret_cast<unsigned int*>(1); // This mustn't be null!
@@ -517,7 +574,8 @@ namespace Components
 			for (int i = 0; i < world->surfaceCount; ++i)
 			{
 				map.dpvs.surfaces[i].tris = world->dpvs.surfaces[i].tris;
-				map.dpvs.surfaces[i].material = world->dpvs.surfaces[i].material;
+				map.dpvs.surfaces[i].material = AssetHandler::Convert(Game::IW3::ASSET_TYPE_MATERIAL, { world->dpvs.surfaces[i].material }).material;
+
 				map.dpvs.surfaces[i].lightmapIndex = world->dpvs.surfaces[i].lightmapIndex;
 				map.dpvs.surfaces[i].reflectionProbeIndex = world->dpvs.surfaces[i].reflectionProbeIndex;
 				map.dpvs.surfaces[i].primaryLightIndex = world->dpvs.surfaces[i].primaryLightIndex;
@@ -539,7 +597,7 @@ namespace Components
 				std::memcpy(map.dpvs.smodelDrawInsts[i].cacheId, world->dpvs.smodelDrawInsts[i].smodelCacheIndex, sizeof(map.dpvs.smodelDrawInsts[i].cacheId));
 
 				map.dpvs.smodelDrawInsts[i].placement.scale = world->dpvs.smodelDrawInsts[i].placement.scale;
-				map.dpvs.smodelDrawInsts[i].model = world->dpvs.smodelDrawInsts[i].model;
+				map.dpvs.smodelDrawInsts[i].model = AssetHandler::Convert(Game::IW3::ASSET_TYPE_XMODEL, { world->dpvs.smodelDrawInsts[i].model }).model;
 
 
 				float iw3CullDist = world->dpvs.smodelDrawInsts[i].cullDist;
@@ -571,9 +629,9 @@ namespace Components
 				{
 					// Confirmed to be the same in the rendering functions
 					// Check R_AddAllStaticModelSurfacesSpotShadow in both iw3 and iw4
-					 
+
 					map.dpvs.smodelDrawInsts[i].flags |= Game::IW4::STATIC_MODEL_FLAG_NO_CAST_SHADOW;
-					
+
 					// aaaaand NO it's not !
 					// For some reason while being used in the same place for the same thing AFAIK,
 					// setting this to the "correct value" in iw4 results in blocky smodel shadows!
@@ -590,10 +648,10 @@ namespace Components
 					if (map.dpvs.smodelDrawInsts[i].groundLighting.packed > 0)
 					{
 						map.dpvs.smodelDrawInsts[i].flags |= Game::IW4::STATIC_MODEL_FLAG_GROUND_LIGHTING;
-					}
 				}
 			}
 		}
+	}
 
 #if USE_IW3_SORTKEYS
 		// IW3 values
@@ -626,7 +684,7 @@ namespace Components
 		map.checksum = 0xC0D40001;
 
 		auto smodelsFixMethod = Game::Dvar_FindVar("iw3x_smodels_fix_method");
-		if (smodelsFixMethod) 
+		if (smodelsFixMethod)
 		{
 			auto method = std::stoi(smodelsFixMethod->current.string);
 			IGfxWorld::RemoveIncompatibleModelsForIW4(&map, method);
@@ -636,15 +694,15 @@ namespace Components
 		*output = map;
 
 		return output;
-	}
+}
 
 	IGfxWorld::IGfxWorld()
 	{
 		Command::Add("dumpGfxWorld", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
-				auto converted = IGfxWorld::Convert(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFXWORLD, params[1]).gfxWorld);
-				MapDumper::GetApi()->write(Game::XAssetType::ASSET_TYPE_GFXWORLD, converted);
+				auto converted = IGfxWorld::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_GFXWORLD, params[1]).gfxWorld);
+				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_GFXWORLD, converted);
 			});
 	}
 

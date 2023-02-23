@@ -4,7 +4,7 @@ namespace Components
 {
 	Game::IW4::MapEnts* IMapEnts::Convert(Game::IW3::MapEnts* ents)
 	{
-		if (!ents) return;
+		if (!ents) return nullptr;
 		std::string basename(ents->name);
 
 		Utils::EraseSubstring(basename, "maps/");
@@ -47,7 +47,7 @@ namespace Components
 			{
 				if (params.Length() < 2) return;
 				 
-				 auto converted = IMapEnts::Convert(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]).clipMap->mapEnts);
+				 auto converted = IMapEnts::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]).clipMap->mapEnts);
 				 MapDumper::GetApi()->write(Game::IW4::ASSET_TYPE_MAP_ENTS, converted);
 			});
 	}

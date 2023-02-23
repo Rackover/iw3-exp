@@ -24,7 +24,7 @@ namespace Components
 				if (std::regex_search(line.data(), m, regex))
 				{
 					const auto& musicName = m[1];
-					AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_SOUND, Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_SOUND, musicName.str().data()));
+					AssetHandler::Dump(Game::IW3::XAssetType::ASSET_TYPE_SOUND, Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_SOUND, musicName.str().data()));
 				}
 			}
 		}
@@ -89,12 +89,12 @@ namespace Components
 			if (m.size() > 1)
 			{
 				const auto& modelName = m[1].str();
-				auto header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, modelName.data());
+				auto header = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_XMODEL, modelName.data());
 
 				if (header.model)
 				{
 					Components::Logger::Print("Dumping additional model %s (mentioned in a precache GSC call)\n", modelName.data());
-					AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_XMODEL, header);
+					AssetHandler::Dump(Game::IW3::XAssetType::ASSET_TYPE_XMODEL, header);
 
 					static auto additionalModelsPath = GetAdditionalModelsListPath();
  					std::ofstream stream(additionalModelsPath, std::ios::binary | std::ios::app);

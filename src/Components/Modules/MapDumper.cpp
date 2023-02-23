@@ -54,7 +54,7 @@ namespace Components
 		// - Appears in a GSC (createFX)
 		// - Appears in a map ent (is that even possible?)
 		// and dump only these! 
-		Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_SOUND, [myZoneIndex](Game::IW3::XAssetEntryPoolEntry* poolEntry) {
+		Game::DB_EnumXAssetEntries(Game::IW3::XAssetType::ASSET_TYPE_SOUND, [myZoneIndex](Game::IW3::XAssetEntryPoolEntry* poolEntry) {
 			if (poolEntry)
 			{
 				auto entry = &poolEntry->entry;
@@ -94,7 +94,8 @@ namespace Components
 						}
 
 						//Components::Logger::Print("%d => %s\n", entry->zoneIndex, entry->asset.header.sound->aliasName);
-						AssetHandler::Dump(Game::XAssetType::ASSET_TYPE_SOUND, entry->asset.header);
+						auto converted = AssetHandler::Convert(Game::IW3::XAssetType::ASSET_TYPE_SOUND, entry->asset.header);
+						GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_SOUND, converted.data);
 					}
 					catch (const std::exception&)
 					{
@@ -138,7 +139,7 @@ namespace Components
 			Logger::Print("Exporting FXs...\n");
 
 			// Dump all available fx
-			Game::DB_EnumXAssetEntries(Game::ASSET_TYPE_FX, [myZoneIndex](Game::IW3::XAssetEntryPoolEntry* entry)
+			Game::DB_EnumXAssetEntries(Game::IW3::ASSET_TYPE_FX, [myZoneIndex](Game::IW3::XAssetEntryPoolEntry* entry)
 				{
 					if (entry->entry.zoneIndex == myZoneIndex)
 					{
@@ -192,6 +193,27 @@ namespace Components
 		params.get_from_string_table = [](unsigned int index)
 		{
 			return Game::SL_ConvertToString(index);
+		};
+
+		params.find_other_asset = [](int type, const std::string& name)
+		{
+			for (const auto& kv : AssetHandler::TypeTable)
+			{
+				if (kv.second == type)
+				{
+					auto iw3Type = kv.first;
+					auto header = Game::DB_FindXAssetHeader(iw3Type, name.data());
+
+					if (header.data)
+					{
+						return AssetHandler::Convert(static_cast<Game::IW3::XAssetType>(iw3Type), header).data;
+					}
+
+					return static_cast<void*>(nullptr);
+				}
+			}
+
+			return static_cast<void*>(nullptr);
 		};
 
 		params.print = [](int level, const std::string& message)

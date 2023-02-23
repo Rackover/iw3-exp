@@ -9,7 +9,7 @@ namespace Components
 		~IRawFile();
 
 		const char* GetName() override { return "IRawFile"; };
-		Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_RAWFILE; };
+		Game::IW3::XAssetType GetType() override { return Game::IW3::XAssetType::ASSET_TYPE_RAWFILE; };
 		Game::IW4::XAssetHeader Convert(Game::IW3::XAssetHeader header) override { return { Convert(header.rawfile) }; };
 
 	private:

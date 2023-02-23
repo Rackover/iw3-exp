@@ -5,7 +5,7 @@ namespace Components
 	class MapDumper : public Component
 	{
 	public:
-		const char* getName() override { return "MapDumper"; };
+		const char* GetName() override { return "MapDumper"; };
 
 		static std::string GetMapName();
 		static int GetZoneIndex();

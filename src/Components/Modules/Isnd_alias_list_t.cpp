@@ -39,28 +39,26 @@ namespace Components
 		Game::IW4::SND_CHANNEL_SHELLSHOCK
 	};
 
-	void Isnd_alias_list_t::Dump(Game::IW3::snd_alias_list_t* ents)
+	Game::IW4::snd_alias_list_t* Isnd_alias_list_t::Convert(Game::IW3::snd_alias_list_t* ents)
 	{
 		if (ents->count > 32)
 		{
 			// This is probably garbage data
-			return;
+			return nullptr;
 		}
 
 		if (ents->count == 0) {
 			// Very weird but it happens, notably on mp_crash_snow
 			// Soundaliases with a zero-count list crash iw4 so we skip them
 			// They should be empty anyway
-			return;
+			return nullptr;
 		}
 
-		Utils::Memory::Allocator allocator;
-
-		Game::IW4::snd_alias_list_t* iw4AliasList = allocator.Allocate<Game::IW4::snd_alias_list_t>();
+		Game::IW4::snd_alias_list_t* iw4AliasList = LocalAllocator.Allocate<Game::IW4::snd_alias_list_t>();
 
 		iw4AliasList->aliasName = ents->aliasName;
 		iw4AliasList->count = ents->count;
-		iw4AliasList->head = allocator.AllocateArray<Game::IW4::snd_alias_t>(ents->count);
+		iw4AliasList->head = LocalAllocator.AllocateArray<Game::IW4::snd_alias_t>(ents->count);
 
 		for (size_t i = 0; i < ents->count; i++)
 		{
@@ -120,22 +118,20 @@ namespace Components
 			{
 				if (iw4Alias->volumeFalloffCurve->filename == ""s)
 				{
-					iw4Alias->volumeFalloffCurve->filename = "$default.3x";
+					iw4Alias->volumeFalloffCurve->filename = LocalAllocator.DuplicateString("$default.3x");
 				}
-
-				// No conversion at all
-				MapDumper::GetApi()->write(Game::IW4::ASSET_TYPE_SOUND_CURVE, iw4Alias->volumeFalloffCurve);
 			}
 
 			if (iw4Alias->soundFile->type == Game::SAT_LOADED)
 			{
-				AssetHandler::Dump(Game::ASSET_TYPE_LOADED_SOUND, { iw4Alias->soundFile->u.loadSnd });
+				// Load sound
+				iw4Alias->soundFile->u.loadSnd = AssetHandler::Convert(Game::IW3::ASSET_TYPE_LOADED_SOUND, { iw4Alias->soundFile->u.loadSnd }).loadSnd;
 			}
 
 			assert(iw4Alias->speakerMap);
 		}
 
-		MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_SOUND, iw4AliasList);
+		return iw4AliasList;
 	}
 
 	Isnd_alias_list_t::Isnd_alias_list_t()
@@ -143,7 +139,8 @@ namespace Components
 		Command::Add("dumpSound", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
-				Isnd_alias_list_t::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_SOUND, params[1]).sound);
+				auto converted = Isnd_alias_list_t::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_SOUND, params[1]).sound);
+				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_SOUND, converted);
 			});
 	}
 

@@ -30,7 +30,7 @@ namespace Game
 
 	IW3::infoParm_t* infoParams = reinterpret_cast<Game::IW3::infoParm_t*>(0x71FBD0); // Count 0x1C
 
-	void DB_EnumXAssetEntries(XAssetType type, std::function<void(IW3::XAssetEntryPoolEntry*)> callback, bool overrides)
+	void DB_EnumXAssetEntries(IW3::XAssetType type, std::function<void(IW3::XAssetEntryPoolEntry*)> callback, bool overrides)
 	{
 		volatile long* lock = reinterpret_cast<volatile long*>(0x10D01A4);
 		InterlockedIncrement(lock);
@@ -71,7 +71,7 @@ namespace Game
 		InterlockedDecrement(lock);
 	}
 
-	int DB_HashForName(Game::XAssetType type, const char* name)
+	int DB_HashForName(Game::IW3::XAssetType type, const char* name)
 	{
 		int result = static_cast<int>(type);
 		int v4; // eax
@@ -99,7 +99,7 @@ namespace Game
 		return result & 0x7FFF;
 	}
 
-	Game::IW3::XAssetEntryPoolEntry* DB_FindXAssetEntry(Game::XAssetType type, const char* name)
+	Game::IW3::XAssetEntryPoolEntry* DB_FindXAssetEntry(Game::IW3::XAssetType type, const char* name)
 	{
 		Game::IW3::XAssetEntryPoolEntry* entry = nullptr;
 		auto hash = db_hashTable[DB_HashForName(type, name)];

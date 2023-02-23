@@ -7,7 +7,7 @@ namespace Components
 	public:
 		QuickPatch();
 		~QuickPatch();
-		const char* getName() override { return "QuickPatch"; };
+		const char* GetName() override { return "QuickPatch"; };
 
 	private:
 		static void OnInitStub();
