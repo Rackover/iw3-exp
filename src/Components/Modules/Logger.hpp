@@ -7,7 +7,7 @@ namespace Components
 	public:
 		Logger();
 		~Logger();
-		const char* getName() override { return "Logger"; };
+		const char* GetName() override { return "Logger"; };
 
 		static void Print(const char* message, ...);
 		static void Error(const char* message, ...);

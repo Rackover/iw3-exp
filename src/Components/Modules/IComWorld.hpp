@@ -9,7 +9,7 @@ namespace Components
 		~IComWorld();
 
 		const char* GetName() override { return "IComWorld"; };
-		Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_COMWORLD; };
+		Game::IW3::XAssetType GetType() override { return Game::IW3::XAssetType::ASSET_TYPE_COMWORLD; };
 		Game::IW4::XAssetHeader Convert(Game::IW3::XAssetHeader header) override { return { header.comWorld }; };
 	};
 }

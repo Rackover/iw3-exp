@@ -20,7 +20,7 @@ namespace Components
 
 		if (img.Exists())
 		{
-			Game::IW4::GfxImageFileHeader header_iw4;
+			Game::IW4::GfxImageFileHeader header_iw4{};
 			const Game::IW3::GfxImageFileHeader header_iw3 = *reinterpret_cast<const Game::IW3::GfxImageFileHeader*>(img.GetBuffer().data());
 
 			header_iw4.version = 8;
@@ -55,9 +55,31 @@ namespace Components
 		return "";
 	}
 
+	Game::IW4::GfxImageLoadDef* IGfxImage::ConvertLoadDef(Game::IW3::GfxImageLoadDef* iw3LoadDef)
+	{
+		auto iw4Def = reinterpret_cast<Game::IW4::GfxImageLoadDef*>(LocalAllocator.Allocate(sizeof(Game::IW4::GfxImageLoadDef) + iw3LoadDef->resourceSize - 4));
+
+		std::memcpy(iw4Def->data, iw3LoadDef->data, iw3LoadDef->resourceSize);
+		iw4Def->flags = TranslateFlags(iw3LoadDef->flags);
+		iw4Def->format = iw3LoadDef->format;
+		iw4Def->levelCount = iw3LoadDef->levelCount;
+		iw4Def->resourceSize = iw3LoadDef->resourceSize;
+
+		return iw4Def;
+	}
+
+	Game::IW4::GfxTexture* IGfxImage::ConvertTexture(Game::IW3::GfxTexture* iw3Texture)
+	{
+		auto iw4Tex = reinterpret_cast<Game::IW4::GfxTexture*>(LocalAllocator.Allocate<Game::IW4::GfxTexture>());
+
+		iw4Tex->loadDef = ConvertLoadDef(iw3Texture->loadDef);
+
+		return iw4Tex;
+	}
+
 	Game::IW4::GfxImage* IGfxImage::Convert(Game::IW3::GfxImage* image)
 	{
-		if (!image) return;
+		if (!image) return nullptr;
 		std::string name = image->name;
 		if (name[0] == '*') name.erase(name.begin());
 
@@ -71,16 +93,10 @@ namespace Components
 
 		Game::IW4::GfxImage* iw4Image = LocalAllocator.Allocate<Game::IW4::GfxImage>();
 
-		iw4Image->texture.loadDef = reinterpret_cast<Game::IW4::GfxImageLoadDef*>(LocalAllocator.Allocate(sizeof(Game::IW4::GfxImageLoadDef) + image->texture.loadDef->resourceSize - 4));
+		iw4Image->texture.loadDef = ConvertLoadDef(image->texture.loadDef);
 
-		std::memcpy(iw4Image->texture.loadDef->data, image->texture.loadDef->data, image->texture.loadDef->resourceSize);
-		iw4Image->texture.loadDef->flags = TranslateFlags(image->texture.loadDef->flags);
-		iw4Image->texture.loadDef->format = image->texture.loadDef->format;
-		iw4Image->texture.loadDef->levelCount = image->texture.loadDef->levelCount;
-		iw4Image->texture.loadDef->resourceSize = image->texture.loadDef->resourceSize;
-
-		iw4Image->mapType = image->mapType;
-		iw4Image->semantic = image->semantic;
+		iw4Image->mapType = static_cast<unsigned char>(image->mapType);
+		iw4Image->semantic = static_cast<unsigned char>(image->semantic);
 		iw4Image->category = image->category;
 		iw4Image->picmip = image->picmip;
 		iw4Image->noPicmip = image->noPicmip;
@@ -265,11 +281,10 @@ namespace Components
 			{
 				if (params.Length() < 2) return;
 
-				Game::IW3::GfxImage image;
-				image.name = params[1];
-				image.texture.loadDef = nullptr;
+				Game::IW3::GfxImage* image = Game::DB_FindXAssetHeader(Game::IW3::ASSET_TYPE_IMAGE, params[1]).image;
 
-				auto converted = IGfxImage::Convert(&image);
+				auto converted = IGfxImage::Convert(image);
+				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_IMAGE, converted);
 			});
 
 		Utils::Hook(0x616E80, IGfxImage::StoreTexture, HOOK_JUMP).install()->quick();

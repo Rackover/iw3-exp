@@ -24,6 +24,6 @@ namespace Components
 		};
 
 		FileSystem();
-		const char* getName() override { return "FileSystem"; };
+		const char* GetName() override { return "FileSystem"; };
 	};
 }

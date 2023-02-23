@@ -8,11 +8,11 @@ namespace Components
 		IXAnimParts();
 		~IXAnimParts();
 
-		const char* getName() override { return "IXAnimParts"; };
-		Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_XANIMPARTS; };
-		void dump(Game::IW3::XAssetHeader header) override { Dump(header.parts); };
+		const char* GetName() override { return "IXAnimParts"; };
+		Game::IW3::XAssetType GetType() override { return Game::IW3::XAssetType::ASSET_TYPE_XANIMPARTS; };
+		Game::IW4::XAssetHeader Convert(Game::IW3::XAssetHeader header) override { return { Convert(header.parts) }; };
 
 	private:
-		static void Dump(Game::IW3::XAnimParts* xanim);
+		static Game::IW4::XAnimParts* Convert(Game::IW3::XAnimParts* xanim);
 	};
 }

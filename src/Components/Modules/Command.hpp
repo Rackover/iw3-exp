@@ -23,7 +23,7 @@ namespace Components
 
 		Command();
 		~Command();
-		const char* getName() override { return "Command"; };
+		const char* GetName() override { return "Command"; };
 
 		static void Add(const char* name, Utils::Slot<Callback> callback);
 		static void Execute(std::string command, bool sync = true);

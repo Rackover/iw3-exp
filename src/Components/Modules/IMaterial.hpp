@@ -9,7 +9,7 @@ namespace Components
 		~IMaterial();
 
 		const char* GetName() override { return "IMaterial"; };
-		Game::XAssetType GetType() override { return Game::XAssetType::ASSET_TYPE_MATERIAL; };
+		Game::IW3::XAssetType GetType() override { return Game::IW3::XAssetType::ASSET_TYPE_MATERIAL; };
 		Game::IW4::XAssetHeader Convert(Game::IW3::XAssetHeader header) override { return { Convert(header.material) }; };
 
 	private:

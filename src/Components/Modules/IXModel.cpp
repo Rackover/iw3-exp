@@ -8,7 +8,7 @@ namespace Components
 {
 	Game::IW4::XModel* IXModel::Convert(Game::IW3::XModel* model)
 	{
-		if (!model) return;
+		if (!model) return nullptr;
 
 		Game::IW4::XModel xmodel;
 		ZeroMemory(&xmodel, sizeof(xmodel));
@@ -27,7 +27,12 @@ namespace Components
 		xmodel.trans = model->trans;
 		xmodel.partClassification = model->partClassification;
 		xmodel.baseMat = model->baseMat;
-		xmodel.materialHandles = model->materialHandles;
+
+		xmodel.materialHandles = LocalAllocator.AllocateArray<Game::IW4::Material*>(model->numsurfs);
+		for (size_t i = 0; i < model->numsurfs; i++)
+		{
+			xmodel.materialHandles[i] = AssetHandler::Convert(Game::IW3::ASSET_TYPE_MATERIAL, { model->materialHandles[i]}).material;
+		}
 
 		for (int i = 0; i < 4; ++i)
 		{
@@ -249,7 +254,7 @@ namespace Components
 			{
 				if (params.Length() < 2) return;
 				
-				auto converted = IXModel::Convert(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, params[1]).model);
+				auto converted = IXModel::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_XMODEL, params[1]).model);
 				MapDumper::GetApi()->write(Game::IW4::ASSET_TYPE_XMODEL, converted);
 			});
 	}

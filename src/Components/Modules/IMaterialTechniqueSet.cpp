@@ -235,8 +235,6 @@ namespace Components
 		  { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_REFLECTION_PROBE, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_REFLECTION_PROBE }
 	};
 
-	Utils::Memory::Allocator IMaterialTechniqueSet::localAllocator;
-
 	Game::IW3::MaterialTechnique* IMaterialTechniqueSet::ConvertTechnique(Game::IW3::MaterialTechnique* tech)
 	{
 		AssertSize(Game::IW3::MaterialPass, 20);
@@ -248,13 +246,13 @@ namespace Components
 			+ sizeof Game::IW3::MaterialPass * tech->passCount;
 
 		auto iw4Technique = reinterpret_cast<Game::IW3::MaterialTechnique*>(
-			localAllocator.Allocate(
+			LocalAllocator.Allocate(
 				size
 			)
 			);
 
 		std::memcpy(iw4Technique, tech, size);
-		iw4Technique->name = localAllocator.DuplicateString(std::format("{}{}", tech->name, techsetSuffix));
+		iw4Technique->name = LocalAllocator.DuplicateString(std::format("{}{}", tech->name, techsetSuffix));
 
 		// We complete these later
 		iw4Technique->flags = tech->flags << 2;
@@ -303,7 +301,7 @@ namespace Components
 				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_PIXELSHADER, iw4Pass->pixelShader);
 			}
 
-			iw4Pass->args = localAllocator.AllocateArray<Game::IW3::MaterialShaderArgument>(pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
+			iw4Pass->args = LocalAllocator.AllocateArray<Game::IW3::MaterialShaderArgument>(pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
 			for (int k = 0; k < pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount; ++k)
 			{
 				Game::IW3::MaterialShaderArgument* arg = &pass->args[k];
@@ -313,7 +311,7 @@ namespace Components
 
 				if (arg->type == Game::MTL_ARG_LITERAL_PIXEL_CONST || arg->type == Game::MTL_ARG_LITERAL_VERTEX_CONST)
 				{
-					iw4Arg->u.literalConst = localAllocator.AllocateArray<float>(4);
+					iw4Arg->u.literalConst = LocalAllocator.AllocateArray<float>(4);
 					std::memcpy(iw4Arg->u.literalConst, arg->u.literalConst, 4 * sizeof(float));
 				}
 				else if (arg->type == Game::MaterialShaderArgumentType::MTL_ARG_CODE_VERTEX_CONST
@@ -377,9 +375,9 @@ namespace Components
 	{
 		if (!decl) return nullptr;
 
-		Game::IW4::MaterialVertexDeclaration* iw4Decl = localAllocator.Allocate<Game::IW4::MaterialVertexDeclaration>();
+		Game::IW4::MaterialVertexDeclaration* iw4Decl = LocalAllocator.Allocate<Game::IW4::MaterialVertexDeclaration>();
 
-		iw4Decl->name = localAllocator.DuplicateString(GetDeclarationName(decl));
+		iw4Decl->name = LocalAllocator.DuplicateString(GetDeclarationName(decl));
 		iw4Decl->hasOptionalSource = decl->hasOptionalSource;
 		iw4Decl->streamCount = decl->streamCount;
 
@@ -422,10 +420,10 @@ namespace Components
 			return nullptr;
 		}
 
-		auto iw4Vs = localAllocator.Allocate<Game::IW3::MaterialVertexShader>();
-		iw4Vs->name = localAllocator.DuplicateString(std::format("{}{}", vs->name, IMaterialTechniqueSet::techsetSuffix));
+		auto iw4Vs = LocalAllocator.Allocate<Game::IW3::MaterialVertexShader>();
+		iw4Vs->name = LocalAllocator.DuplicateString(std::format("{}{}", vs->name, IMaterialTechniqueSet::techsetSuffix));
 		iw4Vs->prog.loadDef.loadForRenderer = Game::IW3::GfxRenderer::GFX_RENDERER_SHADER_3;
-		iw4Vs->prog.loadDef.program = localAllocator.AllocateArray<unsigned int>(vs->prog.loadDef.programSize);
+		iw4Vs->prog.loadDef.program = LocalAllocator.AllocateArray<unsigned int>(vs->prog.loadDef.programSize);
 
 		std::memcpy(iw4Vs->prog.loadDef.program, vs->prog.loadDef.program, vs->prog.loadDef.programSize * sizeof(unsigned int));
 
@@ -442,29 +440,29 @@ namespace Components
 			return nullptr;
 		}
 
-		auto iw4Ps = localAllocator.Allocate<Game::IW3::MaterialPixelShader>();
-		iw4Ps->name = localAllocator.DuplicateString(std::format("{}{}", ps->name, IMaterialTechniqueSet::techsetSuffix));
+		auto iw4Ps = LocalAllocator.Allocate<Game::IW3::MaterialPixelShader>();
+		iw4Ps->name = LocalAllocator.DuplicateString(std::format("{}{}", ps->name, IMaterialTechniqueSet::techsetSuffix));
 		iw4Ps->prog.loadDef.loadForRenderer = Game::IW3::GfxRenderer::GFX_RENDERER_SHADER_3;
-		iw4Ps->prog.loadDef.program = localAllocator.AllocateArray<unsigned int>(ps->prog.loadDef.programSize);
+		iw4Ps->prog.loadDef.program = LocalAllocator.AllocateArray<unsigned int>(ps->prog.loadDef.programSize);
 
 		std::memcpy(iw4Ps->prog.loadDef.program, ps->prog.loadDef.program, ps->prog.loadDef.programSize * sizeof(unsigned int));
 
 		return iw4Ps;
 	}
 
-	void IMaterialTechniqueSet::SaveConvertedTechset(Game::IW4::MaterialTechniqueSet* techset)
-	{
-		MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_TECHNIQUE_SET, techset);
-	}
-
-	Game::IW4::MaterialTechniqueSet* IMaterialTechniqueSet::Dump(Game::IW3::MaterialTechniqueSet* techset)
+	Game::IW4::MaterialTechniqueSet* IMaterialTechniqueSet::Convert(Game::IW3::MaterialTechniqueSet* techset)
 	{
 		if (!techset) return nullptr;
 
-		Game::IW4::MaterialTechniqueSet* iw4Techset = localAllocator.Allocate<Game::IW4::MaterialTechniqueSet>();
+		if (techset->name == "wc_l_sm_r0c0n0s0"s)
+		{
+			printf("");
+		}
+
+		Game::IW4::MaterialTechniqueSet* iw4Techset = LocalAllocator.Allocate<Game::IW4::MaterialTechniqueSet>();
 
 		auto name = std::format("{}{}", techset->name, techsetSuffix);
-		iw4Techset->name = localAllocator.DuplicateString(name);
+		iw4Techset->name = LocalAllocator.DuplicateString(name);
 
 
 		iw4Techset->worldVertFormat = techset->worldVertFormat; // enum didn't change
@@ -476,13 +474,15 @@ namespace Components
 
 		if (name.contains("_zfeather"))
 		{
-			techset->remappedTechniqueSet = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, std::regex_replace(techset->name, zFeatherRegx, "").data()).techniqueSet;
-			iw4Techset->remappedTechniqueSet = Dump(techset->remappedTechniqueSet);
+			techset->remappedTechniqueSet = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_TECHNIQUE_SET, std::regex_replace(techset->name, zFeatherRegx, "").data()).techniqueSet;
+			iw4Techset->remappedTechniqueSet = Convert(techset->remappedTechniqueSet);
+			iw4Techset->remappedTechniqueSet->remappedTechniqueSet = nullptr;
 		}
 		else if (name.contains("_sm"))
 		{
-			techset->remappedTechniqueSet = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, std::regex_replace(techset->name, smRegx, "_hsm").data()).techniqueSet;
-			iw4Techset->remappedTechniqueSet = Dump(techset->remappedTechniqueSet);
+			techset->remappedTechniqueSet = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_TECHNIQUE_SET, std::regex_replace(techset->name, smRegx, "_hsm").data()).techniqueSet;
+			iw4Techset->remappedTechniqueSet = Convert(techset->remappedTechniqueSet);
+			iw4Techset->remappedTechniqueSet->remappedTechniqueSet = nullptr;
 		}
 
 		// copy techniques to correct spots
@@ -499,7 +499,14 @@ namespace Components
 			}
 		}
 
-		IMaterialTechniqueSet::SaveConvertedTechset(iw4Techset);
+		//"wc_l_hsm_r0c0n0s0"
+
+		if (iw4Techset->remappedTechniqueSet && 
+			iw4Techset->remappedTechniqueSet->remappedTechniqueSet &&
+			iw4Techset->remappedTechniqueSet->remappedTechniqueSet == iw4Techset)
+		{
+			assert(false);
+		}
 
 		return iw4Techset;
 	}
@@ -538,7 +545,8 @@ namespace Components
 		Command::Add("dumpTechset", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
-				IMaterialTechniqueSet::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, params[1]).techniqueSet);
+				auto converted = IMaterialTechniqueSet::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_TECHNIQUE_SET, params[1]).techniqueSet);
+				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_TECHNIQUE_SET, converted);
 			});
 	}
 

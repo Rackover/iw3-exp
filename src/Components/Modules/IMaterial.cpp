@@ -47,7 +47,7 @@ namespace Components
 
 	Game::IW4::Material* IMaterial::Convert(Game::IW3::Material* material)
 	{
-		if (!material) return;
+		if (!material)  return nullptr;
 
         Game::IW4::GfxDrawSurf newSurf;
 
@@ -122,11 +122,11 @@ namespace Components
 			mat.cameraRegion = 0x4;
 		}
 
-		mat.techniqueSet = AssetHandler::Convert(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, { material->techniqueSet }).techniqueSet;
+		mat.techniqueSet = AssetHandler::Convert(Game::IW3::XAssetType::ASSET_TYPE_TECHNIQUE_SET, { material->techniqueSet }).techniqueSet;
 
 
 		mat.textureTable = LocalAllocator.AllocateArray<Game::IW4::MaterialTextureDef>(mat.textureCount);
-		for (size_t i = 0; i < mat.textureCount; i++)
+		for (char i = 0; i < mat.textureCount; i++)
 		{
 			auto iw3Def = &material->textureTable[i];
 			auto iw4Def = &mat.textureTable[i];
@@ -134,13 +134,19 @@ namespace Components
 			static_assert(sizeof Game::IW4::MaterialTextureDef == sizeof Game::IW3::MaterialTextureDef);
 			std::memcpy(iw4Def, iw3Def, sizeof Game::IW4::MaterialTextureDef);
 
+
 			if (iw4Def->semantic == 0xB) // TS_Water
 			{
+				iw4Def->u.water = LocalAllocator.Allocate<Game::IW4::water_t>();
 
+				static_assert(sizeof Game::IW4::water_t == sizeof Game::IW3::water_t);
+				std::memcpy(iw4Def->u.water, iw3Def->u.water, sizeof Game::IW4::water_t);
+
+				iw4Def->u.water->image = AssetHandler::Convert(Game::IW3::ASSET_TYPE_IMAGE, { iw3Def->u.water->image }).image;
 			}
 			else
 			{
-				iw4Def->u.image = AssetHandler::Convert(Game::ASSET_TYPE_IMAGE, { iw3Def->u.image }).image;
+				iw4Def->u.image = AssetHandler::Convert(Game::IW3::ASSET_TYPE_IMAGE, { iw3Def->u.image }).image;
 			}
 		}
 
@@ -470,7 +476,7 @@ namespace Components
 		Command::Add("dumpMaterial", [](const Command::Params& params)
 		{
 			if (params.Length() < 2) return;
-			auto asset = IMaterial::Convert(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, params[1]).material);
+			auto asset = IMaterial::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_MATERIAL, params[1]).material);
 			MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_MATERIAL, asset);
 		});
 	}

@@ -4,7 +4,7 @@
 
 namespace Components
 {
-	void IXAnimParts::Dump(Game::IW3::XAnimParts* xanim)
+	Game::IW4::XAnimParts* IXAnimParts::Convert(Game::IW3::XAnimParts* xanim)
 	{
 		Game::IW4::XAnimParts parts;
 		ZeroMemory(&parts, sizeof(parts));
@@ -49,75 +49,10 @@ namespace Components
 		parts.bDelta = false;
 		parts.delta = nullptr;
 
-		Utils::Stream buffer;
-		buffer.saveArray("IW4xAnim", 8);
-		buffer.saveObject(IW4X_ANIM_VERSION);
+		auto allocated = LocalAllocator.Allocate< Game::IW4::XAnimParts>();
+		*allocated = parts;
 
-		buffer.saveArray(&parts, 1);
-
-		if (parts.name)
-		{
-			buffer.saveString(parts.name);
-		}
-
-		for (int i = 0; i < parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_ALL]; ++i)
-		{
-			buffer.saveString(Game::SL_ConvertToString(parts.tagnames[i]));
-		}
-
-		if (parts.notetracks)
-		{
-			buffer.saveArray(parts.notetracks, parts.notetrackCount);
-
-			for (int i = 0; i < parts.notetrackCount; ++i)
-			{
-				buffer.saveString(Game::SL_ConvertToString(parts.notetracks[i].name));
-			}
-		}
-
-		if (parts.dataByte)
-		{
-			buffer.saveArray(parts.dataByte, parts.dataByteCount);
-		}
-
-		if (parts.dataShort)
-		{
-			buffer.saveArray(parts.dataShort, parts.dataShortCount);
-		}
-
-		if (parts.dataInt)
-		{
-			buffer.saveArray(parts.dataInt, parts.dataIntCount);
-		}
-
-		if (parts.randomDataByte)
-		{
-			buffer.saveArray(parts.randomDataByte, parts.randomDataByteCount);
-		}
-
-		if (parts.randomDataShort)
-		{
-			buffer.saveArray(parts.randomDataShort, parts.randomDataShortCount);
-		}
-
-		if (parts.randomDataInt)
-		{
-			buffer.saveArray(parts.randomDataInt, parts.randomDataIntCount);
-		}
-
-		if (parts.indices.data)
-		{
-			if (parts.framecount < 256)
-			{
-				buffer.saveArray(parts.indices._1, parts.indexcount); // actually another pad
-			}
-			else
-			{
-				buffer.saveArray(parts.indices._2, parts.indexcount);
-			}
-		}
-
-		Utils::WriteFile(Utils::VA("%s/xanim/%s.iw4xAnim", AssetHandler::GetExportPath().data(), parts.name), buffer.toBuffer());
+		return allocated;
 	}
 
 	IXAnimParts::IXAnimParts()
@@ -125,7 +60,8 @@ namespace Components
 		Command::Add("dumpXAnimParts", [] (Command::Params params)
 		{
 			if (params.Length() < 2) return;
-			IXAnimParts::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XANIMPARTS, params[1]).parts);
+			auto converted = IXAnimParts::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_XANIMPARTS, params[1]).parts);
+			MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_XANIMPARTS, converted);
 		});
 	}
 

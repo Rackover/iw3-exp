@@ -58,7 +58,7 @@ namespace Utils
 
 					// Then we need to fetch the destructible models
 					// This is TERRIBLE but it works. Ideally we should be able to grab the destructible models from the modelpieces DynEnts list (see iGFXWorld.cpp) but it doesn't work :(
-					Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_XMODEL, [destructible, models, &destructiblesModelList](Game::IW3::XAssetEntryPoolEntry* poolEntry)
+					Game::DB_EnumXAssetEntries(Game::IW3::XAssetType::ASSET_TYPE_XMODEL, [destructible, models, &destructiblesModelList](Game::IW3::XAssetEntryPoolEntry* poolEntry)
 						{
 							auto entry = &poolEntry->entry;
 							if (entry->inuse == 1 && entry->asset.header.model) {
@@ -111,7 +111,7 @@ namespace Utils
         auto subModelCount = 0;
 
         // We don't have a clipmap reference, so 
-        Game::DB_EnumXAssetEntries(Game::XAssetType::ASSET_TYPE_CLIPMAP_PVS, [&subModelCount](Game::IW3::XAssetEntryPoolEntry* poolEntry) {
+        Game::DB_EnumXAssetEntries(Game::IW3::XAssetType::ASSET_TYPE_CLIPMAP_PVS, [&subModelCount](Game::IW3::XAssetEntryPoolEntry* poolEntry) {
             auto entry = &poolEntry->entry;
             if (entry && entry->asset.header.clipMap && subModelCount == 0)
             {
@@ -198,7 +198,7 @@ namespace Utils
 	{
 		const std::string mapName = Components::MapDumper::GetMapName();
 		const std::string bspName = Utils::VA("maps/mp/%s.d3dbsp", mapName.data());
-		const auto header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GFXWORLD, bspName.data());
+		const auto header = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_GFXWORLD, bspName.data());
 
 		if (header.gfxWorld) {
 			for (auto index : Components::IGfxWorld::removedStaticModelIndices)

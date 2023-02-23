@@ -4,25 +4,19 @@
 
 namespace Components
 {
-	void IGameWorld::Dump(Game::IW3::GameWorldMp* asset)
+	Game::IW4::GameWorldMp* IGameWorld::Convert(Game::IW3::GameWorldMp* asset)
 	{
-		if (!asset) return;
-		Utils::Memory::Allocator allocator;
+		if (!asset) return nullptr;
 
-		Game::IW4::GameWorldMp* iw4GameWorld = allocator.Allocate<Game::IW4::GameWorldMp>();
+		Game::IW4::GameWorldMp* iw4GameWorld = LocalAllocator.Allocate<Game::IW4::GameWorldMp>();
 
 		iw4GameWorld->name = asset->name;
 
 		// Glass data generation
-		iw4GameWorld->g_glassData = allocator.Allocate<Game::IW4::G_GlassData>();
+		iw4GameWorld->g_glassData = LocalAllocator.Allocate<Game::IW4::G_GlassData>();
 		ZeroMemory(iw4GameWorld->g_glassData, sizeof(Game::IW4::G_GlassData));
 
-		SaveConvertedWorld(iw4GameWorld);
-	}
-
-	void IGameWorld::SaveConvertedWorld(Game::IW4::GameWorldMp* asset)
-	{
-		MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_GAMEWORLD_MP, asset);
+		return iw4GameWorld;
 	}
 
 	IGameWorld::IGameWorld()
@@ -30,7 +24,8 @@ namespace Components
 		Command::Add("dumpGameWorld", [] (Command::Params params)
 		{
 			if (params.Length() < 2) return;
-			IGameWorld::Dump(Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP, params[1]).gameWorldMp);
+			auto converted = IGameWorld::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_GAMEWORLD_MP, params[1]).gameWorldMp);
+			MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_GAMEWORLD_MP, converted);
 		});
 	}
 

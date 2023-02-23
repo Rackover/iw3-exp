@@ -8,7 +8,7 @@ namespace Components
 		Flags();
 		~Flags();
 
-		const char* getName() override { return "Flags"; };
+		const char* GetName() override { return "Flags"; };
 
 		static bool HasFlag(std::string flag);
 

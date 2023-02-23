@@ -22,7 +22,7 @@ namespace Components
 			if (params.Length() < 2) return;
 
 
-			auto entry = Game::DB_FindXAssetEntry(Game::XAssetType::ASSET_TYPE_RAWFILE, params[1]);
+			auto entry = Game::DB_FindXAssetEntry(Game::IW3::XAssetType::ASSET_TYPE_RAWFILE, params[1]);
 
 			if (params.Length() > 2)
 			{
