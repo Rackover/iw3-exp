@@ -424,6 +424,7 @@ namespace Components
 		iw4Vs->name = LocalAllocator.DuplicateString(std::format("{}{}", vs->name, IMaterialTechniqueSet::techsetSuffix));
 		iw4Vs->prog.loadDef.loadForRenderer = Game::IW3::GfxRenderer::GFX_RENDERER_SHADER_3;
 		iw4Vs->prog.loadDef.program = LocalAllocator.AllocateArray<unsigned int>(vs->prog.loadDef.programSize);
+		iw4Vs->prog.loadDef.programSize = vs->prog.loadDef.programSize;
 
 		std::memcpy(iw4Vs->prog.loadDef.program, vs->prog.loadDef.program, vs->prog.loadDef.programSize * sizeof(unsigned int));
 
@@ -444,6 +445,7 @@ namespace Components
 		iw4Ps->name = LocalAllocator.DuplicateString(std::format("{}{}", ps->name, IMaterialTechniqueSet::techsetSuffix));
 		iw4Ps->prog.loadDef.loadForRenderer = Game::IW3::GfxRenderer::GFX_RENDERER_SHADER_3;
 		iw4Ps->prog.loadDef.program = LocalAllocator.AllocateArray<unsigned int>(ps->prog.loadDef.programSize);
+		iw4Ps->prog.loadDef.programSize = ps->prog.loadDef.programSize;
 
 		std::memcpy(iw4Ps->prog.loadDef.program, ps->prog.loadDef.program, ps->prog.loadDef.programSize * sizeof(unsigned int));
 
@@ -453,11 +455,6 @@ namespace Components
 	Game::IW4::MaterialTechniqueSet* IMaterialTechniqueSet::Convert(Game::IW3::MaterialTechniqueSet* techset)
 	{
 		if (!techset) return nullptr;
-
-		if (techset->name == "wc_l_sm_r0c0n0s0"s)
-		{
-			printf("");
-		}
 
 		Game::IW4::MaterialTechniqueSet* iw4Techset = LocalAllocator.Allocate<Game::IW4::MaterialTechniqueSet>();
 
@@ -476,13 +473,11 @@ namespace Components
 		{
 			techset->remappedTechniqueSet = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_TECHNIQUE_SET, std::regex_replace(techset->name, zFeatherRegx, "").data()).techniqueSet;
 			iw4Techset->remappedTechniqueSet = Convert(techset->remappedTechniqueSet);
-			iw4Techset->remappedTechniqueSet->remappedTechniqueSet = nullptr;
 		}
 		else if (name.contains("_sm"))
 		{
 			techset->remappedTechniqueSet = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_TECHNIQUE_SET, std::regex_replace(techset->name, smRegx, "_hsm").data()).techniqueSet;
 			iw4Techset->remappedTechniqueSet = Convert(techset->remappedTechniqueSet);
-			iw4Techset->remappedTechniqueSet->remappedTechniqueSet = nullptr;
 		}
 
 		// copy techniques to correct spots
@@ -498,8 +493,6 @@ namespace Components
 				iw4Techset->techniques[technique] = nullptr;
 			}
 		}
-
-		//"wc_l_hsm_r0c0n0s0"
 
 		if (iw4Techset->remappedTechniqueSet && 
 			iw4Techset->remappedTechniqueSet->remappedTechniqueSet &&

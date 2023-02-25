@@ -49,10 +49,16 @@ namespace Components
 
 			xmodel.lodInfo[i].lod = model->lodInfo[i].lod;
 
-			// Not sure if correct
+#if 0
+			// Not correct
 			xmodel.lodInfo[i].smcBaseIndexPlusOne = model->lodInfo[i].smcIndexPlusOne;
 			xmodel.lodInfo[i].smcSubIndexMask = model->lodInfo[i].smcAllocBits;
 			xmodel.lodInfo[i].smcBucket = model->lodInfo[i].unused;
+#else
+			xmodel.lodInfo[i].smcBaseIndexPlusOne = 0;
+			xmodel.lodInfo[i].smcSubIndexMask = 0;
+			xmodel.lodInfo[i].smcBucket = 0;
+#endif
 
 			if (xmodel.lodInfo[i].numsurfs)
 			{

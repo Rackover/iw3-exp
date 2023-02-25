@@ -16,9 +16,10 @@ namespace Components
 
 	private:
 		static Game::IW4::clipMap_t* Convert(const Game::IW3::clipMap_t* clipmap);
+		static void AddStageToMap(Game::IW4::clipMap_t* iw4ClipMap);
 		static void AddTriggersToMap(Game::IW4::clipMap_t* iw4ClipMap);
 		static void AddCarePackagesToMap(Game::IW4::clipMap_t* clipMap);
-		static Game::IW4::SModelAabbNode* BuildSModelNodes(Game::IW4::clipMap_t* clipMap, unsigned int* size);
+		static Game::IW4::SModelAabbNode* BuildSModelNodes(Game::IW4::clipMap_t* clipMap, unsigned short* size);
 		static void OptimizeClipmap(Game::IW4::clipMap_t* clipMap);
 	};
 }

@@ -6,7 +6,7 @@ namespace Components
 {
 	Game::IW4::SModelAabbNode* IclipMap_t::BuildSModelNodes(
 		Game::IW4::clipMap_t* clipMap,
-		unsigned int* size)
+		unsigned short* size)
 	{
 		if (clipMap->numStaticModels - IGfxWorld::removedStaticModelIndices.size() <= 0) return nullptr;
 
@@ -296,7 +296,7 @@ namespace Components
 		
 		iw4ClipMap->mapEnts = AssetHandler::Convert(Game::IW3::XAssetType::ASSET_TYPE_MAP_ENTS, { clipMap->mapEnts }).mapEnts;
 
-		iw4ClipMap->smodelNodes = IclipMap_t::BuildSModelNodes(iw4ClipMap, &iw4ClipMap->numNodes);
+		iw4ClipMap->smodelNodes = IclipMap_t::BuildSModelNodes(iw4ClipMap, &iw4ClipMap->smodelNodeCount);
 
 		std::memcpy(iw4ClipMap->dynEntCount, clipMap->dynEntCount, sizeof(unsigned short) * 2);
 
@@ -344,8 +344,18 @@ namespace Components
 
 		AddTriggersToMap(iw4ClipMap);
 		AddCarePackagesToMap(iw4ClipMap);
+		AddStageToMap(iw4ClipMap);
 
 		return iw4ClipMap;
+	}
+
+	void IclipMap_t::AddStageToMap(Game::IW4::clipMap_t* iw4ClipMap)
+	{
+		iw4ClipMap->mapEnts->stageCount = 1;
+		iw4ClipMap->mapEnts->stages = LocalAllocator.Allocate<Game::IW4::Stage>();
+		iw4ClipMap->mapEnts->stages[0].name = "stage 0";
+		iw4ClipMap->mapEnts->stages[0].triggerIndex = 0x400;
+		iw4ClipMap->mapEnts->stages[0].sunPrimaryLightIndex = 0x1;
 	}
 
 	void IclipMap_t::AddTriggersToMap(Game::IW4::clipMap_t* iw4ClipMap)

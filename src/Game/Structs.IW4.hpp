@@ -595,7 +595,7 @@ namespace Game::IW4
 		GfxSurface* surfaces;
 		GfxSurfaceBounds* surfacesBounds;
 		GfxStaticModelDrawInst* smodelDrawInsts;
-		IW4::GfxDrawSurf* surfaceMaterials;
+		GfxDrawSurf* surfaceMaterials;
 		unsigned int* surfaceCastsSunShadow;
 		volatile int usageCount;
 	};

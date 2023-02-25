@@ -401,10 +401,18 @@ namespace Components
 		{
 			map.draw.lightmapPrimaryTextures = IGfxImage::ConvertTexture(world->lightmapPrimaryTextures);
 		}
+		else
+		{
+			map.draw.lightmapPrimaryTextures = LocalAllocator.Allocate<Game::IW4::GfxTexture>();
+		}
 
 		if (world->lightmapSecondaryTextures->data)
 		{
 			map.draw.lightmapSecondaryTextures = IGfxImage::ConvertTexture(world->lightmapSecondaryTextures);
+		}
+		else
+		{
+			map.draw.lightmapSecondaryTextures = LocalAllocator.Allocate<Game::IW4::GfxTexture>();
 		}
 
 		if (world->skyImage)
@@ -429,10 +437,16 @@ namespace Components
 		{
 			map.draw.reflectionImages = LocalAllocator.AllocateArray<Game::IW4::GfxImage*>(world->reflectionProbeCount);
 			map.draw.reflectionProbes = LocalAllocator.AllocateArray<Game::IW4::GfxReflectionProbe>(world->reflectionProbeCount);
+			map.draw.reflectionProbeCount = world->reflectionProbeCount;
 
 			for (unsigned int i = 0; i < world->reflectionProbeCount; ++i)
 			{
-				map.draw.reflectionImages[i] = AssetHandler::Convert(Game::IW3::ASSET_TYPE_IMAGE, { map.draw.reflectionImages[i] }).image;
+				map.draw.reflectionImages[i] = AssetHandler::Convert(Game::IW3::ASSET_TYPE_IMAGE, { world->reflectionProbes[i].reflectionImage }).image;
+
+				if (world->reflectionProbes[i].reflectionImage)
+				{
+					assert(map.draw.reflectionImages[i]);
+				}
 
 				std::memcpy(map.draw.reflectionProbes[i].origin, world->reflectionProbes[i].origin, sizeof(map.draw.reflectionProbes[i].origin));
 			}
