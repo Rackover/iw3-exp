@@ -19,7 +19,7 @@ namespace Components
 		static void AddStageToMap(Game::IW4::clipMap_t* iw4ClipMap);
 		static void AddTriggersToMap(Game::IW4::clipMap_t* iw4ClipMap);
 		static void AddCarePackagesToMap(Game::IW4::clipMap_t* clipMap);
-		static Game::IW4::SModelAabbNode* BuildSModelNodes(Game::IW4::clipMap_t* clipMap, unsigned short* size);
+		static Game::IW4::SModelAabbNode* BuildSimpleSModelNodes(Game::IW4::clipMap_t* clipMap, unsigned short* size);
 		static void OptimizeClipmap(Game::IW4::clipMap_t* clipMap);
 	};
 }

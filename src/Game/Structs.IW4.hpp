@@ -184,6 +184,8 @@ namespace Game::IW4
 		void compute(vec3_t mins, vec3_t maxs);
 		void max(vec3_t& out);
 		void min(vec3_t& out);
+		bool overlaps(const Bounds& other);
+		bool contains(const vec3_t& point);
 	};
 
 	struct TriggerModel
@@ -857,8 +859,7 @@ namespace Game::IW4
 		XModel* xmodel;
 		float origin[3];
 		float invScaledAxis[3][3];
-		float absmin[3];
-		float absmax[3];
+		Bounds absBounds;
 	};
 
 	struct dmaterial_t
