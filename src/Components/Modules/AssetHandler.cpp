@@ -106,6 +106,7 @@ namespace Components
 		AssetHandler::Register(new Isnd_alias_list_t());
 		AssetHandler::Register(new ILoadedSound());
 		AssetHandler::Register(new IGameWorld());
+		AssetHandler::Register(new IPhysPreset());
 	}
 
 	AssetHandler::~AssetHandler()

@@ -1,10 +1,8 @@
 #include "STDInclude.hpp"
 
-#define IW4X_CLIPMAP_VERSION 2
-
 namespace Components
 {
-	Game::IW4::SModelAabbNode* IclipMap_t::BuildSModelNodes(
+	Game::IW4::SModelAabbNode* IclipMap_t::BuildSimpleSModelNodes(
 		Game::IW4::clipMap_t* clipMap,
 		unsigned short* size)
 	{
@@ -13,13 +11,9 @@ namespace Components
 		float maxs[3];
 		float mins[3];
 
-		maxs[0] = clipMap->staticModelList[0].absmax[0];
-		maxs[1] = clipMap->staticModelList[0].absmax[1];
-		maxs[2] = clipMap->staticModelList[0].absmax[2];
 
-		mins[0] = clipMap->staticModelList[0].absmin[0];
-		mins[1] = clipMap->staticModelList[0].absmin[1];
-		mins[2] = clipMap->staticModelList[0].absmin[2];
+		clipMap->staticModelList[0].absBounds.max(maxs);
+		clipMap->staticModelList[0].absBounds.min(mins);
 
 		for (unsigned short i = 1; i < clipMap->numStaticModels; i++)
 		{
@@ -28,13 +22,19 @@ namespace Components
 				continue;
 			}
 
-			maxs[0] = std::max(maxs[0], clipMap->staticModelList[i].absmax[0]);
-			maxs[1] = std::max(maxs[1], clipMap->staticModelList[i].absmax[1]);
-			maxs[2] = std::max(maxs[2], clipMap->staticModelList[i].absmax[2]);
+			float thisMax[3];
+			float thisMin[3];
 
-			mins[0] = std::min(mins[0], clipMap->staticModelList[i].absmin[0]);
-			mins[1] = std::min(mins[1], clipMap->staticModelList[i].absmin[1]);
-			mins[2] = std::min(mins[2], clipMap->staticModelList[i].absmin[2]);
+			clipMap->staticModelList[i].absBounds.max(thisMax);
+			clipMap->staticModelList[i].absBounds.min(thisMin);
+
+			maxs[0] = std::max(thisMax[0], maxs[0]);
+			maxs[1] = std::max(thisMax[1], maxs[1]);
+			maxs[2] = std::max(thisMax[2], maxs[2]);
+
+			mins[0] = std::min(thisMin[0], mins[0]);
+			mins[1] = std::min(thisMin[1], mins[1]);
+			mins[2] = std::min(thisMin[2], mins[2]);
 		}
 
 		Game::IW4::SModelAabbNode* node = LocalAllocator.Allocate<Game::IW4::SModelAabbNode>();
@@ -77,7 +77,7 @@ namespace Components
 		{
 			auto node = kv.second;
 			bool repaired = false;
-			
+
 			int repairedBrushRefs = 0;
 
 			for (size_t j = 0; j < clipMap->numLeafBrushes; j++)
@@ -140,10 +140,9 @@ namespace Components
 
 				int iw4Index = i - skips;
 
-				std::memcpy(iw4ClipMap->staticModelList[iw4Index].absmax, clipMap->staticModelList[i].absmax, 3 * sizeof(float));
-				std::memcpy(iw4ClipMap->staticModelList[iw4Index].absmin, clipMap->staticModelList[i].absmin, 3 * sizeof(float));
+				iw4ClipMap->staticModelList[iw4Index].absBounds.compute(clipMap->staticModelList[i].absmin, clipMap->staticModelList[i].absmax);
 				std::memcpy(iw4ClipMap->staticModelList[iw4Index].origin, clipMap->staticModelList[i].origin, 3 * sizeof(float));
-				std::memcpy(iw4ClipMap->staticModelList[iw4Index].invScaledAxis, clipMap->staticModelList[i].invScaledAxis, 3 * sizeof(float));
+				std::memcpy(iw4ClipMap->staticModelList[iw4Index].invScaledAxis, clipMap->staticModelList[i].invScaledAxis, 3 * 3 * sizeof(float));
 				iw4ClipMap->staticModelList[iw4Index].xmodel = AssetHandler::Convert(Game::IW3::ASSET_TYPE_XMODEL, { clipMap->staticModelList[i].xmodel }).model;
 			}
 			else
@@ -293,10 +292,10 @@ namespace Components
 			iw4ClipMap->brushBounds[i].compute(iw3Brush->mins, iw3Brush->maxs);
 			iw4ClipMap->brushContents[i] = iw3Brush->contents;
 		}
-		
+
 		iw4ClipMap->mapEnts = AssetHandler::Convert(Game::IW3::XAssetType::ASSET_TYPE_MAP_ENTS, { clipMap->mapEnts }).mapEnts;
 
-		iw4ClipMap->smodelNodes = IclipMap_t::BuildSModelNodes(iw4ClipMap, &iw4ClipMap->smodelNodeCount);
+		iw4ClipMap->smodelNodes =  IclipMap_t::BuildSimpleSModelNodes(iw4ClipMap, &iw4ClipMap->smodelNodeCount);
 
 		std::memcpy(iw4ClipMap->dynEntCount, clipMap->dynEntCount, sizeof(unsigned short) * 2);
 
@@ -335,11 +334,11 @@ namespace Components
 			}
 		}
 
-		
+
 		COPY_MEMBER(checksum);
 
 		OptimizeClipmap(iw4ClipMap);
-		
+
 #undef COPY_MEMBER
 
 		AddTriggersToMap(iw4ClipMap);
@@ -447,8 +446,6 @@ namespace Components
 		iw4ClipMap->materials = reallocatedDMaterials;
 
 		// Brush edges
-		void* test = calloc(iw4ClipMap->numBrushEdges + 1, 1);
-
 		auto reallocatedBrushEdges = LocalAllocator.AllocateArray<char>(iw4ClipMap->numBrushEdges + 1);
 		memcpy_s(reallocatedBrushEdges, iw4ClipMap->numBrushEdges, iw4ClipMap->brushEdges, iw4ClipMap->numBrushEdges);
 		reallocatedBrushEdges[brushEdgeIndex] = 2;
@@ -468,7 +465,7 @@ namespace Components
 				{
 					iw4ClipMap->brushes[i].baseAdjacentSide = reallocatedBrushEdges;
 				}
-				else 
+				else
 				{
 					// Okay this is definitely wrong
 					assert(false);
@@ -519,14 +516,17 @@ namespace Components
 			model.leaf.brushContents = 134420032;
 			model.leaf.terrainContents = 0;
 
+			model.bounds = bounds;
+
 			// Had to be slightly smaller
+
 			bounds.halfSize[0] *= 0.95f;
 			bounds.halfSize[1] *= 0.95f;
 			bounds.halfSize[2] *= 0.95f;
 
-			model.bounds = bounds;
-
+			model.leaf.bounds = bounds;
 			model.leaf.leafBrushNode = brushNodeIndex;
+
 			reallocatedCModels[cModelIndex + i] = model;
 		}
 
@@ -540,11 +540,11 @@ namespace Components
 		memcpy_s(reallocatedBrushes, iw4ClipMap->numBrushes * brushSize, iw4ClipMap->brushes, iw4ClipMap->numBrushes * brushSize);
 
 		auto bounds = MakeCarePackageBounds();
-		Game::IW4::cbrush_t carePackageBrush;
+		Game::IW4::cbrush_t carePackageBrush{};
 		carePackageBrush.numsides = 0;
 		carePackageBrush.baseAdjacentSide = &iw4ClipMap->brushEdges[brushEdgeIndex];
 		carePackageBrush.sides = nullptr;
-		
+
 		for (int x = 0; x < 2; ++x)
 		{
 			for (int y = 0; y < 3; ++y)
@@ -573,7 +573,7 @@ namespace Components
 			}
 		}
 		auto reallocatedBounds = LocalAllocator.AllocateArray<Game::IW4::Bounds>(iw4ClipMap->numBrushes + 1);
-		memcpy_s(reallocatedBounds, iw4ClipMap->numBrushes * sizeof(Game::IW4::Bounds), iw4ClipMap->brushBounds, iw4ClipMap->numBrushes* sizeof(Game::IW4::Bounds));
+		memcpy_s(reallocatedBounds, iw4ClipMap->numBrushes * sizeof(Game::IW4::Bounds), iw4ClipMap->brushBounds, iw4ClipMap->numBrushes * sizeof(Game::IW4::Bounds));
 
 		auto reallocatedContents = LocalAllocator.AllocateArray<int>(iw4ClipMap->numBrushes + 1);
 		memcpy_s(reallocatedContents, iw4ClipMap->numBrushes * sizeof(int), iw4ClipMap->brushContents, iw4ClipMap->numBrushes * sizeof(int));
