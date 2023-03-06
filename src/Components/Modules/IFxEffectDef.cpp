@@ -117,7 +117,11 @@ namespace Components
 					{
 						iw4ElemDef->visuals.array[j].anonymous = nullptr;
 						ConvertFxElemVisuals(&srcElemDef->visuals.array[j],  iw4ElemDef->elemType, &iw4ElemDef->visuals.array[j]);
-						assert(iw4ElemDef->visuals.array[j].anonymous);
+
+						if (srcElemDef->visuals.array[j].anonymous)
+						{
+							assert(iw4ElemDef->visuals.array[j].anonymous);
+						}
 					}
 				}
 			}
@@ -125,7 +129,11 @@ namespace Components
 			{
 				iw4ElemDef->visuals.instance.anonymous = nullptr; // Making sure it's dead
 				ConvertFxElemVisuals(&srcElemDef->visuals.instance, iw4ElemDef->elemType, &iw4ElemDef->visuals.instance);
-				assert(iw4ElemDef->visuals.instance.anonymous);
+
+				if (srcElemDef->visuals.instance.anonymous)
+				{
+					assert(iw4ElemDef->visuals.instance.anonymous);
+				}
 			}
 
 			if (iw4ElemDef->trailDef)
