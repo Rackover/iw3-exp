@@ -37,10 +37,6 @@ namespace Components
 					// Oh boy
 					if (xmodel->lodInfo[lodIndex].numsurfs > SURF_PER_LOD_HARD_LIMIT)
 					{
-						// Good fix, but my code to remove SModels is not perfect yet
-						// It works well on some maps (mp_bloc)
-						// But it breaks visdata on other maps (mp_zavod)
-						// I do not know why!
 						removedStaticModelIndices.insert(iw3Index);
 
 						if (fixMethod == SWAP_MODELS)
@@ -81,6 +77,10 @@ namespace Components
 
 		if (removedStaticModelIndices.size() > 0 && fixMethod == REMOVE_MODELS)
 		{
+			// Good fix, but my code to remove SModels is not perfect yet
+			// It works well on some maps (mp_bloc)
+			// But it breaks visdata on other maps (mp_zavod)
+			// I do not know why!
 			RemoveModels(asset, removedStaticModelIndices);
 		}
 	}
@@ -388,7 +388,7 @@ namespace Components
 		map.draw.lightmapCount = world->lightmapCount;
 
 		map.draw.lightmaps = LocalAllocator.AllocateArray<Game::IW4::GfxLightmapArray>(map.draw.lightmapCount);
-		for (size_t i = 0; i < map.draw.lightmapCount; i++)
+		for (int i = 0; i < map.draw.lightmapCount; i++)
 		{
 			auto iw4Lightmap = &map.draw.lightmaps[i];
 			auto iw3Lightmap = &world->lightmaps[i];
@@ -511,18 +511,24 @@ namespace Components
 		map.materialMemoryCount = world->materialMemoryCount;
 
 		map.materialMemory = LocalAllocator.AllocateArray<Game::IW4::MaterialMemory>(world->materialMemoryCount);
-		for (size_t i = 0; i < world->materialMemoryCount; i++)
+		for (int i = 0; i < world->materialMemoryCount; i++)
 		{
-			if (i == 64)
-			{
-				printf("");
-			}
-
 			map.materialMemory[i].memory = world->materialMemory[i].memory;
 			map.materialMemory[i].material = AssetHandler::Convert(Game::IW3::ASSET_TYPE_MATERIAL, { world->materialMemory[i].material}).material;
 		}
 		
-		map.sun = world->sun;
+
+		static_assert(sizeof map.sun == sizeof world->sun);
+		std::memcpy(&map.sun, &world->sun, sizeof map.sun);
+		if (map.sun.flareMaterial)
+		{
+			map.sun.flareMaterial = AssetHandler::Convert(Game::IW3::ASSET_TYPE_MATERIAL, { world->sun.flareMaterial }).material;
+		}
+
+		if (map.sun.spriteMaterial)
+		{
+			map.sun.spriteMaterial = AssetHandler::Convert(Game::IW3::ASSET_TYPE_MATERIAL, { world->sun.spriteMaterial }).material;
+		}
 
 		std::memcpy(map.outdoorLookupMatrix, world->outdoorLookupMatrix, sizeof(map.outdoorLookupMatrix));
 		map.outdoorImage = AssetHandler::Convert(Game::IW3::ASSET_TYPE_IMAGE, { world->outdoorImage }).image;
