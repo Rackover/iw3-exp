@@ -265,12 +265,14 @@ namespace Components
 		translateFlags(Game::IW3::IMG_FLAG_LEGACY_NORMALS, Game::IW4::IMG_FLAG_LEGACY_NORMALS);
 		translateFlags(Game::IW3::IMG_FLAG_CLAMP_U, Game::IW4::IMG_FLAG_CLAMP_U);
 		translateFlags(Game::IW3::IMG_FLAG_CLAMP_V, Game::IW4::IMG_FLAG_CLAMP_V);
-		// 				translateFlags(Game::IW3::IMG_FLAG_DYNAMIC,        Game::IW4::IMG_FLAG_DYNAMIC);
-		// 				translateFlags(Game::IW3::IMG_FLAG_RENDER_TARGET,  Game::IW4::IMG_FLAG_RENDER_TARGET);
-		// 				translateFlags(Game::IW3::IMG_FLAG_SYSTEMMEM,      Game::IW4::IMG_FLAG_SYSTEMMEM);
 
-		iw4Flags |= Game::IW4::IMG_FLAG_ALPHA_WEIGHTED_COLORS;
-		iw4Flags |= Game::IW4::IMG_FLAG_GAMMA_SRGB;
+		// Not sure about these
+		//translateFlags(Game::IW3::IMG_FLAG_DYNAMIC,        Game::IW4::IMG_FLAG_DYNAMIC);
+		//translateFlags(Game::IW3::IMG_FLAG_RENDER_TARGET,  Game::IW4::IMG_FLAG_RENDER_TARGET);
+		//translateFlags(Game::IW3::IMG_FLAG_SYSTEMMEM,      Game::IW4::IMG_FLAG_SYSTEMMEM);
+
+		//iw4Flags |= Game::IW4::IMG_FLAG_ALPHA_WEIGHTED_COLORS;
+		//iw4Flags |= Game::IW4::IMG_FLAG_GAMMA_SRGB;
 
 		return iw4Flags;
 	}

@@ -77,9 +77,10 @@ namespace Components
 		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_SCALE , Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_SHADOWMAP_SCALE  },
 		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_ZNEAR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_ZNEAR },
 
-		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_POSITION, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION },
-		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_DIFFUSE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_DIFFUSE },
+
+		// Wrong if a spotlight is closer than the directional (happens on mp_bloc)
 		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_SPECULAR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPECULAR },
+		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_POSITION, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION },
 
 		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHTING_LOOKUP_SCALE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHTING_LOOKUP_SCALE },
 		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DEBUG_BUMPMAP, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DEBUG_BUMPMAP },
@@ -235,6 +236,37 @@ namespace Components
 		  { Game::IW3::MaterialTextureSource::TEXTURE_SRC_CODE_REFLECTION_PROBE, Game::IW4::MaterialTextureSource::TEXTURE_SRC_CODE_REFLECTION_PROBE }
 	};
 
+	Game::MaterialUpdateFrequency IMaterialTechniqueSet::GetUpdateFrequency(const Game::IW3::MaterialShaderArgument & iw4argument)
+	{
+		assert(iw4argument.type < Game::MTL_ARG_COUNT);
+
+		switch (iw4argument.type)
+		{
+		case Game::MTL_ARG_CODE_VERTEX_CONST:
+		case Game::MTL_ARG_CODE_PIXEL_CONST:
+			if (iw4argument.u.codeConst.index >= ARRAYSIZE(Game::codeConstUpdateFrequency))
+			{
+				assert(false);
+				return Game::MTL_UPDATE_RARELY;
+			}
+
+			return Game::codeConstUpdateFrequency[iw4argument.u.codeConst.index];
+
+		case Game::MTL_ARG_CODE_PIXEL_SAMPLER:
+			if (iw4argument.u.codeSampler >= ARRAYSIZE(Game::codeSamplerUpdateFrequency))
+			{
+				assert(false);
+				return Game::MTL_UPDATE_RARELY;
+			}
+
+			return Game::codeSamplerUpdateFrequency[iw4argument.u.codeSampler];
+
+		default:
+			return Game::MTL_UPDATE_RARELY;
+		}
+	}
+
+
 	Game::IW3::MaterialTechnique* IMaterialTechniqueSet::ConvertTechnique(Game::IW3::MaterialTechnique* tech)
 	{
 		AssertSize(Game::IW3::MaterialPass, 20);
@@ -301,7 +333,12 @@ namespace Components
 				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_PIXELSHADER, iw4Pass->pixelShader);
 			}
 
+			std::vector<Game::IW3::MaterialShaderArgument> argumentsToSort{};
 			iw4Pass->args = LocalAllocator.AllocateArray<Game::IW3::MaterialShaderArgument>(pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
+			
+			bool litteralized = false;
+
+			
 			for (int k = 0; k < pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount; ++k)
 			{
 				Game::IW3::MaterialShaderArgument* arg = &pass->args[k];
@@ -317,24 +354,66 @@ namespace Components
 				else if (arg->type == Game::MaterialShaderArgumentType::MTL_ARG_CODE_VERTEX_CONST
 					|| arg->type == Game::MaterialShaderArgumentType::MTL_ARG_CODE_PIXEL_CONST)
 				{
-					auto newIndex = IMaterialTechniqueSet::iw3CodeConstMap.find(arg->u.codeConst.index);
-					if (newIndex == IMaterialTechniqueSet::iw3CodeConstMap.end())
+					const auto iw3Index = arg->u.codeConst.index;
+
+					// Litteralize
+					if (
+						//iw3Index == Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_POSITION || 
+						iw3Index == Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_DIFFUSE)
 					{
-						Logger::Print("Unable to map code constant %d for technique '%s'! Not exporting technique\n", arg->u.codeConst.index, tech->name);
-						return nullptr;
+						litteralized = true;
+
+						const auto worldName = std::format("maps/mp/{}.d3dbsp", MapDumper::GetMapName());
+						const auto iw3World = Game::DB_FindXAssetHeader(Game::IW3::ASSET_TYPE_GFXWORLD, worldName.data()).gfxWorld;
+						const auto com = Game::DB_FindXAssetHeader(Game::IW3::ASSET_TYPE_COMWORLD, worldName.data()).comWorld;
+
+						Game::IW3::GfxLight* light = iw3World->sunLight;
+
+						iw4Arg->type = Game::MTL_ARG_LITERAL_PIXEL_CONST;
+						iw4Arg->u.literalConst = LocalAllocator.AllocateArray<float>(4);
+
+						switch (iw3Index)
+						{
+							case Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_POSITION:
+								// Wild guess
+								iw4Arg->u.literalConst[0] = -light->dir[0];
+								iw4Arg->u.literalConst[1] = -light->dir[1];
+								iw4Arg->u.literalConst[2] = -light->dir[2];
+
+								iw4Arg->u.literalConst[3] = 0.f;
+								break;
+
+							case Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_DIFFUSE:
+								// Not gamma corrected. TODO use IW4's comworld instead, post conv
+								std::memcpy(iw4Arg->u.literalConst, light->color, (sizeof (float)) * 3);
+								iw4Arg->u.literalConst[3] = 0.f;
+								break;
+						}
 					}
-
-					unsigned short val = (unsigned short)newIndex->second;
-
-					if (isWaterPass && val == Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION)
+					else
 					{
-						// If IsWaterTechnique => fuck up the sun position
-						// Because it's not correct for iw3 anyway and so unexpected
-						Logger::Print("Routed the pass argument %i to the wrong constant %i instead of %i on purpose because it is a water material!\n", k, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR, val);
-						val = Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR; // Anything normalized & stable will do
-					}
+						auto newIndex = IMaterialTechniqueSet::iw3CodeConstMap.find(iw3Index);
+						if (newIndex == IMaterialTechniqueSet::iw3CodeConstMap.end())
+						{
+							Logger::Print("Unable to map code constant %d for technique '%s'! Not exporting technique\n", iw3Index, tech->name);
+							return nullptr;
+						}
 
-					iw4Arg->u.codeConst.index = val;
+						unsigned short val = (unsigned short)newIndex->second;
+
+						if (isWaterPass && val == Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION)
+						{
+							// If IsWaterTechnique => fuck up the sun position
+							// Because it's not correct for iw3 anyway and so unexpected
+							//	EDIT:  I think actuallly this is no longer necessary since we litterliaze sunlight position
+							//	ALMOST certainly this was caused by sunlight sampling the wrong light due to bad const mapping, which is solved nowadays
+
+							Logger::Print("Routed the pass argument %i to the wrong constant %i instead of %i on purpose because it is a water material!\n", k, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR, val);
+							val = Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR; // Anything normalized & stable will do
+						}
+
+						iw4Arg->u.codeConst.index = val;
+					}
 				}
 				else if (arg->type == Game::MaterialShaderArgumentType::MTL_ARG_CODE_PIXEL_SAMPLER)
 				{
@@ -365,7 +444,42 @@ namespace Components
 
 					iw4Arg->u.codeSampler = codeSampler;
 				}
+
+				argumentsToSort.push_back(*iw4Arg);
 			}
+
+			// Re-sort in case we litteralized some arguments
+			if (litteralized)
+			{
+				std::sort(argumentsToSort.begin(), argumentsToSort.end(), [](const Game::IW3::MaterialShaderArgument& arg1, const Game::IW3::MaterialShaderArgument& arg2)
+					{
+						auto a1_freq = GetUpdateFrequency(arg1);
+						auto a2_freq = GetUpdateFrequency(arg2);
+
+						if (a1_freq != a2_freq)
+						{
+							return a1_freq < a2_freq;
+						}
+						else if (arg1.type != arg2.type)
+						{
+							return arg1.type < arg2.type;
+						}
+						else if (arg1.type == Game::MTL_ARG_MATERIAL_VERTEX_CONST ||
+							arg1.type == Game::MTL_ARG_MATERIAL_PIXEL_CONST ||
+							arg1.type == Game::MTL_ARG_MATERIAL_PIXEL_SAMPLER
+							)
+						{
+							return arg1.u.codeSampler < arg2.u.codeSampler;
+						}
+						else
+						{
+							return arg1.dest < arg2.dest;
+						}
+					});
+
+					std::copy(argumentsToSort.begin(), argumentsToSort.end(), iw4Pass->args);
+			}
+
 		}
 
 		return iw4Technique;
@@ -494,7 +608,7 @@ namespace Components
 			}
 		}
 
-		if (iw4Techset->remappedTechniqueSet && 
+		if (iw4Techset->remappedTechniqueSet &&
 			iw4Techset->remappedTechniqueSet->remappedTechniqueSet &&
 			iw4Techset->remappedTechniqueSet->remappedTechniqueSet == iw4Techset)
 		{
