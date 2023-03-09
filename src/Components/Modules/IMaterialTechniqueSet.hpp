@@ -21,6 +21,8 @@ namespace Components
     private:
         static Game::IW4::MaterialTechniqueSet* Convert(Game::IW3::MaterialTechniqueSet* techset);
 
+        static Game::MaterialUpdateFrequency GetUpdateFrequency(const Game::IW3::MaterialShaderArgument& iw4argument);
+
         static Game::IW3::MaterialTechnique* ConvertTechnique(Game::IW3::MaterialTechnique* tech);
         static Game::IW4::MaterialVertexDeclaration* ConvertDecl(Game::IW3::MaterialVertexDeclaration* decl);
         static Game::IW3::MaterialVertexShader* ConvertVS(Game::IW3::MaterialVertexShader* vs);

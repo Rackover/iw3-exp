@@ -37,16 +37,13 @@ namespace Components
 					// Oh boy
 					if (xmodel->lodInfo[lodIndex].numsurfs > SURF_PER_LOD_HARD_LIMIT)
 					{
-						if (fixMethod == REMOVE_MODELS)
-						{
-							// Good fix, but my code to remove SModels is not perfect yet
-							// It works well on some maps (mp_bloc)
-							// But it breaks visdata on other maps (mp_zavod)
-							// I do not know why!
-							removedStaticModelIndices.insert(iw3Index);
-							Components::Logger::Print("Moving %s to entities because its model is incompatible with iw4\n", xmodel->name);
-						}
-						else if (fixMethod == SWAP_MODELS)
+						// Good fix, but my code to remove SModels is not perfect yet
+						// It works well on some maps (mp_bloc)
+						// But it breaks visdata on other maps (mp_zavod)
+						// I do not know why!
+						removedStaticModelIndices.insert(iw3Index);
+
+						if (fixMethod == SWAP_MODELS)
 						{
 							// Poor man's fix
 							if (iw3Index > 0)
@@ -58,12 +55,22 @@ namespace Components
 								inst->placement.origin[1] = std::numeric_limits<float>().min();
 								inst->placement.origin[2] = std::numeric_limits<float>().min();
 								inst->placement.scale = 0.f;
+								removedStaticModelIndices.insert(iw3Index);
 
 								asset->dpvs.smodelInsts[iw3Index].bounds = Game::IW4::Bounds{};
 								asset->dpvs.smodelInsts[iw3Index].bounds.midPoint[0] = std::numeric_limits<float>().min();
 								asset->dpvs.smodelInsts[iw3Index].bounds.midPoint[1] = std::numeric_limits<float>().min();
 								asset->dpvs.smodelInsts[iw3Index].bounds.midPoint[2] = std::numeric_limits<float>().min();
 							}
+							else
+							{
+								// We could do better than this
+								Components::Logger::Error("Please use another 'fix incompatible models' method. Swapping is not supported for this map.");
+							}
+						}
+						else
+						{
+							Components::Logger::Print("Moving %s to entities because its model is incompatible with iw4\n", xmodel->name);
 						}
 
 
@@ -72,7 +79,7 @@ namespace Components
 			}
 		}
 
-		if (removedStaticModelIndices.size() > 0)
+		if (removedStaticModelIndices.size() > 0 && fixMethod == REMOVE_MODELS)
 		{
 			RemoveModels(asset, removedStaticModelIndices);
 		}
