@@ -27,7 +27,7 @@ namespace Utils
 
 	std::vector<std::string> Entities::GetModels(bool includeDestructibles)
 	{
-		std::vector<std::string>* models = new std::vector<std::string>();
+		std::vector<std::string> models = std::vector<std::string>();
 		std::ofstream destructiblesModelList;
 
 		if (includeDestructibles) {
@@ -46,9 +46,9 @@ namespace Utils
 					&& model != "com_plasticcase_green_big_us_dirt"s // Skip care package (part of team zones)
 					)
 				{
-					if (std::find(models->begin(), models->end(), model) == models->end())
+					if (std::find(models.begin(), models.end(), model) == models.end())
 					{
-						models->push_back(model);
+						models.push_back(model);
 					}
 				}
 
@@ -58,14 +58,16 @@ namespace Utils
 
 					// Then we need to fetch the destructible models
 					// This is TERRIBLE but it works. Ideally we should be able to grab the destructible models from the modelpieces DynEnts list (see iGFXWorld.cpp) but it doesn't work :(
-					Game::DB_EnumXAssetEntries(Game::IW3::XAssetType::ASSET_TYPE_XMODEL, [destructible, models, &destructiblesModelList](Game::IW3::XAssetEntryPoolEntry* poolEntry)
+					Game::DB_EnumXAssetEntries(Game::IW3::XAssetType::ASSET_TYPE_XMODEL, [destructible, &models, &destructiblesModelList](Game::IW3::XAssetEntryPoolEntry* poolEntry)
 						{
 							auto entry = &poolEntry->entry;
 							if (entry->inuse == 1 && entry->asset.header.model) {
 								if (std::string(entry->asset.header.model->name).find(destructible) != std::string::npos) {
 									std::string model = entry->asset.header.model->name;
-									models->push_back(model);
+									models.push_back(model);
+
 									Components::Logger::Print("Saving XModel piece %s for destructible %s (from enumXAsset)\n", entry->asset.header.model->name, destructible.data());
+									Components::AssetHandler::Dump(Game::IW3::XAssetType::ASSET_TYPE_XMODEL, entry->asset.header);
 
 									(destructiblesModelList) << model << "\n";
 								}
@@ -81,7 +83,7 @@ namespace Utils
 		}
 
 
-		return *models;
+		return models;
 	}
 
 	bool Entities::ConvertVehicles() {
