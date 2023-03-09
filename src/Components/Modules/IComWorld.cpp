@@ -40,9 +40,6 @@ namespace Components
 			}
 
 			// Gamma correction
-			constexpr float max = 0.8f;
-			float currentMax = 0.f;
-			bool needsCorrection = false;
 			for (size_t channel = 0; channel < 3; channel++)
 			{
 				// IW4 uses 2.4F for gamma, not 2.2
