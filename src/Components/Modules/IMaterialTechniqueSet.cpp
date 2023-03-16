@@ -365,7 +365,6 @@ namespace Components
 
 						const auto worldName = std::format("maps/mp/{}.d3dbsp", MapDumper::GetMapName());
 						const auto iw3World = Game::DB_FindXAssetHeader(Game::IW3::ASSET_TYPE_GFXWORLD, worldName.data()).gfxWorld;
-						const auto com = Game::DB_FindXAssetHeader(Game::IW3::ASSET_TYPE_COMWORLD, worldName.data()).comWorld;
 
 						Game::IW3::GfxLight* light = iw3World->sunLight;
 
