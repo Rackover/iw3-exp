@@ -608,6 +608,32 @@ namespace Game::IW4
 		int memory;
 	};
 
+	struct sunflare_t
+	{
+		char hasValidData;
+		Material* spriteMaterial;
+		Material* flareMaterial;
+		float spriteSize;
+		float flareMinSize;
+		float flareMinDot;
+		float flareMaxSize;
+		float flareMaxDot;
+		float flareMaxAlpha;
+		int flareFadeInTime;
+		int flareFadeOutTime;
+		float blindMinDot;
+		float blindMaxDot;
+		float blindMaxDarken;
+		int blindFadeInTime;
+		int blindFadeOutTime;
+		float glareMinDot;
+		float glareMaxDot;
+		float glareMaxLighten;
+		int glareFadeInTime;
+		int glareFadeOutTime;
+		float sunFxPosition[3];
+	};
+
 	struct GfxWorld
 	{
 		const char* name;
@@ -635,7 +661,7 @@ namespace Game::IW4
 		unsigned int checksum;
 		int materialMemoryCount;
 		MaterialMemory* materialMemory;
-		IW3::sunflare_t sun;
+		sunflare_t sun;
 		float outdoorLookupMatrix[4][4];
 		GfxImage* outdoorImage;
 		unsigned int* cellCasterBits;
