@@ -76,6 +76,7 @@ namespace Components
 
 			static_assert(sizeof Game::IW3::FxElemDef == sizeof Game::IW4::FxElemDef);
 			std::memcpy(iw4ElemDef, srcElemDef, sizeof(Game::IW4::FxElemDef));
+
 			iw4ElemDef->bounds.compute(srcElemDef->collMins, srcElemDef->collMaxs);
 
 			if (srcElemDef->elemType >= Game::IW3::FX_ELEM_TYPE_MODEL)
@@ -87,22 +88,22 @@ namespace Components
 			{
 				if (iw4ElemDef->visuals.markArray)
 				{
+					iw4ElemDef->visuals.markArray = LocalAllocator.AllocateArray<Game::IW4::FxElemMarkVisuals>(iw4ElemDef->visualCount);
 					for (char j = 0; j < iw4ElemDef->visualCount; ++j)
 					{
-						if (iw4ElemDef->visuals.markArray[j].materials[0])
+
+						auto mat1 = srcElemDef->visuals.markArray[j].materials[0];
+						if (mat1)
 						{
 							iw4ElemDef->visuals.markArray[j].materials[0] =
-								AssetHandler::Convert(Game::IW3::XAssetType::ASSET_TYPE_MATERIAL, {
-									srcElemDef->visuals.markArray[j].materials[0]
-									}).material;
+								AssetHandler::Convert(Game::IW3::XAssetType::ASSET_TYPE_MATERIAL, { mat1 }).material;
 						}
 
-						if (iw4ElemDef->visuals.markArray[j].materials[1])
+						auto mat2 = srcElemDef->visuals.markArray[j].materials[1];
+						if (mat2)
 						{
 							iw4ElemDef->visuals.markArray[j].materials[1] =
-								AssetHandler::Convert(Game::IW3::XAssetType::ASSET_TYPE_MATERIAL, {
-									srcElemDef->visuals.markArray[j].materials[1]
-									}).material;
+								AssetHandler::Convert(Game::IW3::XAssetType::ASSET_TYPE_MATERIAL, { mat2 }).material;
 						}
 					}
 				}

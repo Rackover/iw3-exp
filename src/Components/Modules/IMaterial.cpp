@@ -211,7 +211,7 @@ namespace Components
 		return iw4Material;
 	}
 
-	char IMaterial::GetConvertedSortKey(Game::IW3::Material* material) 
+	char IMaterial::GetConvertedSortKey(const Game::IW3::Material* material)
 	{
 		char iw3Key = material->info.sortKey;
 

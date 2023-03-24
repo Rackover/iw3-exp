@@ -18,7 +18,7 @@ namespace Components
 
 		static Game::IW4::Material* Convert(Game::IW3::Material* material);
 
-		static char GetConvertedSortKey(Game::IW3::Material* material);
+		static char GetConvertedSortKey(const Game::IW3::Material* material);
 
 		static bool CheckSortKeyConflict(Game::IW4::Material* material, OUT Game::IW4::Material& conflictingMaterial);
 	};
