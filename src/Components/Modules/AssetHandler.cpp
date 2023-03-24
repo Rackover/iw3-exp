@@ -70,7 +70,10 @@ namespace Components
 	void AssetHandler::Dump(Game::IW3::XAssetType type, Game::IW3::XAssetHeader asset)
 	{
 		auto converted = Convert(type, asset);
-		MapDumper::GetApi()->write(TypeTable[type], converted.data);
+		if (converted.data)
+		{
+			MapDumper::GetApi()->write(TypeTable[type], converted.data);
+		}
 	}
 
 	void AssetHandler::Register(AssetHandler::AssetInterface* iface)
