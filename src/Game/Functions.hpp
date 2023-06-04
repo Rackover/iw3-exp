@@ -39,6 +39,9 @@ namespace Game
 	typedef int (*FS_FOpenFileReadDatabase_t)(char* a1, int* file);
 	extern FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase;
 
+	typedef const char* (*SEH_LocalizeTextMessage_t)(const char* a1, const char* a2, int a3);
+	extern SEH_LocalizeTextMessage_t SEH_LocalizeTextMessage;
+
 	int DB_HashForName(Game::IW3::XAssetType type, const char* name);
 
 	Game::IW3::XAssetEntryPoolEntry* DB_FindXAssetEntry(Game::IW3::XAssetType type, const char* name);
@@ -69,6 +72,7 @@ namespace Game
 	Game::IW3::PackedUnitVec Vec3PackUnitVec(vec3_t *unitVec);
 	void Vec3UnpackUnitVec(Game::IW3::PackedUnitVec in, Game::vec3_t *out);
 	void AxisToAngles(Game::vec3_t* angles, Game::vec3_t* axis);
+	const char* UI_SafeTranslateString(const char* locKey);
 
 	void ConvertBounds(Game::IW4::Bounds* bounds, vec3_t mins, vec3_t maxs);
 }

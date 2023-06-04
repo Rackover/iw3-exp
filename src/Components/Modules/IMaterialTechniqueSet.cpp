@@ -363,10 +363,26 @@ namespace Components
 					{
 						litteralized = true;
 
-						const auto worldName = std::format("maps/mp/{}.d3dbsp", MapDumper::GetMapName());
-						const auto iw3World = Game::DB_FindXAssetHeader(Game::IW3::ASSET_TYPE_GFXWORLD, worldName.data()).gfxWorld;
+						const auto mapName = MapDumper::GetMapName();
+						Game::IW3::GfxLight* light;
+						Game::IW3::GfxLight backupLight;
 
-						Game::IW3::GfxLight* light = iw3World->sunLight;
+						if (mapName.empty())
+						{
+							backupLight.dir[0] = 0.5773502691896257f;
+							backupLight.dir[1] = 0.5773502691896257f;
+							backupLight.dir[2] = -0.5773502691896257f;
+
+							light = &backupLight;
+						}
+						else 
+						{
+							const auto worldName = std::format("maps/mp/{}.d3dbsp", mapName);
+							const auto worldHeader = Game::DB_FindXAssetHeader(Game::IW3::ASSET_TYPE_GFXWORLD, worldName.data());
+							const auto iw3World = worldHeader.gfxWorld;
+
+							light = iw3World->sunLight;
+						}
 
 						iw4Arg->type = Game::MTL_ARG_LITERAL_PIXEL_CONST;
 						iw4Arg->u.literalConst = LocalAllocator.AllocateArray<float>(4);

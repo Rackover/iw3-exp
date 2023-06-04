@@ -19,6 +19,7 @@ namespace Game
 	FS_FOpenFileRead_t FS_FOpenFileRead = FS_FOpenFileRead_t(0x55C050);
 	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = Image_LoadFromFileWithReader_t(0x642380);
 	FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase = FS_FOpenFileReadDatabase_t(0x55C030);
+	SEH_LocalizeTextMessage_t SEH_LocalizeTextMessage = SEH_LocalizeTextMessage_t(0x538D30);
 
 	DWORD* cmd_id = reinterpret_cast<DWORD*>(0x1410B40);
 	DWORD* cmd_argc = reinterpret_cast<DWORD*>(0x1410B84);
@@ -279,6 +280,16 @@ namespace Game
 		{
 			mov eax, [esp + 4h]
 			push 5645A0h
+			retn
+		}
+	}
+
+	__declspec(naked) const char* UI_SafeTranslateString(const char*)
+	{
+		__asm
+		{
+			mov eax, [esp + 4h]
+			push 54ACA0h
 			retn
 		}
 	}

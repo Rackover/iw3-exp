@@ -342,7 +342,12 @@ namespace Components
 #undef COPY_MEMBER
 
 		AddTriggersToMap(iw4ClipMap);
-		AddCarePackagesToMap(iw4ClipMap);
+
+		static const auto addCarePackages = Game::Dvar_FindVar("iw3x_add_care_packages");
+		if (addCarePackages && addCarePackages->current.enabled) {
+			AddCarePackagesToMap(iw4ClipMap);
+		}
+
 		AddStageToMap(iw4ClipMap);
 
 		return iw4ClipMap;

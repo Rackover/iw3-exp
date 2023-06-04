@@ -260,7 +260,8 @@ namespace Components
 			{
 				if (params.Length() < 2) return;
 				
-				auto converted = IXModel::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_XMODEL, params[1]).model);
+				auto iw3Model = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_XMODEL, params[1]).model;
+				auto converted = IXModel::Convert(iw3Model);
 				MapDumper::GetApi()->write(Game::IW4::ASSET_TYPE_XMODEL, converted);
 			});
 	}

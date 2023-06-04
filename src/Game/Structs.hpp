@@ -2602,6 +2602,12 @@ namespace Game
 			snd_alias_t* head;
 			unsigned int count;
 		};
+		
+		struct LocalizeEntry
+		{
+			const char* value;
+			const char* name;
+		};
 
 		union XAssetHeader
 		{
@@ -2628,7 +2634,7 @@ namespace Game
 // 			Font_s *font;
 // 			MenuList *menuList;
 // 			menuDef_t *menu;
-// 			LocalizeEntry *localize;
+ 			LocalizeEntry *localize;
 // 			WeaponDef *weapon;
 // 			SndDriverGlobals *sndDriverGlobals;
 			FxEffectDef *fx;

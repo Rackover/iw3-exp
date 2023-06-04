@@ -462,10 +462,12 @@ namespace Components
 		map.lightGrid = world->lightGrid;
 		map.modelCount = world->modelCount;
 
+		static const auto addCarePackages = Game::Dvar_FindVar("iw3x_add_care_packages");
+		static const auto shouldAddCarePackages = addCarePackages && addCarePackages->current.enabled;
 		if (world->models)
 		{
 			// We're about to add two brushmodels here, which are identical : one for the airdrop package and one for the 4-streak care package
-			map.models = LocalAllocator.AllocateArray<Game::IW4::GfxBrushModel>(world->modelCount + 2);
+			map.models = LocalAllocator.AllocateArray<Game::IW4::GfxBrushModel>(world->modelCount + (shouldAddCarePackages ? 2 : 0));
 
 			for (int i = 0; i < world->modelCount; ++i)
 			{
@@ -480,29 +482,32 @@ namespace Components
 				map.models[i].surfaceCountNoDecal = world->models[i].surfaceCountNoDecal;
 			}
 
-			auto index = world->modelCount;
+			if (shouldAddCarePackages)
+			{
+				auto index = world->modelCount;
 
-			// Create the care packages
-			Game::IW4::GfxBrushModel carePackage{};
-			Game::IW4::Bounds packageBounds = IclipMap_t::MakeCarePackageBounds();
+				// Create the care packages
+				Game::IW4::GfxBrushModel carePackage{};
+				Game::IW4::Bounds packageBounds = IclipMap_t::MakeCarePackageBounds();
 
-			carePackage.bounds = packageBounds;
+				carePackage.bounds = packageBounds;
 
-			carePackage.radius = 47.f;
-			carePackage.surfaceCount = 0;
-			carePackage.surfaceCountNoDecal = 0;
-			carePackage.startSurfIndex = std::numeric_limits<unsigned short>().max();
+				carePackage.radius = 47.f;
+				carePackage.surfaceCount = 0;
+				carePackage.surfaceCountNoDecal = 0;
+				carePackage.startSurfIndex = std::numeric_limits<unsigned short>().max();
 
-			// Airdrop package
-			map.models[index++] = carePackage;
+				// Airdrop package
+				map.models[index++] = carePackage;
 
-			// K4 care package
-			map.models[index++] = carePackage;
+				// K4 care package
+				map.models[index++] = carePackage;
 
-			// Add 2 to modelcount because we just added two brushmodels
-			map.modelCount += 2;
+				// Add 2 to modelcount because we just added two brushmodels
+				map.modelCount += 2;
 
-			// and that should be it?
+				// and that should be it?
+			}
 		}
 
 		map.bounds.compute(world->mins, world->maxs);

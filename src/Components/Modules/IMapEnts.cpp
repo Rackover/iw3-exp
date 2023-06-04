@@ -15,7 +15,11 @@ namespace Components
 
 		Utils::Entities mapEnts(entString);
 
-		mapEnts.AddCarePackages();
+		static const auto addCarePackages = Game::Dvar_FindVar("iw3x_add_care_packages");
+		if (addCarePackages && addCarePackages->current.enabled) {
+			mapEnts.AddCarePackages();
+		}
+
 		mapEnts.DeleteOldSchoolPickups();
 		mapEnts.AddRemovedSModels();
 
