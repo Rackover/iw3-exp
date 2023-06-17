@@ -50,7 +50,7 @@ namespace Components
 			{
 				return (asset.iw3Type == type && asset.originalPtr == header.data);
 			});
-		if(existing == AssetHandler::ConvertedAssets.end())
+		if (existing == AssetHandler::ConvertedAssets.end())
 		{
 			if (AssetHandler::AssetInterfaces.contains(type))
 			{
@@ -105,7 +105,7 @@ namespace Components
 		AssetHandler::Register(new IXAnimParts());
 		AssetHandler::Register(new IFxEffectDef());
 		AssetHandler::Register(new IGfxLightDef());
-        AssetHandler::Register(new IMaterialTechniqueSet());
+		AssetHandler::Register(new IMaterialTechniqueSet());
 		AssetHandler::Register(new Isnd_alias_list_t());
 		AssetHandler::Register(new ILoadedSound());
 		AssetHandler::Register(new IGameWorld());
