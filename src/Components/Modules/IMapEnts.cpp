@@ -16,7 +16,7 @@ namespace Components
 		Utils::Entities mapEnts(entString);
 
 		static const auto addCarePackages = Game::Dvar_FindVar("iw3x_add_care_packages");
-		if (addCarePackages && addCarePackages->current.enabled) {
+		if (addCarePackages && addCarePackages->current.string == "1"s) {
 			mapEnts.AddCarePackages();
 		}
 

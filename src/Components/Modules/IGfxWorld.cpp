@@ -463,7 +463,7 @@ namespace Components
 		map.modelCount = world->modelCount;
 
 		static const auto addCarePackages = Game::Dvar_FindVar("iw3x_add_care_packages");
-		static const auto shouldAddCarePackages = addCarePackages && addCarePackages->current.enabled;
+		static const auto shouldAddCarePackages = addCarePackages && addCarePackages->current.string == "1"s;
 		if (world->models)
 		{
 			// We're about to add two brushmodels here, which are identical : one for the airdrop package and one for the 4-streak care package

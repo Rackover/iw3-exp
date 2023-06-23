@@ -127,8 +127,8 @@ namespace Utils
 
         if (subModelCount > 0)
         {
-            // The last two static models will always be the care packages if we added them ourselves
-            auto countWithoutPackages = subModelCount - 2;
+            // The last two static models will always be the care packages (but we have not added them yet)
+            auto countWithoutPackages = subModelCount;
 
             // All values here taken from mp_rust
             std::unordered_map<std::string, std::string> airdropPalletBrushModel =

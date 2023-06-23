@@ -344,7 +344,7 @@ namespace Components
 		AddTriggersToMap(iw4ClipMap);
 
 		static const auto addCarePackages = Game::Dvar_FindVar("iw3x_add_care_packages");
-		if (addCarePackages && addCarePackages->current.enabled) {
+		if (addCarePackages && addCarePackages->current.string == "1"s) {
 			AddCarePackagesToMap(iw4ClipMap);
 		}
 
