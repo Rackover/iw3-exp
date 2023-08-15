@@ -680,10 +680,10 @@ namespace Components
 					if (map.dpvs.smodelDrawInsts[i].groundLighting.packed > 0)
 					{
 						map.dpvs.smodelDrawInsts[i].flags |= Game::IW4::STATIC_MODEL_FLAG_GROUND_LIGHTING;
+					}
 				}
 			}
 		}
-	}
 
 #if USE_IW3_SORTKEYS
 		// IW3 values
