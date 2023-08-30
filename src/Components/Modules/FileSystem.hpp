@@ -21,6 +21,7 @@ namespace Components
 			std::string Buffer;
 
 			void Read();
+			void ReadOnHunk();
 		};
 
 		FileSystem();

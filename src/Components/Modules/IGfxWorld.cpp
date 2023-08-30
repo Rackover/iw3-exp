@@ -463,7 +463,7 @@ namespace Components
 		map.modelCount = world->modelCount;
 
 		static const auto addCarePackages = Game::Dvar_FindVar("iw3x_add_care_packages");
-		static const auto shouldAddCarePackages = addCarePackages && addCarePackages->current.enabled;
+		static const auto shouldAddCarePackages = addCarePackages && addCarePackages->current.string == "1"s;
 		if (world->models)
 		{
 			// We're about to add two brushmodels here, which are identical : one for the airdrop package and one for the 4-streak care package
@@ -680,10 +680,10 @@ namespace Components
 					if (map.dpvs.smodelDrawInsts[i].groundLighting.packed > 0)
 					{
 						map.dpvs.smodelDrawInsts[i].flags |= Game::IW4::STATIC_MODEL_FLAG_GROUND_LIGHTING;
+					}
 				}
 			}
 		}
-	}
 
 #if USE_IW3_SORTKEYS
 		// IW3 values
