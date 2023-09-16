@@ -10,7 +10,14 @@ namespace Components
 {
 	std::string IGfxImage::ConvertIWIOnTheFly(const std::string& filename)
 	{
-		FileSystem::File img(filename);
+		std::string truncated_filename = filename;
+		const auto export_path = AssetHandler::GetExportPath();
+		if (filename.contains(export_path))
+		{
+			truncated_filename = filename.substr(export_path.length()+1, filename.length()-export_path.length()-1);
+		}
+
+		FileSystem::File img(truncated_filename);
 
 		if (!img.Exists())
 		{
