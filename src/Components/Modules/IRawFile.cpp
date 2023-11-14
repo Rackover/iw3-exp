@@ -21,8 +21,23 @@ namespace Components
 		{
 			if (params.Length() < 2) return;
 
+			const auto n = params[1];
 
-			auto entry = Game::DB_FindXAssetEntry(Game::IW3::XAssetType::ASSET_TYPE_RAWFILE, params[1]);
+			if ("*"s == n)
+			{
+				Game::DB_EnumXAssetEntries(Game::IW3::XAssetType::ASSET_TYPE_RAWFILE, [](Game::IW3::XAssetEntryPoolEntry* poolEntry) {
+					if (poolEntry)
+					{
+						auto entry = &poolEntry->entry;
+
+						auto converted = IRawFile::Convert(entry->asset.header.rawfile);
+						MapDumper::GetApi()->write(Game::IW4::ASSET_TYPE_RAWFILE, converted);
+					}
+				}, false);
+				return;
+			}
+
+			auto entry = Game::DB_FindXAssetEntry(Game::IW3::XAssetType::ASSET_TYPE_RAWFILE, n);
 
 			if (params.Length() > 2)
 			{
