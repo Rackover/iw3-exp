@@ -186,48 +186,61 @@ namespace Components
 
 		params.write_only_once = true;
 
-		params.fs_read_file = APIFileRead; 
+		params.fs_read_file = APIFileRead;
 
 		params.get_from_string_table = [](unsigned int index)
-		{
-			return Game::SL_ConvertToString(index);
-		};
+			{
+				return Game::SL_ConvertToString(index);
+			};
 
 		params.find_other_asset = [](int type, const std::string& name)
-		{
-			for (const auto& kv : AssetHandler::TypeTable)
 			{
-				if (kv.second == type)
+				for (const auto& kv : AssetHandler::TypeTable)
 				{
-					auto iw3Type = kv.first;
-					auto header = Game::DB_FindXAssetHeader(iw3Type, name.data());
-
-					if (header.data)
+					if (kv.second == type)
 					{
-						return AssetHandler::Convert(static_cast<Game::IW3::XAssetType>(iw3Type), header).data;
+						auto iw3Type = kv.first;
+						std::string nameToFind = name;
+
+						if (iw3Type == Game::IW3::ASSET_TYPE_WEAPON)
+						{
+							// Fix weapon name
+							nameToFind = name.substr(4); // Remove iw3_ prefix while seeking
+						}
+
+						auto entry = Game::DB_FindXAssetEntry(iw3Type, nameToFind.data());
+
+						if (entry)
+						{
+							const auto header = entry->entry.asset.header;
+
+							if (header.data && !Game::DB_IsXAssetDefault(iw3Type, nameToFind.data()))
+							{
+								return AssetHandler::Convert(static_cast<Game::IW3::XAssetType>(iw3Type), header).data;
+							}
+						}
+
+						return static_cast<void*>(nullptr);
 					}
-
-					return static_cast<void*>(nullptr);
 				}
-			}
 
-			return static_cast<void*>(nullptr);
-		};
+				return static_cast<void*>(nullptr);
+			};
 
 		params.print = [](int level, const std::string& message)
-		{
-			if (level)
 			{
-				Logger::Error(message.data());
-				assert(false);
-			}
-			else
-			{
-				Logger::Print(message.data());
-			}
-		};
+				if (level)
+				{
+					Logger::Error(message.data());
+					assert(false);
+				}
+				else
+				{
+					Logger::Print(message.data());
+				}
+			};
 
-		params.work_directory = "iw3xport_out/default";
+		params.work_directory = DEFAULT_WORK_DIRECTORY;
 
 		return params;
 	}

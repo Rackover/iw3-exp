@@ -168,10 +168,27 @@ namespace Components
 					// But since speculars are regenerated we end up with cod6 speculars with cod4 materials
 					// and cod6 speculars are a bit too bright for 
 
-					targetDef->literal[0] *= 0.0875f; // envMapMin
-					targetDef->literal[1] *= 0.2f;  // envMapMax
-					targetDef->literal[2] *= 1.4f;    // engMapExponent
-					targetDef->literal[3] *= 2.2f;    // envMapIntensity
+					if (std::string(mat.name).starts_with("mtl_weapon"))
+					{
+						// MASADA
+						targetDef->literal[0] *= 0.75f; // envMapMin
+						targetDef->literal[1] *= 1.0f;  // envMapMax
+						targetDef->literal[2] *= 0.8f;    // engMapExponent
+						targetDef->literal[3] *= 6.144f;    // envMapIntensity
+
+						// M40A3
+						//targetDef->literal[0] *= 0.0875f; // envMapMin
+						//targetDef->literal[1] *= 0.165f;  // envMapMax
+						//targetDef->literal[2] *= 1.4f;    // engMapExponent
+						//targetDef->literal[3] *= 3.2f;    // envMapIntensity
+					}
+					else
+					{
+						targetDef->literal[0] *= 0.0875f; // envMapMin
+						targetDef->literal[1] *= 0.2f;  // envMapMax
+						targetDef->literal[2] *= 1.4f;    // engMapExponent
+						targetDef->literal[3] *= 2.2f;    // envMapIntensity
+					}
 				}
 
 			}
@@ -415,6 +432,17 @@ namespace Components
 			 - 9 (1 matches)
 				 - mp_vacant:mc\mtl_cardboardbox_decal.json
 			*/
+		}
+
+		if (iw3Key == 59)
+		{
+		// Could be 53, but also...
+			if (material->techniqueSet->techniques[Game::IW3::TECHNIQUE_LIT])
+			{
+				// mtl_fx_shell_alpha
+				Logger::Print("Material %s was given sortkey %i from %i (has a lit slot)\n", name.data(), 33, iw3Key);
+				return 33;
+			}
 		}
 
 

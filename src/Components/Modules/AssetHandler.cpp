@@ -89,7 +89,7 @@ namespace Components
 	{
 		Game::dvar_s* path = Game::Dvar_FindVar("export_path");
 		if (path && path->type == Game::DvarType::DVAR_TYPE_STRING && path->current.string) return path->current.string;
-		return "raw_dump";
+		return DEFAULT_WORK_DIRECTORY;
 	}
 
 	AssetHandler::AssetHandler()
@@ -109,6 +109,7 @@ namespace Components
 		AssetHandler::Register(new Isnd_alias_list_t());
 		AssetHandler::Register(new ILoadedSound());
 		AssetHandler::Register(new IGameWorld());
+		AssetHandler::Register(new IWeapon());
 		AssetHandler::Register(new IPhysPreset());
 	}
 

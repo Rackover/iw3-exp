@@ -10,7 +10,8 @@ namespace Game
 
 	Com_Error_t Com_Error = Com_Error_t(0x4FD330);
 	Com_PrintMessage_t Com_PrintMessage = Com_PrintMessage_t(0x4FCA50);
-
+	
+	DB_IsXAssetDefault_t DB_IsXAssetDefault = DB_IsXAssetDefault_t(0x4898A0);
 	DB_FindXAssetHeader_t DB_FindXAssetHeader = DB_FindXAssetHeader_t(0x489570);
 	DB_EnumXAssets_FastFile_t DB_EnumXAssets_FastFile = DB_EnumXAssets_FastFile_t(0x489120);
 	DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers = reinterpret_cast<DB_GetXAssetNameHandler_t*>(0x7268D0);
