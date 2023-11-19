@@ -73,6 +73,8 @@ namespace Components
 			{
 				if (params.Length() < 2) return;
 
+				Utils::Hook::Call<void()>(0x416430)(); // BG_ClearWeaponDef needs to be called to init playeranimtype
+
 				const auto n = params[1];
 
 				if ("*"s == n)
@@ -89,8 +91,20 @@ namespace Components
 
 					for (const auto& name : names)
 					{
-						const auto entry = Game::DB_FindXAssetEntry(Game::IW3::XAssetType::ASSET_TYPE_WEAPON, name.data());
-						auto converted = IWeapon::Convert(entry->entry.asset.header.weapon);
+						Game::IW3::XAssetHeader entry{};
+
+						const auto weaponDef = Utils::Hook::Call<Game::IW3::WeaponDef * (const char*)>(0x41D270)(name.c_str());
+
+						if (weaponDef)
+						{
+							entry.weapon = weaponDef;
+						}
+						else
+						{
+							entry = Game::DB_FindXAssetEntry(Game::IW3::XAssetType::ASSET_TYPE_WEAPON, name.data())->entry.asset.header;
+						}
+
+						auto converted = IWeapon::Convert(entry.weapon);
 						MapDumper::GetApi()->write(Game::IW4::ASSET_TYPE_WEAPON, converted);
 
 					}
@@ -527,7 +541,12 @@ target->##name = AssetHandler::Convert(Game::IW3::ASSET_TYPE_XMODEL, { asset->##
 		iw4WeaponCompleteDef->weapDef->stunnedTimeEnd = 500;
 		iw4WeaponCompleteDef->weapDef->autoAimRange = 1000;
 
-		iw4WeaponCompleteDef->weapDef->szSharedAmmoCapName = LocalAllocator.DuplicateString("IW3_"s + asset->szSharedAmmoCapName);
+		iw4WeaponCompleteDef->weapDef->szSharedAmmoCapName = asset->szSharedAmmoCapName;
+		
+		if (iw4WeaponCompleteDef->weapDef->szSharedAmmoCapName && *iw4WeaponCompleteDef->weapDef->szSharedAmmoCapName)
+		{
+			iw4WeaponCompleteDef->weapDef->szSharedAmmoCapName = LocalAllocator.DuplicateString("IW3_"s + asset->szSharedAmmoCapName);
+		}
 
 		// Generate tracer
 		iw4WeaponCompleteDef->weapDef->tracerType = GenerateTracerDef(asset);
