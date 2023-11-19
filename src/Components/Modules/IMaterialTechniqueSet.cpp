@@ -401,8 +401,6 @@ namespace Components
 
 								light = iw3World->sunLight;
 								overrideLight = true;
-
-								Logger::Print("Active map is %s, using light diffuse %.2f %.2f %.2f\n", mapName.c_str(), light->color[0], light->color[1], light->color[2]);
 							}
 							else
 							{
