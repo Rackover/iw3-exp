@@ -39,7 +39,7 @@ namespace Components
 
 			auto entry = Game::DB_FindXAssetEntry(Game::IW3::XAssetType::ASSET_TYPE_RAWFILE, n);
 
-			if (params.Length() > 2)
+			if (entry && params.Length() > 2)
 			{
 				int zoneIndexWhitelist = std::stoi(params[2]);
 				if (entry->entry.zoneIndex == zoneIndexWhitelist)

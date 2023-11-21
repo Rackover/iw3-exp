@@ -130,7 +130,7 @@ namespace Components
 		Command::Execute(Utils::VA("dumpMaterial compass_map_%s", mapToDump.data()), true);
 
 		Logger::Print("Exporting Loadscreen...\n");
-		Command::Execute(Utils::VA("dumpGfxImage loadscreen_%s", mapToDump.data()), true);
+		Command::Execute(Utils::VA("dumpMaterial $levelbriefing"), true);
 
 		MapDumper::DumpLoadedGSCs(mapToDump);
 

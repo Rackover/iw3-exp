@@ -436,27 +436,28 @@ namespace Components
 						}
 					}
 
-					auto newIndex = IMaterialTechniqueSet::iw3CodeConstMap.find(iw3Index);
-					if (newIndex == IMaterialTechniqueSet::iw3CodeConstMap.end())
+					if (!litteralized)
 					{
-						Logger::Print("Unable to map code constant %d for technique '%s'! Not exporting technique\n", iw3Index, tech->name);
-						return nullptr;
+						auto newIndex = IMaterialTechniqueSet::iw3CodeConstMap.find(iw3Index);
+						if (newIndex == IMaterialTechniqueSet::iw3CodeConstMap.end())
+						{
+							Logger::Print("Unable to map code constant %d for technique '%s'! Not exporting technique\n", iw3Index, tech->name);
+							return nullptr;
+						}
+
+						unsigned short val = (unsigned short)newIndex->second;
+
+						if (isWaterPass && val == Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION)
+						{
+							// If IsWaterTechnique => fuck up the sun position
+							// Because it's not correct for iw3 anyway and so unexpected
+
+							Logger::Print("Routed the pass argument %i to the wrong constant %i instead of %i on purpose because it is a water material!\n", k, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR, val);
+							val = Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR; // Anything normalized & stable will do
+						}
+
+						iw4Arg->u.codeConst.index = val;
 					}
-
-					unsigned short val = (unsigned short)newIndex->second;
-
-					if (isWaterPass && val == Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION)
-					{
-						// If IsWaterTechnique => fuck up the sun position
-						// Because it's not correct for iw3 anyway and so unexpected
-						//	EDIT:  I think actuallly this is no longer necessary since we litterliaze sunlight position
-						//	ALMOST certainly this was caused by sunlight sampling the wrong light due to bad const mapping, which is solved nowadays
-
-						Logger::Print("Routed the pass argument %i to the wrong constant %i instead of %i on purpose because it is a water material!\n", k, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR, val);
-						val = Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR; // Anything normalized & stable will do
-					}
-
-					iw4Arg->u.codeConst.index = val;
 				}
 				else if (arg->type == Game::MaterialShaderArgumentType::MTL_ARG_CODE_PIXEL_SAMPLER)
 				{

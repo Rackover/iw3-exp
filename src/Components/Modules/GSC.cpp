@@ -57,7 +57,6 @@ namespace Components
 
 				if (dumpedSubscripts.contains(scriptDeclaredName))
 				{
-					Components::Logger::Print("Skipping dump of script %s because we dumped it already\n", scriptDeclaredName.data());
 					continue;
 				}
 

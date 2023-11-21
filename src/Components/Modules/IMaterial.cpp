@@ -190,7 +190,13 @@ namespace Components
 						targetDef->literal[3] *= 2.2f;    // envMapIntensity
 					}
 				}
-
+				else if (targetDef->name == "waterColor"s)
+				{
+						targetDef->literal[0] *= 0.25f; // envMapMin
+						targetDef->literal[1] *= 0.25f;  // envMapMax
+						targetDef->literal[2] *= 0.25f;    // engMapExponent
+						targetDef->literal[3] *= 0.25f;    // envMapIntensity
+				}
 			}
 		}
 
@@ -252,9 +258,9 @@ namespace Components
 				return 34;
 			}
 
-			if (name.contains("shadow"))
+			if (name.contains("shadow_caster") || name.contains("shadowcaster"))
 			{
-				Logger::Print("Material %s was given sortkey %i from %i (contains 'shadow' in the name, likely shadowcaster)\n", name.data(), 34, iw3Key);
+				Logger::Print("Material %s was given sortkey %i from %i (contains 'shadow caster' in the name, likely shadowcaster)\n", name.data(), 34, iw3Key);
 				return 34;
 			}
 
@@ -271,6 +277,13 @@ namespace Components
 			{
 				//"opaque" => SORTKEY_BLEND_ADDITIVE
 				Logger::Print("Material %s was given sortkey %i from %i (2d)\n", name.data(), 47, iw3Key);
+				return 47;
+			}
+
+			if (techsetName.contains("tools"))
+			{
+				//"opaque" => SORTKEY_BLEND_ADDITIVE
+				Logger::Print("Material %s was given sortkey %i from %i (tools)\n", name.data(), 47, iw3Key);
 				return 47;
 			}
 		}

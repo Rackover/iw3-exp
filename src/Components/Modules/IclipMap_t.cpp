@@ -73,6 +73,7 @@ namespace Components
 		}
 
 		// Repair clipmap... i think
+		size_t repairedTotal = 0;
 		for (auto kv : nodesToRepair)
 		{
 			auto node = kv.second;
@@ -105,8 +106,13 @@ namespace Components
 
 			if (repaired)
 			{
-				Components::Logger::Print("Successfully linked node %i to brushes on clipmap\n", kv.first);
+				repairedTotal++;
 			}
+		}
+
+		if (repairedTotal > 0)
+		{
+			Components::Logger::Print("Successfully repaired %i nodes on clipmap\n", repairedTotal);
 		}
 	}
 
