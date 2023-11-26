@@ -72,6 +72,8 @@ namespace Components
 		Command::Add("dumpWeapon", [](Command::Params params)
 			{
 				if (params.Length() < 2) return;
+				
+				MapDumper::GetApi()->set_work_path(AssetHandler::GetExportPath());
 
 				Utils::Hook::Call<void()>(0x416430)(); // BG_ClearWeaponDef needs to be called to init playeranimtype
 
@@ -85,6 +87,7 @@ namespace Components
 						if (poolEntry)
 						{
 							auto entry = &poolEntry->entry;
+
 							names.emplace_back(entry->asset.header.weapon->szInternalName);
 						}
 						}, false);

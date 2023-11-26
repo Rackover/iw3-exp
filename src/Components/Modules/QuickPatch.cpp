@@ -44,6 +44,10 @@ namespace Components
 		// Set fs_game
 		Utils::Hook::Set<const char*>(0x55E509, "mods/iw3-exp");
 
+		// Load weapon assets EVEN if we're in dedicated mode
+		Utils::Hook::Nop(0x5727F0, 2);
+		Utils::Hook::Nop(0x57279F, 6);
+
 		Utils::Hook(0x4FF20A, QuickPatch::OnInitStub, HOOK_CALL).install()->quick();
 
 		// Force debug logging
