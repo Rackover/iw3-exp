@@ -96,6 +96,7 @@ namespace Components
 					{
 						Game::IW3::XAssetHeader entry{};
 
+
 						const auto weaponDef = Utils::Hook::Call<Game::IW3::WeaponDef * (const char*)>(0x41D270)(name.c_str());
 
 						if (weaponDef)
@@ -543,6 +544,8 @@ target->##name = AssetHandler::Convert(Game::IW3::ASSET_TYPE_XMODEL, { asset->##
 		iw4WeaponCompleteDef->weapDef->stunnedTimeLoop = 500;
 		iw4WeaponCompleteDef->weapDef->stunnedTimeEnd = 500;
 		iw4WeaponCompleteDef->weapDef->autoAimRange = 1000;
+
+		iw4WeaponCompleteDef->weapDef->inheritsPerks = true;
 
 		iw4WeaponCompleteDef->weapDef->szSharedAmmoCapName = asset->szSharedAmmoCapName;
 		
