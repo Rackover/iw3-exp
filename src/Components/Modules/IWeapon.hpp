@@ -14,6 +14,7 @@ namespace Components
 
 	private:
 		static Game::IW4::WeaponCompleteDef* Convert(Game::IW3::WeaponDef* comWorld);
+		static void ReTagSilencedFlash(Game::IW4::WeaponCompleteDef* iw4WeaponCompleteDef, unsigned short newString);
 		static Game::IW4::TracerDef* GenerateTracerDef(Game::IW3::WeaponDef* weapon);
 		static void DifferentiateWeapon(Game::IW4::WeaponCompleteDef* weapon);
 		static void DifferentiateModel(Game::IW4::XModel* model);

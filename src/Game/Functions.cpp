@@ -26,6 +26,7 @@ namespace Game
 	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = Image_LoadFromFileWithReader_t(0x642380);
 	FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase = FS_FOpenFileReadDatabase_t(0x55C030);
 	SEH_LocalizeTextMessage_t SEH_LocalizeTextMessage = SEH_LocalizeTextMessage_t(0x538D30);
+	SL_GetStringOfSize_t SL_GetStringOfSize = SL_GetStringOfSize_t(0x518290);
 
 	DWORD* cmd_id = reinterpret_cast<DWORD*>(0x1410B40);
 	DWORD* cmd_argc = reinterpret_cast<DWORD*>(0x1410B84);

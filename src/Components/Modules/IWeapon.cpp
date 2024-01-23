@@ -561,8 +561,52 @@ target->##name = AssetHandler::Convert(Game::IW3::ASSET_TYPE_XMODEL, { asset->##
 		// Rename materials to prevent IW4 overshadowing
 		DifferentiateWeapon(iw4WeaponCompleteDef);
 
+		if (iw4WeaponCompleteDef->weapDef->silenced)
+		{
+			const char* stringPtr = LocalAllocator.DuplicateString("tag_flash_silenced");
+			const auto id = Game::SL_GetStringOfSize(stringPtr, 0, strnlen(stringPtr, 24)+1);
+			ReTagSilencedFlash(iw4WeaponCompleteDef, static_cast<unsigned short>(id));
+		}
+
 		return iw4WeaponCompleteDef;
 	}
+
+	void IWeapon::ReTagSilencedFlash(Game::IW4::WeaponCompleteDef* iw4WeaponCompleteDef, unsigned short index)
+	{
+		std::vector<Game::IW4::XModel*> models{};
+
+		//tag_flash => tag_flash_silenced
+		for (size_t i = 0; i < 16; i++)
+		{
+			const auto gun = iw4WeaponCompleteDef->weapDef->gunXModel[i];
+			const auto world = iw4WeaponCompleteDef->weapDef->worldModel[i];
+
+			if (gun)
+			{
+				models.push_back(gun);
+			}
+
+			if (world)
+			{
+				models.push_back(world);
+			}
+		}
+
+		for (const auto& model : models)
+		{
+			for (size_t i = 0; i < model->numBones; i++)
+			{
+				const auto nameId = model->boneNames[i];
+				const auto name = Game::SL_ConvertToString(nameId);
+
+				if (name == "tag_flash"s)
+				{
+					model->boneNames[i] = index;
+				}
+			}
+		}
+	}
+
 	Game::IW4::TracerDef* IWeapon::GenerateTracerDef(Game::IW3::WeaponDef* weapon)
 	{
 		Game::IW3::Material* tracerMaterial = *reinterpret_cast<Game::IW3::Material**>(0x84CB44);

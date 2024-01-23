@@ -51,6 +51,9 @@ namespace Game
 	typedef const char* (*SEH_LocalizeTextMessage_t)(const char* a1, const char* a2, int a3);
 	extern SEH_LocalizeTextMessage_t SEH_LocalizeTextMessage;
 
+	typedef int (*SL_GetStringOfSize_t)(const char* a1, int user, int length);
+	extern SL_GetStringOfSize_t SL_GetStringOfSize;
+
 	int DB_HashForName(Game::IW3::XAssetType type, const char* name);
 
 	Game::IW3::XAssetEntryPoolEntry* DB_FindXAssetEntry(Game::IW3::XAssetType type, const char* name);
