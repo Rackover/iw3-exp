@@ -6,14 +6,19 @@ namespace Components
 		Game::IW4::clipMap_t* clipMap,
 		unsigned short* size)
 	{
-		if (clipMap->numStaticModels - IGfxWorld::removedStaticModelIndices.size() <= 0) return nullptr;
+		float maxs[3]{};
+		float mins[3]{};
 
-		float maxs[3];
-		float mins[3];
+		if (clipMap->numStaticModels - IGfxWorld::removedStaticModelIndices.size() > 0)
+		{
+			clipMap->staticModelList[0].absBounds.max(maxs);
+			clipMap->staticModelList[0].absBounds.min(mins);
+		}
+		else
+		{
+			// We still need the smodel nodes even when there is no model
+		}
 
-
-		clipMap->staticModelList[0].absBounds.max(maxs);
-		clipMap->staticModelList[0].absBounds.min(mins);
 
 		for (unsigned short i = 1; i < clipMap->numStaticModels; i++)
 		{

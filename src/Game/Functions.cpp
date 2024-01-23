@@ -16,6 +16,11 @@ namespace Game
 	DB_EnumXAssets_FastFile_t DB_EnumXAssets_FastFile = DB_EnumXAssets_FastFile_t(0x489120);
 	DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers = reinterpret_cast<DB_GetXAssetNameHandler_t*>(0x7268D0);
     DB_LoadXAssets_t DB_LoadXAssets = DB_LoadXAssets_t(0x48A2B0);
+	DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = reinterpret_cast<DB_GetXAssetSizeHandler_t*>(0x726A10);
+
+	IW3::XAssetHeader* DB_XAssetPool = reinterpret_cast<IW3::XAssetHeader*>(0x7265E0);
+	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7263A0);
+
 	FS_Read_t FS_Read = FS_Read_t(0x55C120);
 	FS_FOpenFileRead_t FS_FOpenFileRead = FS_FOpenFileRead_t(0x55C050);
 	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = Image_LoadFromFileWithReader_t(0x642380);

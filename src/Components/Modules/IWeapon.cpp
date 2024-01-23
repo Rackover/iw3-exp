@@ -117,7 +117,8 @@ namespace Components
 				}
 
 
-				auto converted = IWeapon::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_WEAPON, params[1]).weapon);
+				const auto header = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_WEAPON, n);
+				auto converted = IWeapon::Convert(header.weapon);
 				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_WEAPON, converted);
 			});
 	}

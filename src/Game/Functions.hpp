@@ -30,6 +30,12 @@ namespace Game
     typedef void(*DB_LoadXAssets_t)(XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
     extern DB_LoadXAssets_t DB_LoadXAssets;
 
+	typedef int(*DB_GetXAssetSizeHandler_t)();
+	extern DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers;
+
+	extern IW3::XAssetHeader * DB_XAssetPool;
+	extern unsigned int* g_poolSize;
+
 	typedef signed int(*FS_Read_t)(void* buffer, size_t bufferSize, int handle);
 	extern FS_Read_t FS_Read;
 
