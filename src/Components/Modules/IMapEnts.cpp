@@ -32,7 +32,7 @@ namespace Components
 		bool hasVehicles = mapEnts.ConvertVehicles();
 
 		entString = mapEnts.Build();
-		mapEnts.GetModels(hasVehicles); // Add additional models to file
+		const auto models = mapEnts.GetModels(hasVehicles); // Add additional models to file
 
 		Game::IW4::MapEnts* iw4Ents = LocalAllocator.Allocate<Game::IW4::MapEnts>();
 
@@ -53,6 +53,14 @@ namespace Components
 				 
 				 auto converted = IMapEnts::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]).clipMap->mapEnts);
 				 MapDumper::GetApi()->write(Game::IW4::ASSET_TYPE_MAP_ENTS, converted);
+				 
+				 std::string entString(converted->entityString, converted->numEntityChars - 1);
+				 Utils::Entities mapEnts(entString);
+				 const auto models = mapEnts.GetModels(false);
+				 for (const std::string& model : models)
+				 {
+					 Command::Execute(Utils::VA("dumpXModel %s", model.data()), true);
+				 }
 			});
 	}
 

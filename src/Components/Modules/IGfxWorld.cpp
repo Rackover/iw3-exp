@@ -733,7 +733,9 @@ namespace Components
 		Command::Add("dumpGfxWorld", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
-				auto converted = IGfxWorld::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_GFXWORLD, params[1]).gfxWorld);
+				const auto name = params[1];
+				const auto header = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_GFXWORLD, name);
+				auto converted = IGfxWorld::Convert(header.gfxWorld);
 				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_GFXWORLD, converted);
 			});
 	}

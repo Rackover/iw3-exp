@@ -259,7 +259,41 @@ namespace Components
 		Command::Add("dumpXModel", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
-				
+
+				if ("*"s == params[1])
+				{
+					std::vector<std::string> names{};
+
+					Game::DB_EnumXAssetEntries(Game::IW3::XAssetType::ASSET_TYPE_XMODEL, [&](Game::IW3::XAssetEntryPoolEntry* poolEntry) {
+						if (poolEntry)
+						{
+							auto entry = &poolEntry->entry;
+							if (entry->inuse == 1 && entry->asset.header.data && entry->asset.header.model->name)
+							{
+
+								OutputDebugStringA(entry->asset.header.model->name);
+								OutputDebugStringA("\n");
+
+								names.emplace_back(entry->asset.header.model->name);
+							}
+							else
+							{
+								printf("");
+							}
+						}
+					}, false);
+
+					for (const auto& name : names)
+					{
+						const auto entry = Game::DB_FindXAssetEntry(Game::IW3::XAssetType::ASSET_TYPE_XMODEL, name.data())->entry.asset.header;
+
+						auto converted = IXModel::Convert(entry.model);
+						MapDumper::GetApi()->write(Game::IW4::ASSET_TYPE_XMODEL, converted);
+					}
+
+					return;
+				}
+
 				auto iw3Model = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_XMODEL, params[1]).model;
 				auto converted = IXModel::Convert(iw3Model);
 				MapDumper::GetApi()->write(Game::IW4::ASSET_TYPE_XMODEL, converted);

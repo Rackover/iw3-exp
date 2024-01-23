@@ -22,6 +22,7 @@ namespace Components
 	private:
 		static void PatchReference(std::string& data, std::string _old, std::string _new);
 		static void RemoveTeamDeclarations(std::string& data);
+		static void DumpFX(const std::string& data);
 		static void DumpSounds(const std::string& data);
 		static void DumpSubScripts(const std::string& data);
 		static void DumpModels(const std::string& data);

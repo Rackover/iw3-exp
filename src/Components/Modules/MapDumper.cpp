@@ -22,7 +22,8 @@ namespace Components
 	void MapDumper::DumpMap(std::string mapToDump)
 	{
 		MapDumper::mapName = mapToDump;
-		std::string bspName = Utils::VA("maps/mp/%s.d3dbsp", mapToDump.data());
+		bool isSingleplayer = !mapToDump.starts_with("mp_");
+		std::string bspName = Utils::VA("maps/%s%s.d3dbsp", isSingleplayer ? "" : "mp/", mapToDump.data());
 
 		static auto additionalModelsFile = GSC::GetAdditionalModelsListPath();
 		if (Utils::FileExists(additionalModelsFile))
@@ -32,7 +33,7 @@ namespace Components
 		}
 
 		Logger::Print("Loading map '%s'...\n", mapToDump.data());
-		Command::Execute(Utils::VA("map %s", mapToDump.data()), true);
+		Command::Execute(Utils::VA("%s %s", isSingleplayer ? "loadzone" : "map", mapToDump.data()), true);
 		Command::Execute(Utils::VA("loadzone %s_load", mapToDump.data()), true);
 
 		// Search zone index
@@ -54,59 +55,62 @@ namespace Components
 		// - Appears in a GSC (createFX)
 		// - Appears in a map ent (is that even possible?)
 		// and dump only these! 
-		Game::DB_EnumXAssetEntries(Game::IW3::XAssetType::ASSET_TYPE_SOUND, [myZoneIndex](Game::IW3::XAssetEntryPoolEntry* poolEntry) {
-			if (poolEntry)
-			{
-				auto entry = &poolEntry->entry;
-				if (entry->zoneIndex == myZoneIndex && entry->inuse == 0 && entry->asset.header.sound && entry->asset.header.sound->aliasName)
+		if (!isSingleplayer) // Not sure what this trash code does wrong that upsets singleplayer, but we should probably trash the whole thing just in case
+		{
+			Game::DB_EnumXAssetEntries(Game::IW3::XAssetType::ASSET_TYPE_SOUND, [myZoneIndex](Game::IW3::XAssetEntryPoolEntry* poolEntry) {
+				if (poolEntry)
 				{
-					try
+					auto entry = &poolEntry->entry;
+					if (entry->zoneIndex == myZoneIndex && entry->inuse == 0 && entry->asset.header.sound && entry->asset.header.sound->aliasName)
 					{
-						if (Utils::StartsWith(entry->asset.header.sound->aliasName, "weap"))
+						try
 						{
-							return;
-						}
-						else if (Utils::StartsWith(entry->asset.header.sound->aliasName, "melee"))
-						{
-							return;
-						}
-						else if (Utils::StartsWith(entry->asset.header.sound->aliasName, "c4"))
-						{
-							return;
-						}
-						else if (entry->asset.header.sound->head) {
-							if (entry->asset.header.sound->head->soundFile)
+							if (Utils::StartsWith(entry->asset.header.sound->aliasName, "weap"))
 							{
-								auto soundFileName = entry->asset.header.sound->head->soundFile->type == Game::snd_alias_type_t::SAT_LOADED ?
-									entry->asset.header.sound->head->soundFile->u.loadSnd->name :
-									entry->asset.header.sound->head->soundFile->u.streamSnd.filename.info.raw.dir;
-
-								if (Utils::StartsWith(soundFileName, "vehicles"))
+								return;
+							}
+							else if (Utils::StartsWith(entry->asset.header.sound->aliasName, "melee"))
+							{
+								return;
+							}
+							else if (Utils::StartsWith(entry->asset.header.sound->aliasName, "c4"))
+							{
+								return;
+							}
+							else if (entry->asset.header.sound->head) {
+								if (entry->asset.header.sound->head->soundFile)
 								{
-									return;
-								}
+									auto soundFileName = entry->asset.header.sound->head->soundFile->type == Game::snd_alias_type_t::SAT_LOADED ?
+										entry->asset.header.sound->head->soundFile->u.loadSnd->name :
+										entry->asset.header.sound->head->soundFile->u.streamSnd.filename.info.raw.dir;
 
-								if (Utils::StartsWith(soundFileName, "voiceovers"))
-								{
-									return;
+									if (Utils::StartsWith(soundFileName, "vehicles"))
+									{
+										return;
+									}
+
+									if (Utils::StartsWith(soundFileName, "voiceovers"))
+									{
+										return;
+									}
 								}
 							}
-						}
 
-						//Components::Logger::Print("%d => %s\n", entry->zoneIndex, entry->asset.header.sound->aliasName);
-						auto converted = AssetHandler::Convert(Game::IW3::XAssetType::ASSET_TYPE_SOUND, entry->asset.header);
-						GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_SOUND, converted.data);
-					}
-					catch (const std::exception&)
-					{
-						// There's a good chance DB_EnumDXAssetEntries just gave me garbage data
-						// No need to make a fuzz
+							//Components::Logger::Print("%d => %s\n", entry->zoneIndex, entry->asset.header.sound->aliasName);
+							auto converted = AssetHandler::Convert(Game::IW3::XAssetType::ASSET_TYPE_SOUND, entry->asset.header);
+							GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_SOUND, converted.data);
+						}
+						catch (const std::exception&)
+						{
+							// There's a good chance DB_EnumDXAssetEntries just gave me garbage data
+							// No need to make a fuzz
+						}
 					}
 				}
-			}
-			}, false);
-
+				}, false);
+		}
 		//
+
 
 		Logger::Print("Exporting ComWorld...\n");
 		Command::Execute(Utils::VA("dumpComWorld %s", bspName.data()), true);
@@ -120,6 +124,10 @@ namespace Components
 		Logger::Print("Exporting ClipMap...\n");
 		Command::Execute(Utils::VA("dumpclipMap_t %s", bspName.data()), true);
 
+		// This is redundant with clipmap but allows exporting more models
+		Logger::Print("Exporting Entities...\n");
+		Command::Execute(Utils::VA("dumpMapEnts %s", bspName.data()), true);
+
 		Logger::Print("Exporting Vision...\n");
 		Command::Execute(Utils::VA("dumpRawFile vision/%s.vision", mapToDump.data()), true);
 
@@ -132,7 +140,7 @@ namespace Components
 		Logger::Print("Exporting Loadscreen...\n");
 		Command::Execute(Utils::VA("dumpMaterial $levelbriefing"), true);
 
-		MapDumper::DumpLoadedGSCs(mapToDump);
+		MapDumper::DumpLoadedGSCs(mapToDump, isSingleplayer);
 
 		if (myZoneIndex < 32)
 		{
@@ -151,11 +159,11 @@ namespace Components
 
 	}
 
-	void MapDumper::DumpLoadedGSCs(std::string mapToDump)
+	void MapDumper::DumpLoadedGSCs(std::string mapToDump, bool isSingleplayer)
 	{
 		Logger::Print("Exporting environment GSCs...\n");
-		Command::Execute(Utils::VA("dumpRawFile maps/mp/%s.gsc", mapToDump.data()), true);
-		Command::Execute(Utils::VA("dumpRawFile maps/mp/%s_fx.gsc", mapToDump.data()), true);
+		Command::Execute(Utils::VA("dumpRawFile maps/%s%s.gsc", isSingleplayer ? "" : "mp/", mapToDump.data()), true);
+		Command::Execute(Utils::VA("dumpRawFile maps/%s%s_fx.gsc", mapToDump.data()), true);
 		Command::Execute(Utils::VA("dumpRawFile maps/createfx/%s_fx.gsc", mapToDump.data()), true);
 
 		Command::Execute(Utils::VA("dumpRawFile maps/createart/%s_art.gsc", mapToDump.data()), true);
@@ -164,9 +172,9 @@ namespace Components
 		if (convertGsc && convertGsc->current.string == "1"s) {
 			Logger::Print("Patching GSCs...\n");
 			GSC::UpgradeGSC(Utils::VA("%s/maps/createfx/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertFXGSC);
-			GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s_fx.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainFXGSC);
+			GSC::UpgradeGSC(Utils::VA("%s/maps/%s%s_fx.gsc", isSingleplayer ? "" : "mp/", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainFXGSC);
 			GSC::UpgradeGSC(Utils::VA("%s/maps/createart/%s_art.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainArtGSC);
-			GSC::UpgradeGSC(Utils::VA("%s/maps/mp/%s.gsc", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainGSC);
+			GSC::UpgradeGSC(Utils::VA("%s/maps/%s%s.gsc", isSingleplayer ? "" : "mp/", AssetHandler::GetExportPath().data(), mapToDump.data()), GSC::ConvertMainGSC);
 		}
 	}
 

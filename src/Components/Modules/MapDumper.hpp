@@ -16,7 +16,7 @@ namespace Components
 
 	private:
 		static void DumpMap(std::string  mapName);
-		static void DumpLoadedGSCs(std::string mapName);
+		static void DumpLoadedGSCs(std::string mapName, bool isSingleplayer);
 
 		static std::string APIFileRead(const std::string& filename);
 

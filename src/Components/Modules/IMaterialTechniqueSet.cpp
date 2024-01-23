@@ -392,9 +392,12 @@ namespace Components
 						}
 						else 
 						{
-							const auto worldName = std::format("maps/mp/{}.d3dbsp", mapName);
-							const auto worldHeader = Game::DB_FindXAssetHeader(Game::IW3::ASSET_TYPE_GFXWORLD, worldName.data());
-							const auto iw3World = worldHeader.gfxWorld;
+							Game::IW3::GfxWorld* iw3World{};
+
+							Game::DB_EnumXAssetEntries(Game::IW3::ASSET_TYPE_GFXWORLD, [&iw3World](Game::IW3::XAssetEntryPoolEntry* entry)
+							{
+								iw3World = entry->entry.asset.header.gfxWorld;
+							}, false);
 
 							if (iw3World && iw3World->sunLight)
 							{
