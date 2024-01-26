@@ -39,6 +39,7 @@ namespace Components
 		{42, 46},	// Before effects 3 (extremely wild guess)
 		{43, 29},	// Blend / additive => to a decal layer (shouldn't this be to 47?)
 		{48, 48},	// Effect auto sort!
+		{51, 9},	// FX Top
 		{56, 49},	// AE Bottom
 		{57, 50},	// AE Middle
 		{58, 51},	// AE top
@@ -400,7 +401,12 @@ namespace Components
 			if (techsetName.contains("particle"))
 			{
 				// cloud_snowflake01
-				if (techsetName.contains("outdoor"))
+				if (techsetName.contains("particle_cloud"))
+				{
+					Logger::Print("Material %s was given sortkey %i from %i (is a cloud particle)\n", name.data(), 48, iw3Key);
+					return 48;
+				}
+				else if (techsetName.contains("outdoor"))
 				{
 					Logger::Print("Material %s was given sortkey %i from %i (is an outdoor particle)\n", name.data(), 51, iw3Key);
 					return 51;
@@ -445,6 +451,17 @@ namespace Components
 			 - 9 (1 matches)
 				 - mp_vacant:mc\mtl_cardboardbox_decal.json
 			*/
+		}
+
+		if (iw3Key == 58)
+		{
+			// Could be 33 maybe...
+			if (material->techniqueSet->techniques[Game::IW3::TECHNIQUE_LIT])
+			{
+				// AC130 map materials
+				Logger::Print("Material %s was given sortkey %i from %i (has a lit slot)\n", name.data(), 33, iw3Key);
+				return 33;
+			}
 		}
 
 		if (iw3Key == 59)
