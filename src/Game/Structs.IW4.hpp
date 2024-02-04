@@ -267,37 +267,6 @@ namespace Game::IW4
 		XAnimDynamicIndices indices;
 	};
 
-	union XAnimPartTransData
-	{
-		XAnimPartTransFrames frames;
-		float frame0[3];
-	};
-
-	struct XAnimPartTrans
-	{
-		unsigned __int16 size;
-		char smallTrans;
-		XAnimPartTransData u;
-	};
-
-	struct XAnimDeltaPartQuatDataFrames2
-	{
-		__int16* frames;
-		char indices[1];
-	};
-
-	union XAnimDeltaPartQuatData2
-	{
-		XAnimDeltaPartQuatDataFrames2 frames;
-		__int16 frame0[2];
-	};
-
-	struct XAnimDeltaPartQuat2
-	{
-		unsigned __int16 size;
-		XAnimDeltaPartQuatData2 u;
-	};
-
 	struct XAnimDeltaPartQuatDataFrames
 	{
 		__int16* frames;
@@ -318,8 +287,8 @@ namespace Game::IW4
 
 	struct XAnimDeltaPart
 	{
-		XAnimPartTrans* trans;
-		XAnimDeltaPartQuat2* quat2;
+		Game::IW3::XAnimPartTrans* trans;
+		Game::IW3::XAnimDeltaPartQuat* quat2;
 		XAnimDeltaPartQuat* quat;
 	};
 

@@ -35,19 +35,25 @@ namespace Components
 		parts.notetracks = reinterpret_cast<Game::IW4::XAnimNotifyInfo*>(xanim->notify);
 
 		std::memcpy(parts.boneCount, xanim->boneCount, 10);
-// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_NO_QUAT]           = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_NO_QUAT];
-// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_HALF_QUAT]         = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_SIMPLE_QUAT];
-// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_FULL_QUAT]         = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_NORMAL_QUAT];
-// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_HALF_QUAT_NO_SIZE] = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_SIMPLE_QUAT_NO_SIZE];
-// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_FULL_QUAT_NO_SIZE] = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_NORMAL_QUAT_NO_SIZE];
-// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_SMALL_TRANS]       = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_SMALL_TRANS];
-// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_TRANS]             = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_TRANS];
-// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_TRANS_NO_SIZE]     = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_TRANS_NO_SIZE];
-// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_NO_TRANS]          = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_NO_TRANS];
-// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_ALL]               = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_ALL];
+		// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_NO_QUAT]           = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_NO_QUAT];
+		// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_HALF_QUAT]         = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_SIMPLE_QUAT];
+		// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_FULL_QUAT]         = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_NORMAL_QUAT];
+		// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_HALF_QUAT_NO_SIZE] = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_SIMPLE_QUAT_NO_SIZE];
+		// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_FULL_QUAT_NO_SIZE] = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_NORMAL_QUAT_NO_SIZE];
+		// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_SMALL_TRANS]       = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_SMALL_TRANS];
+		// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_TRANS]             = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_TRANS];
+		// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_TRANS_NO_SIZE]     = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_TRANS_NO_SIZE];
+		// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_NO_TRANS]          = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_NO_TRANS];
+		// 		parts.boneCount[Game::IW4::XAnimPartType::PART_TYPE_ALL]               = xanim->boneCount[Game::IW3::XAnimPartType::PART_TYPE_ALL];
 
-		parts.bDelta = false;
-		parts.delta = nullptr;
+		parts.bDelta = xanim->deltaPart != nullptr;
+
+		if (xanim->deltaPart)
+		{
+			parts.delta = LocalAllocator.Allocate< Game::IW4::XAnimDeltaPart>();
+			parts.delta->trans = xanim->deltaPart->trans;
+			parts.delta->quat2 = xanim->deltaPart->quat;
+		}
 
 		auto allocated = LocalAllocator.Allocate< Game::IW4::XAnimParts>();
 		*allocated = parts;
@@ -57,12 +63,12 @@ namespace Components
 
 	IXAnimParts::IXAnimParts()
 	{
-		Command::Add("dumpXAnimParts", [] (Command::Params params)
-		{
-			if (params.Length() < 2) return;
-			auto converted = IXAnimParts::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_XANIMPARTS, params[1]).parts);
-			MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_XANIMPARTS, converted);
-		});
+		Command::Add("dumpXAnimParts", [](Command::Params params)
+			{
+				if (params.Length() < 2) return;
+				auto converted = IXAnimParts::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_XANIMPARTS, params[1]).parts);
+				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_XANIMPARTS, converted);
+			});
 	}
 
 	IXAnimParts::~IXAnimParts()
