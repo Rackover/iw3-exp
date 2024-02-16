@@ -60,6 +60,9 @@ namespace Components
 		ReallocateAssetPool(Game::IW3::ASSET_TYPE_LOCALIZE_ENTRY, 4440 * 2);
 		ReallocateAssetPool(Game::IW3::ASSET_TYPE_XMODEL, 1000 * 2);
 		ReallocateAssetPool(Game::IW3::ASSET_TYPE_LOADED_SOUND, 1200 * 2);
+		ReallocateAssetPool(Game::IW3::ASSET_TYPE_IMAGE, 2400 * 2);
+		ReallocateAssetPool(Game::IW3::ASSET_TYPE_MAP_ENTS, 2 * 5);
+		ReallocateAssetPool(Game::IW3::ASSET_TYPE_IMPACT_FX, 4 * 5);
 		IncreaseMemory();
 
 		// enable commandline

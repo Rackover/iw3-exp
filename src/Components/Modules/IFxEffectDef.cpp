@@ -192,7 +192,10 @@ namespace Components
 		Command::Add("dumpFxEffectDef", [](Command::Params params)
 			{
 				if (params.Length() < 2) return;
-				auto converted = IFxEffectDef::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_FX, params[1]).fx);
+
+				const auto name = params[1];
+				const auto header = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_FX, name);
+				auto converted = IFxEffectDef::Convert(header.fx);
 				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_FX, converted);
 			});
 	}

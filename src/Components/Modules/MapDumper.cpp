@@ -140,12 +140,12 @@ namespace Components
 
 		const teamDef finalTeams[] = {
 			// ORIGINAL NAME			NAME			FALLBACK			LOC NAME			LOC SHORT				ELIMINATED					FORFEITED				MAT					MAT_FADE			VOICE	SPAWN_THEME		VICTORY_THEME		FLAG						FLAG_CARRY				OBJPOINT						FLAG_FX					COLOR					HEADICON			PLASTIC_CASE				// MAP			// MPTYPES
-			{ "marines",	 "iw3_usmc_desert",			"us_army",			"MPUI_MARINES",		"MPUI_MARINES_SHORT",	"MP_MARINES_ELIMINATED",	"MP_MARINES_FORFEITED",	"faction_128_usmc", "faction_128_usmc_fade",	"US_",	"mp_spawn_usa",	"mp_victory_usa", "prop_flag_neutral",			"prop_flag_neutral",	"objpoint_flag_american",		"ui_flagbase_black",	{0.0f, 0.0f,  0.0f},	"headicon_rangers",	"com_plasticcase_beige_big", "mp_bog",		{"mptype_ally_sniper",				"mptype_ally_support",			"mptype_ally_rifleman",			"mptype_ally_engineer",				"mptype_ally_cqb",			"mptype_us_army_riot" }},
-			{ "opfor",		 "iw3_opfor_desert",		"opforce_composite","MPUI_OPFOR",		"MPUI_OPFOR_SHORT",		"MP_OPFOR_ELIMINATED",		"MP_OPFOR_FORFEITED",		"faction_128_arab",	"faction_128_arab_fade",	"AB_",	"mp_spawn_opfor",	"mp_victory_opfor", "prop_flag_neutral",	"prop_flag_neutral",	"objpoint_flag_opfor",			"ui_flagbase_black", {0.6f,  0.57f, 0.41f},	"headicon_arab",	"com_plasticcase_beige_big", "mp_bog",		{"mptype_axis_sniper",		"mptype_axis_support",	 "mptype_axis_rifleman",	"mptype_axis_engineer",		"mptype_axis_cqb",	"mptype_opforce_comp_riot" }},
-//			{ "sas",		 "iw3_sas_urban",			"seals_udt",	"MPUI_SAS",			"MPUI_SAS_SHORT",		"MP_SAS_ELIMINATED",		"MP_SAS_FORFEITED",		"faction_128_sas",	"faction_128_sa_fades",	"UK_",	"mp_spawn_sas",	"mp_victory_sas", "prop_flag_neutral",			"prop_flag_neutral",	"objpoint_flag_british",		"ui_flagbase_black",	{0.6f,  0.64f, 0.69f},	"headicon_taskforce141",	"com_plasticcase_beige_big", "mp_carentan",		{"mptype_ally_urban_sniper",		"mptype_ally_urban_support",	"mptype_ally_urban_assault",	"mptype_ally_urban_recon",			"mptype_ally_urban_specops",	"mptype_seal_udt_riot" }},
-//			{ "russian",	 "iw3_spetsnaz_urban",		"opforce_airborne",	"MPUI_SPETSNAZ",	"MPUI_SPETSNAZ_SHORT",	"MP_SPETSNAZ_ELIMINATED",	"MP_SPETSNAZ_FORFEITED",	"faction_128_ussr",	"faction_128_ussr_fade",	"RU_",	"mp_spawn_soviet",	"mp_victory_soviet", "prop_flag_neutral",	"prop_flag_neutral",	"objpoint_flag_russian",		"ui_flagbase_black", {0.58f,  0.28f, 0.28f},"headicon_ussr",	"com_plasticcase_beige_big", "mp_carentan",		{"mptype_axis_urban_sniper",		"mptype_axis_urban_support",	 "mptype_axis_urban_assault",	"mptype_axis_urban_engineer",		"mptype_axis_urban_cqb",	"mptype_opforce_airborne_riot" }},
-//			{ "sas",		 "iw3_sas_woodland",		"socom_141_forest",	"MPUI_SAS",			"MPUI_SAS_SHORT",		"MP_SAS_ELIMINATED",		"MP_SAS_FORFEITED",		"faction_128_sas",	"faction_128_sas_fade",	"UK_",	"mp_spawn_sas",	"mp_victory_sas", "prop_flag_neutral",			"prop_flag_neutral",	"objpoint_flag_british",		"ui_flagbase_black",	{0.6f,  0.64f, 0.69f},	"headicon_taskforce141",	"com_plasticcase_beige_big", "mp_pipeline",	{"mptype_ally_woodland_sniper",	"mptype_ally_woodland_support",	"mptype_ally_woodland_assault",	"mptype_ally_woodland_recon",		"mptype_ally_woodland_specops",	"mptype_tf141_forest_riot" }},
-//			{ "russian",	 "iw3_spetsnaz_woodland",	"opforce_airborne",	"MPUI_SPETSNAZ",	"MPUI_SPETSNAZ_SHORT",	"MP_SPETSNAZ_ELIMINATED",	"MP_SPETSNAZ_FORFEITED",	"faction_128_ussr",	"faction_128_ussr_fade",	"RU_",	"mp_spawn_soviet",	"mp_victory_soviet", "prop_flag_neutral",	"prop_flag_neutral",	"objpoint_flag_russian",		"ui_flagbase_black", {0.58f,  0.28f, 0.28f},"headicon_ussr",	"com_plasticcase_beige_big", "mp_pipeline",	{"mptype_axis_woodland_sniper",		"mptype_axis_woodland_support",	 "mptype_axis_woodland_rifleman",	"mptype_axis_woodland_engineer",		"mptype_axis_woodland_cqb",	"mptype_opforce_airborne_riot" }}
+			{ "marines",	 "iw3_usmc_desert",			"us_army",			"MPUI_MARINES",		"MPUI_MARINES_SHORT",	"MP_MARINES_ELIMINATED",	"MP_MARINES_FORFEITED",	"faction_128_usmc", "faction_128_usmc_fade",	"US_",	"mp_spawn_usa",	"mp_victory_usa", "prop_flag_neutral",			"prop_flag_neutral",	"objpoint_flag_american",		"ui_flagbase_black",	{0.0f, 0.0f,  0.0f},	"headicon_american",	"com_plasticcase_beige_big", "mp_bog",		{"mptype_ally_sniper",				"mptype_ally_support",			"mptype_ally_rifleman",			"mptype_ally_engineer",				"mptype_ally_cqb",			"mptype_us_army_riot" }},
+			{ "opfor",		 "iw3_opfor_desert",		"opforce_composite","MPUI_OPFOR",		"MPUI_OPFOR_SHORT",		"MP_OPFOR_ELIMINATED",		"MP_OPFOR_FORFEITED",		"faction_128_arab",	"faction_128_arab_fade",	"AB_",	"mp_spawn_opfor",	"mp_victory_opfor", "prop_flag_neutral",	"prop_flag_neutral",	"objpoint_flag_opfor",			"ui_flagbase_black", {0.6f,  0.57f, 0.41f},	"headicon_opfor",	"com_plasticcase_beige_big", "mp_bog",		{"mptype_axis_sniper",		"mptype_axis_support",	 "mptype_axis_rifleman",	"mptype_axis_engineer",		"mptype_axis_cqb",	"mptype_opforce_comp_riot" }},
+			{ "sas",		 "iw3_sas_urban",			"seals_udt",	"MPUI_SAS",			"MPUI_SAS_SHORT",		"MP_SAS_ELIMINATED",		"MP_SAS_FORFEITED",		"faction_128_sas",	"faction_128_sa_fades",	"UK_",	"mp_spawn_sas",	"mp_victory_sas", "prop_flag_neutral",			"prop_flag_neutral",	"objpoint_flag_british",		"ui_flagbase_black",	{0.6f,  0.64f, 0.69f},	"headicon_british",	"com_plasticcase_beige_big", "mp_carentan",		{"mptype_ally_urban_sniper",		"mptype_ally_urban_support",	"mptype_ally_urban_assault",	"mptype_ally_urban_recon",			"mptype_ally_urban_specops",	"mptype_seal_udt_riot" }},
+			{ "russian",	 "iw3_spetsnaz_urban",		"opforce_airborne",	"MPUI_SPETSNAZ",	"MPUI_SPETSNAZ_SHORT",	"MP_SPETSNAZ_ELIMINATED",	"MP_SPETSNAZ_FORFEITED",	"faction_128_ussr",	"faction_128_ussr_fade",	"RU_",	"mp_spawn_soviet",	"mp_victory_soviet", "prop_flag_neutral",	"prop_flag_neutral",	"objpoint_flag_russian",		"ui_flagbase_black", {0.58f,  0.28f, 0.28f},"headicon_russian",	"com_plasticcase_beige_big", "mp_carentan",		{"mptype_axis_urban_sniper",		"mptype_axis_urban_support",	 "mptype_axis_urban_assault",	"mptype_axis_urban_engineer",		"mptype_axis_urban_cqb",	"mptype_opforce_airborne_riot" }},
+			{ "sas",		 "iw3_sas_woodland",		"socom_141_forest",	"MPUI_SAS",			"MPUI_SAS_SHORT",		"MP_SAS_ELIMINATED",		"MP_SAS_FORFEITED",		"faction_128_sas",	"faction_128_sas_fade",	"UK_",	"mp_spawn_sas",	"mp_victory_sas", "prop_flag_neutral",			"prop_flag_neutral",	"objpoint_flag_british",		"ui_flagbase_black",	{0.6f,  0.64f, 0.69f},	"headicon_british",	"com_plasticcase_beige_big", "mp_pipeline",	{"mptype_ally_woodland_sniper",	"mptype_ally_woodland_support",	"mptype_ally_woodland_assault",	"mptype_ally_woodland_recon",		"mptype_ally_woodland_specops",	"mptype_tf141_forest_riot" }},
+			{ "russian",	 "iw3_spetsnaz_woodland",	"opforce_airborne",	"MPUI_SPETSNAZ",	"MPUI_SPETSNAZ_SHORT",	"MP_SPETSNAZ_ELIMINATED",	"MP_SPETSNAZ_FORFEITED",	"faction_128_ussr",	"faction_128_ussr_fade",	"RU_",	"mp_spawn_soviet",	"mp_victory_soviet", "prop_flag_neutral",	"prop_flag_neutral",	"objpoint_flag_russian",		"ui_flagbase_black", {0.58f,  0.28f, 0.28f},"headicon_russian",	"com_plasticcase_beige_big", "mp_pipeline",	{"mptype_axis_woodland_sniper",		"mptype_axis_woodland_support",	 "mptype_axis_woodland_rifleman",	"mptype_axis_woodland_engineer",		"mptype_axis_woodland_cqb",	"mptype_opforce_airborne_riot" }}
 		};
 
 		const auto& basePath = AssetHandler::GetExportPath();
@@ -155,6 +155,7 @@ namespace Components
 			const std::string& exportPath = std::format("{}/{}", basePath, team.iw4name);
 			Utils::CreateDir(exportPath);
 			GetApi()->set_work_path(exportPath);
+			GetApi()->clear_writes();
 
 			std::string mapToDump = team.takeFromMap;
 
@@ -162,7 +163,7 @@ namespace Components
 			{
 				MapDumper::mapName = mapToDump;
 				Logger::Print("Loading map '%s'...\n", mapToDump.data());
-				Command::Execute(Utils::VA("map %s", mapToDump.data()), true);
+				Command::Execute(Utils::VA("loadzone %s", mapToDump.data()), true);
 			}
 
 			std::string lowerPrefix = team.voicePrefix;
@@ -291,8 +292,8 @@ namespace Components
 				zoneSource << "xmodel," << team.flagCarryModel << "\n";
 				Command::Execute(Utils::VA("dumpXModel %s", team.flagCarryModel.data()), true);
 
-				zoneSource << "fx," << team.flagFX << "\n";
-				Command::Execute(Utils::VA("dumpFxEffectDef %s", team.flagFX.data()), true);
+				zoneSource << "fx,misc/" << team.flagFX << "\n";
+				Command::Execute(Utils::VA("dumpFxEffectDef misc/%s", team.flagFX.data()), true);
 
 				zoneSource << "material," << team.objPointFlagMaterial << "\n";
 				Command::Execute(Utils::VA("dumpMaterial %s", team.objPointFlagMaterial.data()), true);
@@ -359,18 +360,6 @@ namespace Components
 				)
 			);
 		}
-
-	/*	Game::DB_EnumXAssetEntries(Game::IW3::XAssetType::ASSET_TYPE_MATERIAL, [](Game::IW3::XAssetEntryPoolEntry* poolEntry) {
-			if (poolEntry)
-			{
-
-			}
-			}, false);*/
-
-
-
-		//Command::Execute(Utils::VA("loadzone %s", map), true);
-
 	}
 
 	void MapDumper::DumpMap(std::string mapToDump)
