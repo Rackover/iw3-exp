@@ -273,7 +273,7 @@ namespace Components
 
 	void IXModel::AddMissingMultiplayerModelBones(Game::IW4::XModel* model)
 	{
-		const auto stowedBack = GetIndexOfBone(model, "stowed_back");
+		const auto stowedBack = GetIndexOfBone(model, "tag_stowed_back");
 		const auto hipTwistLeft = GetIndexOfBone(model, "j_hiptwist_le");
 		if (stowedBack != UCHAR_MAX && hipTwistLeft != UCHAR_MAX)
 		{
@@ -282,8 +282,23 @@ namespace Components
 				const auto parent = GetParentOfBone(model, stowedBack);
 				const auto shieldBack = InsertBone(model, "tag_shield_back", parent, LocalAllocator);
 
-				const float* backTrans = &model->trans[(shieldBack - model->numRootBones) * 3];
-				SetBoneTrans(model, shieldBack, false, backTrans[0], backTrans[1], backTrans[2]);
+				// Values taken from highrise
+
+				SetBoneTrans(model, shieldBack, false, 0.0f, -8.43f, 0.801f);
+				SetBoneQuaternion(model, shieldBack, false,
+					-17151 / (float)SHRT_MAX,
+					15578 / (float)SHRT_MAX,
+					-15578 / (float)SHRT_MAX,
+					17151 / (float)SHRT_MAX
+				);
+
+				SetBoneTrans(model, shieldBack, true, -11.713314f, 0.801846802f, 52.1543541f);
+				SetBoneQuaternion(model, shieldBack, true,
+					-0.0714808181f,
+					-0.0f,
+					-0.997450888f,
+					-0.0f
+				);
 			}
 
 			if (GetIndexOfBone(model, "tag_stowed_hip_le") == UCHAR_MAX)
