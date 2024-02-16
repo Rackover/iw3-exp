@@ -39,6 +39,7 @@ namespace Components
 		{42, 46},	// Before effects 3 (extremely wild guess)
 		{43, 29},	// Blend / additive => to a decal layer (shouldn't this be to 47?)
 		{48, 48},	// Effect auto sort!
+		{51, 9},	// FX Top
 		{56, 49},	// AE Bottom
 		{57, 50},	// AE Middle
 		{58, 51},	// AE top
@@ -168,12 +169,35 @@ namespace Components
 					// But since speculars are regenerated we end up with cod6 speculars with cod4 materials
 					// and cod6 speculars are a bit too bright for 
 
-					targetDef->literal[0] *= 0.0875f; // envMapMin
-					targetDef->literal[1] *= 0.2f;  // envMapMax
-					targetDef->literal[2] *= 1.4f;    // engMapExponent
-					targetDef->literal[3] *= 2.2f;    // envMapIntensity
-				}
+					if (std::string(mat.name).starts_with("mtl_weapon"))
+					{
+						// MASADA
+						targetDef->literal[0] *= 0.75f; // envMapMin
+						targetDef->literal[1] *= 1.0f;  // envMapMax
+						targetDef->literal[2] *= 0.8f;    // engMapExponent
+						targetDef->literal[3] *= 6.144f;    // envMapIntensity
 
+						// M40A3
+						//targetDef->literal[0] *= 0.0875f; // envMapMin
+						//targetDef->literal[1] *= 0.165f;  // envMapMax
+						//targetDef->literal[2] *= 1.4f;    // engMapExponent
+						//targetDef->literal[3] *= 3.2f;    // envMapIntensity
+					}
+					else
+					{
+						targetDef->literal[0] *= 0.0875f; // envMapMin
+						targetDef->literal[1] *= 0.2f;  // envMapMax
+						targetDef->literal[2] *= 1.4f;    // engMapExponent
+						targetDef->literal[3] *= 2.2f;    // envMapIntensity
+					}
+				}
+				else if (targetDef->name == "waterColor"s)
+				{
+						targetDef->literal[0] *= 0.25f; // envMapMin
+						targetDef->literal[1] *= 0.25f;  // envMapMax
+						targetDef->literal[2] *= 0.25f;    // engMapExponent
+						targetDef->literal[3] *= 0.25f;    // envMapIntensity
+				}
 			}
 		}
 
@@ -235,9 +259,9 @@ namespace Components
 				return 34;
 			}
 
-			if (name.contains("shadow"))
+			if (name.contains("shadow_caster") || name.contains("shadowcaster"))
 			{
-				Logger::Print("Material %s was given sortkey %i from %i (contains 'shadow' in the name, likely shadowcaster)\n", name.data(), 34, iw3Key);
+				Logger::Print("Material %s was given sortkey %i from %i (contains 'shadow caster' in the name, likely shadowcaster)\n", name.data(), 34, iw3Key);
 				return 34;
 			}
 
@@ -254,6 +278,13 @@ namespace Components
 			{
 				//"opaque" => SORTKEY_BLEND_ADDITIVE
 				Logger::Print("Material %s was given sortkey %i from %i (2d)\n", name.data(), 47, iw3Key);
+				return 47;
+			}
+
+			if (techsetName.contains("tools"))
+			{
+				//"opaque" => SORTKEY_BLEND_ADDITIVE
+				Logger::Print("Material %s was given sortkey %i from %i (tools)\n", name.data(), 47, iw3Key);
 				return 47;
 			}
 		}
@@ -370,7 +401,12 @@ namespace Components
 			if (techsetName.contains("particle"))
 			{
 				// cloud_snowflake01
-				if (techsetName.contains("outdoor"))
+				if (techsetName.contains("particle_cloud"))
+				{
+					Logger::Print("Material %s was given sortkey %i from %i (is a cloud particle)\n", name.data(), 48, iw3Key);
+					return 48;
+				}
+				else if (techsetName.contains("outdoor"))
 				{
 					Logger::Print("Material %s was given sortkey %i from %i (is an outdoor particle)\n", name.data(), 51, iw3Key);
 					return 51;
@@ -415,6 +451,28 @@ namespace Components
 			 - 9 (1 matches)
 				 - mp_vacant:mc\mtl_cardboardbox_decal.json
 			*/
+		}
+
+		if (iw3Key == 58)
+		{
+			// Could be 33 maybe...
+			if (material->techniqueSet->techniques[Game::IW3::TECHNIQUE_LIT])
+			{
+				// AC130 map materials
+				Logger::Print("Material %s was given sortkey %i from %i (has a lit slot)\n", name.data(), 33, iw3Key);
+				return 33;
+			}
+		}
+
+		if (iw3Key == 59)
+		{
+		// Could be 53, but also...
+			if (material->techniqueSet->techniques[Game::IW3::TECHNIQUE_LIT])
+			{
+				// mtl_fx_shell_alpha
+				Logger::Print("Material %s was given sortkey %i from %i (has a lit slot)\n", name.data(), 33, iw3Key);
+				return 33;
+			}
 		}
 
 

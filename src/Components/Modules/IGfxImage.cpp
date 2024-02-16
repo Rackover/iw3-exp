@@ -8,9 +8,39 @@ static_assert(sizeof Game::IW4::GfxImageFileHeader::fileSizeForPicmip == sizeof 
 
 namespace Components
 {
+	static const std::unordered_set<std::string> imagesToRename =
+	{
+		"xpec_electrical_transformer_col", // Used between IW3 and IW4 but very different texture
+		"xpec_electrical_transformer_nml", 
+		"refrigerator2_col", // Blue fridge in IW4, red in IW3
+		"refrigerator2_nml",
+		"refrigerator_col", // Different fridge texture
+		"refrigerator_nml",
+	};
+
+	static std::unordered_map<std::string, std::string> imagesRenamed{};
+	static std::unordered_map<std::string, std::string> imagesRenamedReverse{};
+
+	const std::string IGfxImage::imageSuffix = "_3x";
+
 	std::string IGfxImage::ConvertIWIOnTheFly(const std::string& filename)
 	{
-		FileSystem::File img(filename);
+		std::string truncated_filename = filename;
+		const auto export_path = AssetHandler::GetExportPath();
+		if (filename.contains(export_path))
+		{
+			truncated_filename = filename.substr(export_path.length()+1, filename.length()-export_path.length()-1);
+		}
+
+		auto loneImageName = truncated_filename.substr("images/"s.length());
+		loneImageName = loneImageName.substr(0, loneImageName.size() - ".iwi"s.size());
+
+		if (imagesRenamedReverse.contains(loneImageName))
+		{
+			loneImageName = imagesRenamedReverse.at(loneImageName);
+			truncated_filename = std::format("images/{}.iwi", loneImageName);
+		}
+		FileSystem::File img(truncated_filename);
 
 		if (!img.Exists())
 		{
@@ -75,6 +105,12 @@ namespace Components
 		iw4Tex->loadDef = ConvertLoadDef(iw3Texture->loadDef);
 
 		return iw4Tex;
+	}
+
+	void IGfxImage::AddRename(const std::string& originalName, const std::string& intoName)
+	{
+		imagesRenamed[originalName] = intoName;
+		imagesRenamedReverse[intoName] = originalName;
 	}
 
 	Game::IW4::GfxImage* IGfxImage::Convert(Game::IW3::GfxImage* image)
@@ -282,11 +318,15 @@ namespace Components
 		Command::Add("dumpGfxImage", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
+				
+				const auto entry = Game::DB_FindXAssetEntry(Game::IW3::ASSET_TYPE_IMAGE, params[1]);
+				if (entry)
+				{
+					Game::IW3::GfxImage* image = entry->entry.asset.header.image;
 
-				Game::IW3::GfxImage* image = Game::DB_FindXAssetHeader(Game::IW3::ASSET_TYPE_IMAGE, params[1]).image;
-
-				auto converted = IGfxImage::Convert(image);
-				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_IMAGE, converted);
+					auto converted = IGfxImage::Convert(image);
+					MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_IMAGE, converted);
+				}
 			});
 
 		Utils::Hook(0x616E80, IGfxImage::StoreTexture, HOOK_JUMP).install()->quick();

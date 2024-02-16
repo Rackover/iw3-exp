@@ -33,8 +33,35 @@ namespace Components
 		return 0;
 	}
 
+	Game::IW3::XAssetHeader ReallocateAssetPool(Game::IW3::XAssetType type, unsigned int newSize)
+	{
+		const auto size = Game::DB_GetXAssetSizeHandlers[type]();
+		Game::IW3::XAssetHeader poolEntry = { malloc(newSize * size) };
+		Game::DB_XAssetPool[type] = poolEntry;
+		Game::g_poolSize[type] = newSize;
+		return poolEntry;
+	}
+
+	void IncreaseMemory()
+	{
+		constexpr auto ORIGINAL_MEMORY = 0x8000000;
+		constexpr auto NEW_MEMORY = ORIGINAL_MEMORY * 4; // Quadruple memory to be able to load multiple or SP zones
+		Utils::Hook::Set<DWORD>(0x4FF23B + 1, NEW_MEMORY);
+		Utils::Hook::Set<DWORD>(0x4FF26B + 6, NEW_MEMORY);
+		Utils::Hook::Set<DWORD>(0X5755E2 + 4, NEW_MEMORY);
+		Utils::Hook::Set<DWORD>(0x5756F5 + 4, NEW_MEMORY);
+	}
+
 	QuickPatch::QuickPatch()
 	{
+		ReallocateAssetPool(Game::IW3::ASSET_TYPE_GAMEWORLD_SP, 3);
+		ReallocateAssetPool(Game::IW3::ASSET_TYPE_WEAPON, 128 * 10);
+		ReallocateAssetPool(Game::IW3::ASSET_TYPE_FX, 400 * 10);
+		ReallocateAssetPool(Game::IW3::ASSET_TYPE_LOCALIZE_ENTRY, 4440 * 2);
+		ReallocateAssetPool(Game::IW3::ASSET_TYPE_XMODEL, 1000 * 2);
+		ReallocateAssetPool(Game::IW3::ASSET_TYPE_LOADED_SOUND, 1200 * 2);
+		IncreaseMemory();
+
 		// enable commandline
 		//Utils::Hook::Nop(0x57760E, 5);
 
@@ -43,6 +70,10 @@ namespace Components
 
 		// Set fs_game
 		Utils::Hook::Set<const char*>(0x55E509, "mods/iw3-exp");
+
+		// Load weapon assets EVEN if we're in dedicated mode
+		Utils::Hook::Nop(0x5727F0, 2);
+		Utils::Hook::Nop(0x57279F, 6);
 
 		Utils::Hook(0x4FF20A, QuickPatch::OnInitStub, HOOK_CALL).install()->quick();
 

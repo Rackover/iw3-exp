@@ -18,6 +18,9 @@ namespace Game
 	typedef IW3::XAssetHeader(__cdecl * DB_FindXAssetHeader_t)(IW3::XAssetType type, const char* name);
 	extern DB_FindXAssetHeader_t DB_FindXAssetHeader;
 
+	typedef bool(__cdecl * DB_IsXAssetDefault_t)(IW3::XAssetType type, const char* name);
+	extern DB_IsXAssetDefault_t DB_IsXAssetDefault;
+
 	typedef void(__cdecl * DB_EnumXAssets_FastFile_t)(IW3::XAssetType type, void(*)(IW3::XAssetHeader, void *), void* userdata, bool overrides);
 	extern DB_EnumXAssets_FastFile_t DB_EnumXAssets_FastFile;
 
@@ -26,6 +29,12 @@ namespace Game
 
     typedef void(*DB_LoadXAssets_t)(XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
     extern DB_LoadXAssets_t DB_LoadXAssets;
+
+	typedef int(*DB_GetXAssetSizeHandler_t)();
+	extern DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers;
+
+	extern IW3::XAssetHeader * DB_XAssetPool;
+	extern unsigned int* g_poolSize;
 
 	typedef signed int(*FS_Read_t)(void* buffer, size_t bufferSize, int handle);
 	extern FS_Read_t FS_Read;
@@ -41,6 +50,9 @@ namespace Game
 
 	typedef const char* (*SEH_LocalizeTextMessage_t)(const char* a1, const char* a2, int a3);
 	extern SEH_LocalizeTextMessage_t SEH_LocalizeTextMessage;
+
+	typedef int (*SL_GetStringOfSize_t)(const char* a1, int user, int length);
+	extern SL_GetStringOfSize_t SL_GetStringOfSize;
 
 	int DB_HashForName(Game::IW3::XAssetType type, const char* name);
 

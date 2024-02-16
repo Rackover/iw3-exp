@@ -6,14 +6,19 @@ namespace Components
 		Game::IW4::clipMap_t* clipMap,
 		unsigned short* size)
 	{
-		if (clipMap->numStaticModels - IGfxWorld::removedStaticModelIndices.size() <= 0) return nullptr;
+		float maxs[3]{};
+		float mins[3]{};
 
-		float maxs[3];
-		float mins[3];
+		if (clipMap->numStaticModels - IGfxWorld::removedStaticModelIndices.size() > 0)
+		{
+			clipMap->staticModelList[0].absBounds.max(maxs);
+			clipMap->staticModelList[0].absBounds.min(mins);
+		}
+		else
+		{
+			// We still need the smodel nodes even when there is no model
+		}
 
-
-		clipMap->staticModelList[0].absBounds.max(maxs);
-		clipMap->staticModelList[0].absBounds.min(mins);
 
 		for (unsigned short i = 1; i < clipMap->numStaticModels; i++)
 		{
@@ -73,6 +78,7 @@ namespace Components
 		}
 
 		// Repair clipmap... i think
+		size_t repairedTotal = 0;
 		for (auto kv : nodesToRepair)
 		{
 			auto node = kv.second;
@@ -105,8 +111,13 @@ namespace Components
 
 			if (repaired)
 			{
-				Components::Logger::Print("Successfully linked node %i to brushes on clipmap\n", kv.first);
+				repairedTotal++;
 			}
+		}
+
+		if (repairedTotal > 0)
+		{
+			Components::Logger::Print("Successfully repaired %i nodes on clipmap\n", repairedTotal);
 		}
 	}
 
@@ -612,7 +623,9 @@ namespace Components
 		Command::Add("dumpclipMap_t", [](const Command::Params& params)
 			{
 				if (params.Length() < 2) return;
-				auto iw4Map = IclipMap_t::Convert(Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]).clipMap);
+
+				auto header = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_CLIPMAP_PVS, params[1]);
+				auto iw4Map = IclipMap_t::Convert(header.clipMap);
 				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_CLIPMAP_MP, iw4Map);
 			});
 	}

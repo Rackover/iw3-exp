@@ -81,7 +81,8 @@ namespace Components
 		// Wrong if a spotlight is closer than the directional (happens on mp_bloc)
 		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_SPECULAR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_SPECULAR },
 		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_POSITION, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_POSITION },
-
+		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_DIFFUSE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHT_DIFFUSE },
+		
 		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_LIGHTING_LOOKUP_SCALE, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_LIGHTING_LOOKUP_SCALE },
 		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_DEBUG_BUMPMAP, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_DEBUG_BUMPMAP },
 		{ Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_MATERIAL_COLOR, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_MATERIAL_COLOR },
@@ -323,14 +324,20 @@ namespace Components
 			if (pass->vertexShader)
 			{
 				iw4Pass->vertexShader = IMaterialTechniqueSet::ConvertVS(pass->vertexShader);
-				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_VERTEXSHADER, iw4Pass->vertexShader);
+				if (iw4Pass->vertexShader)
+				{
+					MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_VERTEXSHADER, iw4Pass->vertexShader);
+				}
 
 			}
 
 			if (pass->pixelShader)
 			{
 				iw4Pass->pixelShader = IMaterialTechniqueSet::ConvertPS(pass->pixelShader);
-				MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_PIXELSHADER, iw4Pass->pixelShader);
+				if (iw4Pass->pixelShader )
+				{
+					MapDumper::GetApi()->write(Game::IW4::XAssetType::ASSET_TYPE_PIXELSHADER, iw4Pass->pixelShader);
+				}
 			}
 
 			std::vector<Game::IW3::MaterialShaderArgument> argumentsToSort{};
@@ -361,34 +368,59 @@ namespace Components
 						//iw3Index == Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_POSITION || 
 						iw3Index == Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_DIFFUSE)
 					{
-						litteralized = true;
-
 						const auto mapName = MapDumper::GetMapName();
-						Game::IW3::GfxLight* light;
-						Game::IW3::GfxLight backupLight;
+						Game::IW3::GfxLight* light = nullptr;
+						bool overrideLight = false;
 
 						if (mapName.empty())
 						{
+#if !MAP_SUN_TO_LIGHT
+							Game::IW3::GfxLight backupLight{};
+
 							backupLight.dir[0] = 0.5773502691896257f;
 							backupLight.dir[1] = 0.5773502691896257f;
 							backupLight.dir[2] = -0.5773502691896257f;
 
+							backupLight.color[0] = 255.F / 255.F;
+							backupLight.color[1] = 243.F / 255.F;
+							backupLight.color[2] = 224.F / 255.F;
+
 							light = &backupLight;
+
+							overrideLight = true;
+#endif
 						}
 						else 
 						{
-							const auto worldName = std::format("maps/mp/{}.d3dbsp", mapName);
-							const auto worldHeader = Game::DB_FindXAssetHeader(Game::IW3::ASSET_TYPE_GFXWORLD, worldName.data());
-							const auto iw3World = worldHeader.gfxWorld;
+							Game::IW3::GfxWorld* iw3World{};
 
-							light = iw3World->sunLight;
+							Game::DB_EnumXAssetEntries(Game::IW3::ASSET_TYPE_GFXWORLD, [&iw3World](Game::IW3::XAssetEntryPoolEntry* entry)
+							{
+								iw3World = entry->entry.asset.header.gfxWorld;
+							}, false);
+
+							if (iw3World && iw3World->sunLight)
+							{
+
+								light = iw3World->sunLight;
+								overrideLight = true;
+							}
+							else
+							{
+#if !MAP_SUN_TO_LIGHT
+								Logger::Print("Invalid world or no light found for sun litteralization\n");
+#endif
+							}
 						}
 
-						iw4Arg->type = Game::MTL_ARG_LITERAL_PIXEL_CONST;
-						iw4Arg->u.literalConst = LocalAllocator.AllocateArray<float>(4);
-
-						switch (iw3Index)
+						if (overrideLight)
 						{
+							litteralized = true;
+							iw4Arg->type = Game::MTL_ARG_LITERAL_PIXEL_CONST;
+							iw4Arg->u.literalConst = LocalAllocator.AllocateArray<float>(4);
+
+							switch (iw3Index)
+							{
 							case Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_POSITION:
 								// Wild guess
 								iw4Arg->u.literalConst[0] = -light->dir[0];
@@ -400,12 +432,14 @@ namespace Components
 
 							case Game::IW3::ShaderCodeConstants::CONST_SRC_CODE_SUN_DIFFUSE:
 								// Not gamma corrected. TODO use IW4's comworld instead, post conv
-								std::memcpy(iw4Arg->u.literalConst, light->color, (sizeof (float)) * 3);
+								std::memcpy(iw4Arg->u.literalConst, light->color, (sizeof(float)) * 3);
 								iw4Arg->u.literalConst[3] = 0.f;
 								break;
+							}
 						}
 					}
-					else
+
+					if (!litteralized)
 					{
 						auto newIndex = IMaterialTechniqueSet::iw3CodeConstMap.find(iw3Index);
 						if (newIndex == IMaterialTechniqueSet::iw3CodeConstMap.end())
@@ -420,8 +454,6 @@ namespace Components
 						{
 							// If IsWaterTechnique => fuck up the sun position
 							// Because it's not correct for iw3 anyway and so unexpected
-							//	EDIT:  I think actuallly this is no longer necessary since we litterliaze sunlight position
-							//	ALMOST certainly this was caused by sunlight sampling the wrong light due to bad const mapping, which is solved nowadays
 
 							Logger::Print("Routed the pass argument %i to the wrong constant %i instead of %i on purpose because it is a water material!\n", k, Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR, val);
 							val = Game::IW4::ShaderCodeConstants::CONST_SRC_CODE_FOG_COLOR_LINEAR; // Anything normalized & stable will do

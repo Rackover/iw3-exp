@@ -198,14 +198,18 @@ namespace Utils
 
 	void Entities::AddRemovedSModels()
 	{
-		const std::string mapName = Components::MapDumper::GetMapName();
-		const std::string bspName = Utils::VA("maps/mp/%s.d3dbsp", mapName.data());
-		const auto header = Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_GFXWORLD, bspName.data());
+		Game::IW3::GfxWorld* iw3World{};
 
-		if (header.gfxWorld) {
+		Game::DB_EnumXAssetEntries(Game::IW3::ASSET_TYPE_GFXWORLD, [&iw3World](Game::IW3::XAssetEntryPoolEntry* entry)
+			{
+				iw3World = entry->entry.asset.header.gfxWorld;
+			}, false);
+
+
+		if (iw3World) {
 			for (auto index : Components::IGfxWorld::removedStaticModelIndices)
 			{
-				auto drawInst = &header.gfxWorld->dpvs.smodelDrawInsts[index];
+				auto drawInst = &iw3World->dpvs.smodelDrawInsts[index];
 
 				Game::vec3_t angles{};
 				Game::AxisToAngles(&angles, drawInst->placement.axis);

@@ -10,16 +10,23 @@ namespace Game
 
 	Com_Error_t Com_Error = Com_Error_t(0x4FD330);
 	Com_PrintMessage_t Com_PrintMessage = Com_PrintMessage_t(0x4FCA50);
-
+	
+	DB_IsXAssetDefault_t DB_IsXAssetDefault = DB_IsXAssetDefault_t(0x4898A0);
 	DB_FindXAssetHeader_t DB_FindXAssetHeader = DB_FindXAssetHeader_t(0x489570);
 	DB_EnumXAssets_FastFile_t DB_EnumXAssets_FastFile = DB_EnumXAssets_FastFile_t(0x489120);
 	DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers = reinterpret_cast<DB_GetXAssetNameHandler_t*>(0x7268D0);
     DB_LoadXAssets_t DB_LoadXAssets = DB_LoadXAssets_t(0x48A2B0);
+	DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = reinterpret_cast<DB_GetXAssetSizeHandler_t*>(0x726A10);
+
+	IW3::XAssetHeader* DB_XAssetPool = reinterpret_cast<IW3::XAssetHeader*>(0x7265E0);
+	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7263A0);
+
 	FS_Read_t FS_Read = FS_Read_t(0x55C120);
 	FS_FOpenFileRead_t FS_FOpenFileRead = FS_FOpenFileRead_t(0x55C050);
 	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = Image_LoadFromFileWithReader_t(0x642380);
 	FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase = FS_FOpenFileReadDatabase_t(0x55C030);
 	SEH_LocalizeTextMessage_t SEH_LocalizeTextMessage = SEH_LocalizeTextMessage_t(0x538D30);
+	SL_GetStringOfSize_t SL_GetStringOfSize = SL_GetStringOfSize_t(0x518290);
 
 	DWORD* cmd_id = reinterpret_cast<DWORD*>(0x1410B40);
 	DWORD* cmd_argc = reinterpret_cast<DWORD*>(0x1410B84);

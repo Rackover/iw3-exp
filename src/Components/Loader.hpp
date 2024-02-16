@@ -49,4 +49,5 @@ namespace Components
 #include "Modules/Isnd_alias_list_t.hpp"
 #include "Modules/ILoadedSound.hpp"
 #include "Modules/IGameWorld.hpp"
+#include "Modules/IWeapon.hpp"
 #include "Modules/IPhysPreset.hpp"

@@ -4,19 +4,54 @@ namespace Components
 {
 	std::unordered_set<std::string> GSC::dumpedSubscripts{};
 
-	void GSC::DumpSounds(const std::string& data)
+	void GSC::DumpFX(const std::string& data)
 	{
 		auto lines = Utils::Explode(data, '\n');
+		std::unordered_set<std::string> effects{};
+
 		for (auto& line : lines)
 		{
 			Utils::Replace(line, " ", "");
 
-			std::string toMatch[2] = { 
-				"ambientPlay\\(\"(.*)\"\\)"s ,
-				"ent.v\\[\"soundalias\"\\]=\"(.*)\";"s
+			std::string toMatch[1] = {
+				"loadfx ?\\( ?\"(.*)\" ?"s
 			};
 
-			for (size_t i = 0; i < 2; i++)
+			for (size_t i = 0; i < 1; i++)
+			{
+				std::regex regex(toMatch[i]);
+				std::cmatch m;
+
+				if (std::regex_search(line.data(), m, regex))
+				{
+					const auto& fxName = m[1];
+					effects.emplace(fxName.str());
+				}
+			}
+		}
+
+		for (const auto& fx : effects)
+		{
+			AssetHandler::Dump(Game::IW3::XAssetType::ASSET_TYPE_FX, Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_FX, fx.data()));
+		}
+	}
+
+	void GSC::DumpSounds(const std::string& data)
+	{
+		auto lines = Utils::Explode(data, '\n');
+		std::unordered_set<std::string> musics{};
+
+		for (auto& line : lines)
+		{
+			Utils::Replace(line, " ", "");
+
+			std::string toMatch[] = { 
+				"ambientPlay\\(\"(.*)\"\\)"s ,
+				"ent.v\\[\"soundalias\"\\]=\"(.*)\";"s,
+				"level.scr_sound(?:.*)= ?\"(.*)\";"s
+			};
+
+			for (size_t i = 0; i < ARRAYSIZE(toMatch); i++)
 			{
 				std::regex regex(toMatch[i]);
 				std::cmatch m;
@@ -24,9 +59,14 @@ namespace Components
 				if (std::regex_search(line.data(), m, regex))
 				{
 					const auto& musicName = m[1];
-					AssetHandler::Dump(Game::IW3::XAssetType::ASSET_TYPE_SOUND, Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_SOUND, musicName.str().data()));
+					musics.emplace(musicName.str());
 				}
 			}
+		}
+
+		for (const auto& music : musics)
+		{
+			AssetHandler::Dump(Game::IW3::XAssetType::ASSET_TYPE_SOUND, Game::DB_FindXAssetHeader(Game::IW3::XAssetType::ASSET_TYPE_SOUND, music.data()));
 		}
 	}
 
@@ -57,7 +97,6 @@ namespace Components
 
 				if (dumpedSubscripts.contains(scriptDeclaredName))
 				{
-					Components::Logger::Print("Skipping dump of script %s because we dumped it already\n", scriptDeclaredName.data());
 					continue;
 				}
 
@@ -137,7 +176,11 @@ namespace Components
 		GSC::PatchReference(data, "maps\\mp\\_fx", "common_scripts\\_fx");
 		GSC::PatchReference(data, "maps\\mp\\_createfx", "common_scripts\\_createfx");
 		GSC::PatchReference(data, "maps\\mp\\_utility", "common_scripts\\utility");
+		GSC::PatchReference(data, "maps\\_fx", "common_scripts\\_fx");
+		GSC::PatchReference(data, "maps\\_createfx", "common_scripts\\_createfx");
+		GSC::PatchReference(data, "maps\\_utility", "common_scripts\\utility");
 		GSC::DumpSounds(data);
+		GSC::DumpFX(data);
 	}
 
 	void GSC::ConvertMainArtGSC(std::string& data)
@@ -155,6 +198,8 @@ namespace Components
 
 		GSC::PatchReference(data, "maps\\mp\\_createfx", "common_scripts\\_createfx");
 		GSC::PatchReference(data, "maps\\mp\\_utility", "common_scripts\\utility");
+		GSC::PatchReference(data, "maps\\_createfx", "common_scripts\\_createfx");
+		GSC::PatchReference(data, "maps\\_utility", "common_scripts\\utility");
 		GSC::DumpSounds(data);
 
 		data = Utils::VA("//_createfx generated. Do not touch!!\n%s", data.data());
@@ -248,7 +293,7 @@ namespace Components
 		Utils::Replace(data, _old, _new);
 
 		// Add our include in case it was not there
-		data = Utils::VA("#include %s;\n%s", _new.data(), data.data());
+		data = std::format("#include {};\n{}", _new, data);
 
 		// Remove double includes (we might have created duplicates)
 		auto lines = Utils::Explode(data, '\n');
