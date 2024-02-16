@@ -6,6 +6,8 @@ static_assert(sizeof(Game::IW3::XModel) == 220, "Size of XModel is invalid!");
 
 namespace Components
 {
+	std::unordered_map<IXModel::IW3ModelSurf, IXModel::IW4ModelSurfCouple, IXModel::IW3ModelSurfHasher> IXModel::convertedModelSurfaces;
+
 	Game::IW4::XModel* IXModel::Convert(Game::IW3::XModel* model)
 	{
 		if (!model) return nullptr;
@@ -34,7 +36,7 @@ namespace Components
 			xmodel.materialHandles[i] = AssetHandler::Convert(Game::IW3::ASSET_TYPE_MATERIAL, { model->materialHandles[i]}).material;
 		}
 
-		for (int i = 0; i < 4; ++i)
+		for (uint8_t i = 0; i < model->numLods; ++i)
 		{
 #if EXTEND_CULLING
 			xmodel.lodInfo[i].dist = model->lodInfo[i].dist * 1.5f; // LOD distance is increased so that the maps look nicer in iw4
@@ -94,10 +96,24 @@ namespace Components
 					std::memcpy(target->partBits, source->partBits, sizeof(source->partBits));
 				}
 
-				xmodel.lodInfo[i].modelSurfs = LocalAllocator.Allocate<Game::IW4::XModelSurfs>();
-				xmodel.lodInfo[i].modelSurfs->name = LocalAllocator.DuplicateString(Utils::VA("%s_lod%d", model->name, i & 0xFF));
-				xmodel.lodInfo[i].modelSurfs->numSurfaces = static_cast<int>(xmodel.lodInfo[i].numsurfs);
-				xmodel.lodInfo[i].modelSurfs->surfaces = xmodel.lodInfo[i].surfs;
+
+				IW3ModelSurf surf(&model->surfs[xmodel.lodInfo[i].surfIndex], model->lodInfo[i].numsurfs);
+
+				if (convertedModelSurfaces.contains(surf))
+				{
+					const auto iw4Couple = convertedModelSurfaces[surf];
+					xmodel.lodInfo[i].modelSurfs = iw4Couple.xModelSurfs;
+					xmodel.lodInfo[i].surfs = iw4Couple.surfs;
+				}
+				else
+				{
+					xmodel.lodInfo[i].modelSurfs = LocalAllocator.Allocate<Game::IW4::XModelSurfs>();
+					xmodel.lodInfo[i].modelSurfs->name = LocalAllocator.DuplicateString(Utils::VA("%s_lod%d", model->name, i & 0xFF));
+					xmodel.lodInfo[i].modelSurfs->numSurfaces = static_cast<int>(xmodel.lodInfo[i].numsurfs);
+					xmodel.lodInfo[i].modelSurfs->surfaces = xmodel.lodInfo[i].surfs;
+
+					convertedModelSurfaces[surf] = IW4ModelSurfCouple(xmodel.lodInfo[i].modelSurfs->surfaces, xmodel.lodInfo[i].modelSurfs);
+				}
 
 				// 6 vs 4 part bit elements
 				std::memcpy(xmodel.lodInfo[i].modelSurfs->partBits, model->lodInfo[i].partBits, sizeof(model->lodInfo[i].partBits));
@@ -246,12 +262,537 @@ namespace Components
 			// The error may lie in the above codeblock, or in zonebuilder's reading of physcollmaps.
 			xmodel.physCollmap = nullptr;
 		}
+		
+		AddMissingMultiplayerModelBones(&xmodel);
 
 		auto xmodelPtr = LocalAllocator.Allocate<Game::IW4::XModel>();
 		*xmodelPtr = xmodel;
 
 		return xmodelPtr;
 	}
+
+	void IXModel::AddMissingMultiplayerModelBones(Game::IW4::XModel* model)
+	{
+		const auto stowedBack = GetIndexOfBone(model, "stowed_back");
+		const auto hipTwistLeft = GetIndexOfBone(model, "j_hiptwist_le");
+		if (stowedBack != UCHAR_MAX && hipTwistLeft != UCHAR_MAX)
+		{
+			if (GetIndexOfBone(model, "tag_shield_back") == UCHAR_MAX)
+			{
+				const auto parent = GetParentOfBone(model, stowedBack);
+				const auto shieldBack = InsertBone(model, "tag_shield_back", parent, LocalAllocator);
+
+				const float* backTrans = &model->trans[(shieldBack - model->numRootBones) * 3];
+				SetBoneTrans(model, shieldBack, false, backTrans[0], backTrans[1], backTrans[2]);
+			}
+
+			if (GetIndexOfBone(model, "tag_stowed_hip_le") == UCHAR_MAX)
+			{
+				const auto parent = GetParentOfBone(model, hipTwistLeft);
+				const auto stowedHipLe = InsertBone(model, "tag_stowed_hip_le", parent, LocalAllocator);
+			}
+		}
+
+		RebuildPartBits(model);
+	}
+
+
+	uint8_t IXModel::GetIndexOfBone(const Game::IW4::XModel* model, std::string name)
+	{
+		for (uint8_t i = 0; i < model->numBones; i++)
+		{
+			const auto bone = model->boneNames[i];
+			const auto boneName = Game::SL_ConvertToString(bone);
+			if (name == boneName)
+			{
+				return i;
+			}
+		}
+
+		return static_cast<uint8_t>(UCHAR_MAX);
+	};
+
+	uint8_t IXModel::GetParentIndexOfBone(const Game::IW4::XModel* model, uint8_t index)
+	{
+		const auto parentIndex = index - model->parentList[index - model->numRootBones];
+		return static_cast<uint8_t>(parentIndex);
+	};
+
+	void IXModel::SetParentIndexOfBone(Game::IW4::XModel* model, uint8_t boneIndex, uint8_t parentIndex)
+	{
+		if (boneIndex == SCHAR_MAX)
+		{
+			return;
+		}
+
+		model->parentList[boneIndex - model->numRootBones] = boneIndex - parentIndex;
+	};
+
+	std::string IXModel::GetParentOfBone(Game::IW4::XModel* model, uint8_t index)
+	{
+		assert(index > 0);
+		const auto parentIndex = GetParentIndexOfBone(model, index);
+		const auto boneName = Game::SL_ConvertToString(model->boneNames[parentIndex]);
+		return boneName;
+	};
+
+	uint8_t IXModel::GetHighestAffectingBoneIndex(const Game::IW4::XModelLodInfo* lod)
+	{
+		uint8_t highestBoneIndex = 0;
+
+		{
+			for (auto surfIndex = 0; surfIndex < lod->numsurfs; surfIndex++)
+			{
+				const auto surface = &lod->surfs[surfIndex];
+				auto vertsBlendOffset = 0;
+
+				std::unordered_set<uint8_t> affectingBones{};
+
+				const auto registerBoneAffectingSurface = [&](unsigned int offset) {
+					uint8_t index = static_cast<uint8_t>(surface->vertInfo.vertsBlend[offset] / sizeof(Game::IW4::DObjSkelMat));
+					highestBoneIndex = std::max(highestBoneIndex, index);
+					};
+
+
+				// 1 bone weight
+				for (unsigned int vertIndex = 0; vertIndex < surface->vertInfo.vertCount[0]; vertIndex++)
+				{
+					registerBoneAffectingSurface(vertsBlendOffset + 0);
+
+					vertsBlendOffset += 1;
+				}
+
+				// 2 bone weights
+				for (unsigned int vertIndex = 0; vertIndex < surface->vertInfo.vertCount[1]; vertIndex++)
+				{
+					registerBoneAffectingSurface(vertsBlendOffset + 0);
+					registerBoneAffectingSurface(vertsBlendOffset + 1);
+
+					vertsBlendOffset += 3;
+				}
+
+				// 3 bone weights
+				for (unsigned int vertIndex = 0; vertIndex < surface->vertInfo.vertCount[2]; vertIndex++)
+				{
+					registerBoneAffectingSurface(vertsBlendOffset + 0);
+					registerBoneAffectingSurface(vertsBlendOffset + 1);
+					registerBoneAffectingSurface(vertsBlendOffset + 3);
+
+					vertsBlendOffset += 5;
+				}
+
+				// 4 bone weights
+				for (unsigned int vertIndex = 0; vertIndex < surface->vertInfo.vertCount[3]; vertIndex++)
+				{
+					registerBoneAffectingSurface(vertsBlendOffset + 0);
+					registerBoneAffectingSurface(vertsBlendOffset + 1);
+					registerBoneAffectingSurface(vertsBlendOffset + 3);
+					registerBoneAffectingSurface(vertsBlendOffset + 5);
+
+					vertsBlendOffset += 7;
+				}
+
+				for (unsigned int vertListIndex = 0; vertListIndex < surface->vertListCount; vertListIndex++)
+				{
+					highestBoneIndex = std::max(highestBoneIndex, static_cast<uint8_t>(surface->vertList[vertListIndex].boneOffset / sizeof(Game::IW4::DObjSkelMat)));
+				}
+			}
+		}
+
+		return highestBoneIndex;
+	};
+
+	void IXModel::RebuildPartBits(Game::IW4::XModel* model)
+	{
+		constexpr auto LENGTH = 6;
+
+		for (auto i = 0; i < model->numLods; i++)
+		{
+			const auto lod = &model->lodInfo[i];
+			int lodPartBits[6]{};
+
+			for (unsigned short surfIndex = 0; surfIndex < lod->numsurfs; surfIndex++)
+			{
+				const auto surface = &lod->surfs[surfIndex];
+
+				auto vertsBlendOffset = 0;
+
+				int rebuiltPartBits[6]{};
+				std::unordered_set<uint8_t> affectingBones{};
+
+				const auto registerBoneAffectingSurface = [&](unsigned int offset) {
+					uint8_t index = static_cast<uint8_t>(surface->vertInfo.vertsBlend[offset] / sizeof(Game::IW4::DObjSkelMat));
+
+					assert(index >= 0);
+					assert(index < model->numBones);
+
+					affectingBones.emplace(index);
+					};
+
+
+				// 1 bone weight
+				for (unsigned int vertIndex = 0; vertIndex < surface->vertInfo.vertCount[0]; vertIndex++)
+				{
+					registerBoneAffectingSurface(vertsBlendOffset + 0);
+
+					vertsBlendOffset += 1;
+				}
+
+				// 2 bone weights
+				for (unsigned int vertIndex = 0; vertIndex < surface->vertInfo.vertCount[1]; vertIndex++)
+				{
+					registerBoneAffectingSurface(vertsBlendOffset + 0);
+					registerBoneAffectingSurface(vertsBlendOffset + 1);
+
+					vertsBlendOffset += 3;
+				}
+
+				// 3 bone weights
+				for (unsigned int vertIndex = 0; vertIndex < surface->vertInfo.vertCount[2]; vertIndex++)
+				{
+					registerBoneAffectingSurface(vertsBlendOffset + 0);
+					registerBoneAffectingSurface(vertsBlendOffset + 1);
+					registerBoneAffectingSurface(vertsBlendOffset + 3);
+
+					vertsBlendOffset += 5;
+				}
+
+				// 4 bone weights
+				for (unsigned int vertIndex = 0; vertIndex < surface->vertInfo.vertCount[3]; vertIndex++)
+				{
+					registerBoneAffectingSurface(vertsBlendOffset + 0);
+					registerBoneAffectingSurface(vertsBlendOffset + 1);
+					registerBoneAffectingSurface(vertsBlendOffset + 3);
+					registerBoneAffectingSurface(vertsBlendOffset + 5);
+
+					vertsBlendOffset += 7;
+				}
+
+				for (unsigned int vertListIndex = 0; vertListIndex < surface->vertListCount; vertListIndex++)
+				{
+					affectingBones.emplace(static_cast<uint8_t>(surface->vertList[vertListIndex].boneOffset / sizeof(Game::IW4::DObjSkelMat)));
+				}
+
+				// Actually rebuilding
+				for (const auto& boneIndex : affectingBones)
+				{
+					const auto bitPosition = 31 - boneIndex % 32;
+					const auto groupIndex = boneIndex / 32;
+
+					assert(groupIndex < 6);
+					assert(groupIndex >= 0);
+
+					rebuiltPartBits[groupIndex] |= 1 << bitPosition;
+					lodPartBits[groupIndex] |= 1 << bitPosition;
+				}
+
+				std::memcpy(surface->partBits, rebuiltPartBits, 6 * sizeof(int32_t));
+			}
+
+			std::memcpy(lod->partBits, lodPartBits, 6 * sizeof(int32_t));
+			std::memcpy(lod->modelSurfs->partBits, lodPartBits, 6 * sizeof(int32_t));
+
+			// here's a little lesson in trickery:
+			// We set the 192nd part bit to TRUE because it has no consequences
+			//	but allows us to find out whether that surf was already converted in the past or not
+			lod->partBits[LENGTH - 1] |= 0x1;
+			lod->modelSurfs->partBits[LENGTH - 1] |= 0x1;
+		}
+	};
+
+
+	uint8_t IXModel::InsertBone(Game::IW4::XModel* model, const std::string& boneName, const std::string& parentName, Utils::Memory::Allocator& allocator)
+	{
+		assert(GetIndexOfBone(model, boneName) == UCHAR_MAX);
+
+#if DEBUG
+		constexpr auto MAX_BONES = 192;
+		assert(model->numBones < MAX_BONES);
+#endif
+
+		// Start with backing up parent links that we will have to restore
+		// We'll restore them at the end
+		std::map<std::string, std::string> parentsToRestore{};
+		for (uint8_t i = model->numRootBones; i < model->numBones; i++)
+		{
+			parentsToRestore[Game::SL_ConvertToString(model->boneNames[i])] = GetParentOfBone(model, i);
+		}
+
+		const uint8_t newBoneCount = model->numBones + 1;
+		const uint8_t newBoneCountMinusRoot = newBoneCount - model->numRootBones;
+
+		const auto parentIndex = GetIndexOfBone(model, parentName);
+
+		assert(parentIndex != UCHAR_MAX);
+
+		const uint8_t atPosition = parentIndex + 1;
+
+		const uint8_t newBoneIndex = atPosition;
+		const uint8_t newBoneIndexMinusRoot = atPosition - model->numRootBones;
+
+		// Reallocate
+		const auto newBoneNames = allocator.AllocateArray<uint16_t>(newBoneCount);
+		const auto newMats = allocator.AllocateArray<Game::IW3::DObjAnimMat>(newBoneCount);
+		const auto newBoneInfo = allocator.AllocateArray<Game::IW4::XBoneInfo>(newBoneCount);
+		const auto newPartsClassification = allocator.AllocateArray<uint8_t>(newBoneCount);
+		const auto newQuats = allocator.AllocateArray<int16_t>(4 * newBoneCountMinusRoot);
+		const auto newTrans = allocator.AllocateArray<float>(3 * newBoneCountMinusRoot);
+		const auto newParentList = allocator.AllocateArray<uint8_t>(newBoneCountMinusRoot);
+
+		const uint8_t lengthOfFirstPart = atPosition;
+		const uint8_t lengthOfSecondPart = model->numBones - atPosition;
+
+		const uint8_t lengthOfFirstPartM1 = atPosition - model->numRootBones;
+		const uint8_t lengthOfSecondPartM1 = model->numBones - model->numRootBones - (atPosition - model->numRootBones);
+
+		const uint8_t atPositionM1 = atPosition - model->numRootBones;
+
+#if DEBUG
+		// should be equal to model->numBones
+		unsigned int total = lengthOfFirstPart + lengthOfSecondPart;
+		assert(total == model->numBones);
+
+		// should be equal to model->numBones - model->numRootBones
+		int totalM1 = lengthOfFirstPartM1 + lengthOfSecondPartM1;
+		assert(totalM1 == model->numBones - model->numRootBones);
+#endif
+
+		// Copy before
+		if (lengthOfFirstPart > 0)
+		{
+			std::memcpy(newBoneNames, model->boneNames, sizeof(uint16_t) * lengthOfFirstPart);
+			std::memcpy(newMats, model->baseMat, sizeof(Game::IW3::DObjAnimMat) * lengthOfFirstPart);
+			std::memcpy(newPartsClassification, model->partClassification, lengthOfFirstPart);
+			std::memcpy(newBoneInfo, model->boneInfo, sizeof(Game::IW4::XBoneInfo) * lengthOfFirstPart);
+			std::memcpy(newQuats, model->quats, sizeof(uint16_t) * 4 * lengthOfFirstPartM1);
+			std::memcpy(newTrans, model->trans, sizeof(float) * 3 * lengthOfFirstPartM1);
+		}
+
+		// Insert new bone
+		{
+			unsigned int name = Game::SL_GetStringOfSize(boneName.data(), 0, boneName.size()+1);
+			Game::IW4::XBoneInfo boneInfo{};
+
+			Game::IW3::DObjAnimMat mat{};
+
+			// It's ABSOLUTE!
+			mat = model->baseMat[parentIndex];
+
+			boneInfo = model->boneInfo[parentIndex];
+
+			// It's RELATIVE !
+			uint16_t quat[4]{};
+			quat[3] = SHRT_MAX; // 0 0 0 1
+
+			float trans[3]{};
+
+			mat.transWeight = 1.9999f; // Should be 1.9999 like everybody?
+
+			newMats[newBoneIndex] = mat;
+			newBoneInfo[newBoneIndex] = boneInfo;
+			newBoneNames[newBoneIndex] = static_cast<uint16_t>(name);
+
+			// TODO parts Classification
+
+			std::memcpy(&newQuats[newBoneIndexMinusRoot * 4], quat, ARRAYSIZE(quat) * sizeof(uint16_t));
+			std::memcpy(&newTrans[newBoneIndexMinusRoot * 3], trans, ARRAYSIZE(trans) * sizeof(float));
+		}
+
+		// Copy after
+		if (lengthOfSecondPart > 0)
+		{
+			std::memcpy(&newBoneNames[atPosition + 1], &model->boneNames[atPosition], sizeof(uint16_t) * lengthOfSecondPart);
+			std::memcpy(&newMats[atPosition + 1], &model->baseMat[atPosition], sizeof(Game::IW3::DObjAnimMat) * lengthOfSecondPart);
+			std::memcpy(&newPartsClassification[atPosition + 1], &model->partClassification[atPosition], lengthOfSecondPart);
+			std::memcpy(&newBoneInfo[atPosition + 1], &model->boneInfo[atPosition], sizeof(Game::IW4::XBoneInfo) * lengthOfSecondPart);
+			std::memcpy(&newQuats[(atPositionM1 + 1) * 4], &model->quats[atPositionM1 * 4], sizeof(uint16_t) * 4 * lengthOfSecondPartM1);
+			std::memcpy(&newTrans[(atPositionM1 + 1) * 3], &model->trans[atPositionM1 * 3], sizeof(float) * 3 * lengthOfSecondPartM1);
+		}
+
+		//Game::Z_VirtualFree(model->baseMat);
+		//Game::Z_VirtualFree(model->boneInfo);
+		//Game::Z_VirtualFree(model->boneNames);
+		//Game::Z_VirtualFree(model->quats);
+		//Game::Z_VirtualFree(model->trans);
+		//Game::Z_VirtualFree(model->parentList);
+
+		// Assign reallocated
+		model->baseMat = newMats;
+		model->boneInfo = newBoneInfo;
+		model->boneNames = newBoneNames;
+		model->quats = newQuats;
+		model->trans = newTrans;
+		model->parentList = newParentList;
+
+		model->numBones = newBoneCount;
+
+		// Update vertex weight
+		for (uint8_t lodIndex = 0; lodIndex < model->numLods; lodIndex++)
+		{
+			const auto lod = &model->lodInfo[lodIndex];
+
+			if ((lod->modelSurfs->partBits[5] & 0x1) == 0x1)
+			{
+				// surface lod already converted (more efficient)
+				std::memcpy(lod->partBits, lod->modelSurfs->partBits, 6 * sizeof(uint32_t));
+				continue;
+			}
+
+			if (GetHighestAffectingBoneIndex(lod) >= model->numBones)
+			{
+				// surface lod already converted (more accurate)
+				continue;
+			}
+
+			for (int surfIndex = 0; surfIndex < lod->modelSurfs->numSurfaces; surfIndex++)
+			{
+				auto vertsBlendOffset = 0u;
+
+				const auto surface = &lod->modelSurfs->surfaces[surfIndex];
+
+				static_assert(sizeof(Game::IW4::DObjSkelMat) == 64);
+
+				{
+					const auto fixVertexBlendIndex = [&](unsigned int offset) {
+
+						int index = static_cast<int>(surface->vertInfo.vertsBlend[offset] / sizeof(Game::IW4::DObjSkelMat));
+
+						if (index >= atPosition)
+						{
+							index++;
+
+							if (index < 0 || index >= model->numBones)
+							{
+								Components::Logger::Print("Unexpected 'bone index' {} out of {} bones while working vertex blend of: xmodel {} lod {} xmodelsurf {} surf #{}", index, model->numBones, model->name, lodIndex, lod->modelSurfs->name, lodIndex, surfIndex);
+								assert(false);
+							}
+
+							surface->vertInfo.vertsBlend[offset] = static_cast<unsigned short>(index * sizeof(Game::IW4::DObjSkelMat));
+						}
+						};
+
+					//  Fix bone offsets
+					if (surface->vertList)
+					{
+						for (auto vertListIndex = 0u; vertListIndex < surface->vertListCount; vertListIndex++)
+						{
+							const auto vertList = &surface->vertList[vertListIndex];
+
+							auto index = vertList->boneOffset / sizeof(Game::IW4::DObjSkelMat);
+							if (index >= atPosition)
+							{
+								index++;
+
+								if (index < 0 || index >= model->numBones)
+								{
+									Components::Logger::Print("Unexpected 'bone index' {} out of {} bones while working vertex list of: xmodel {} lod {} xmodelsurf {} surf #{}\n", index, model->numBones, model->name, lodIndex, lod->modelSurfs->name, surfIndex);
+									assert(false);
+								}
+
+								vertList->boneOffset = static_cast<unsigned short>(index * sizeof(Game::IW4::DObjSkelMat));
+							}
+						}
+					}
+
+					// 1 bone weight
+					for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[0]; vertIndex++)
+					{
+						fixVertexBlendIndex(vertsBlendOffset + 0);
+
+						vertsBlendOffset += 1;
+					}
+
+					// 2 bone weights
+					for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[1]; vertIndex++)
+					{
+						fixVertexBlendIndex(vertsBlendOffset + 0);
+						fixVertexBlendIndex(vertsBlendOffset + 1);
+
+						vertsBlendOffset += 3;
+					}
+
+					// 3 bone weights
+					for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[2]; vertIndex++)
+					{
+						fixVertexBlendIndex(vertsBlendOffset + 0);
+						fixVertexBlendIndex(vertsBlendOffset + 1);
+						fixVertexBlendIndex(vertsBlendOffset + 3);
+
+						vertsBlendOffset += 5;
+					}
+
+					// 4 bone weights
+					for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[3]; vertIndex++)
+					{
+						fixVertexBlendIndex(vertsBlendOffset + 0);
+						fixVertexBlendIndex(vertsBlendOffset + 1);
+						fixVertexBlendIndex(vertsBlendOffset + 3);
+						fixVertexBlendIndex(vertsBlendOffset + 5);
+
+						vertsBlendOffset += 7;
+					}
+				}
+			}
+		}
+
+		SetParentIndexOfBone(model, atPosition, parentIndex);
+
+		// Restore parents
+		for (const auto& kv : parentsToRestore)
+		{
+			// Fix parents
+			const auto key = kv.first;
+			const auto beforeVal = kv.second;
+
+			const auto p = GetIndexOfBone(model, beforeVal);
+			const auto index = GetIndexOfBone(model, key);
+			SetParentIndexOfBone(model, index, p);
+		}
+
+		return atPosition; // Bone index of added bone
+	};
+
+
+	void IXModel::SetBoneTrans(Game::IW4::XModel* model, uint8_t boneIndex, bool baseMat, float x, float y, float z)
+	{
+		if (baseMat)
+		{
+			model->baseMat[boneIndex].trans[0] = x;
+			model->baseMat[boneIndex].trans[1] = y;
+			model->baseMat[boneIndex].trans[2] = z;
+		}
+		else
+		{
+			const auto index = boneIndex - model->numRootBones;
+			assert(index >= 0);
+
+			model->trans[index * 3 + 0] = x;
+			model->trans[index * 3 + 1] = y;
+			model->trans[index * 3 + 2] = z;
+		}
+	}
+
+	void IXModel::SetBoneQuaternion(Game::IW4::XModel* model, uint8_t boneIndex, bool baseMat, float x, float y, float z, float w)
+	{
+		if (baseMat)
+		{
+			model->baseMat[boneIndex].quat[0] = x;
+			model->baseMat[boneIndex].quat[1] = y;
+			model->baseMat[boneIndex].quat[2] = z;
+			model->baseMat[boneIndex].quat[3] = w;
+		}
+		else
+		{
+			const auto index = boneIndex - model->numRootBones;
+			assert(index >= 0);
+
+			model->quats[index * 4 + 0] = static_cast<uint16_t>(x * SHRT_MAX);
+			model->quats[index * 4 + 1] = static_cast<uint16_t>(y * SHRT_MAX);
+			model->quats[index * 4 + 2] = static_cast<uint16_t>(z * SHRT_MAX);
+			model->quats[index * 4 + 3] = static_cast<uint16_t>(w * SHRT_MAX);
+		}
+	}
+
 
 	IXModel::IXModel()
 	{
@@ -270,15 +811,7 @@ namespace Components
 							auto entry = &poolEntry->entry;
 							if (entry->inuse == 1 && entry->asset.header.data && entry->asset.header.model->name)
 							{
-
-								OutputDebugStringA(entry->asset.header.model->name);
-								OutputDebugStringA("\n");
-
 								names.emplace_back(entry->asset.header.model->name);
-							}
-							else
-							{
-								printf("");
 							}
 						}
 					}, false);
@@ -303,5 +836,10 @@ namespace Components
 	IXModel::~IXModel()
 	{
 
+	}
+
+	void IXModel::Reset()
+	{
+		convertedModelSurfaces.clear();
 	}
 }

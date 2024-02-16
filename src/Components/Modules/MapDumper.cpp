@@ -21,6 +21,8 @@ namespace Components
 
 	void MapDumper::DumpMap(std::string mapToDump)
 	{
+		IXModel::Reset();
+
 		MapDumper::mapName = mapToDump;
 		bool isSingleplayer = !mapToDump.starts_with("mp_");
 		std::string bspName = Utils::VA("maps/%s%s.d3dbsp", isSingleplayer ? "" : "mp/", mapToDump.data());

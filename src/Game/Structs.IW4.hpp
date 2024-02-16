@@ -338,6 +338,12 @@ namespace Game::IW4
 		float radiusSquared;
 	};
 
+	struct DObjSkelMat
+	{
+		float axis[3][4];
+		float origin[4];
+	};
+
 	struct GfxSurface
 	{
 		IW3::srfTriangles_t tris;
